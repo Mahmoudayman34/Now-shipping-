@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:tes1/features/business/pickups/models/pickup_model.dart';
-import 'package:tes1/features/business/pickups/widgets/special_requirement_card.dart';
+import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
+import 'package:now_shipping/features/business/pickups/widgets/special_requirement_card.dart';
 
 class CreatePickupScreen extends StatefulWidget {
   final PickupModel? pickupToEdit; // Added parameter for pickup to edit

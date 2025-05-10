@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes1/features/business/dashboard/providers/profile_form_provider.dart';
+import 'package:now_shipping/features/business/dashboard/providers/profile_form_provider.dart';
 import '../../../common/widgets/app_text_field.dart';
 import '../../../../core/utils/validators.dart';
-import 'package:tes1/core/widgets/toast_.dart' show ToastService, ToastType;
+import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastType;
 
 class DashboardBrandInfoStep extends ConsumerStatefulWidget {
   final VoidCallback onComplete;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';  // Add this import for haptic feedback
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes1/core/widgets/toast_.dart' show ToastService, ToastType;
+import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastType;
 import '../providers/profile_form_provider.dart';
 
 class DashboardPaymentMethodStep extends ConsumerStatefulWidget {

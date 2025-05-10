@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tes1/features/business/orders/screens/create_order/create_order_screen.dart';
-import 'package:tes1/features/business/orders/screens/order_details_screen_refactored.dart';
-import 'package:tes1/features/business/orders/widgets/order_details/action_item.dart';
+import 'package:now_shipping/features/business/orders/screens/create_order/create_order_screen.dart';
+import 'package:now_shipping/features/business/orders/screens/order_details_screen_refactored.dart';
+import 'package:now_shipping/features/business/orders/widgets/order_details/action_item.dart';
 
 /// Shows a bottom sheet with actions for an order
 void showOrderActionsBottomSheet(BuildContext context, Map<String, dynamic> order) {

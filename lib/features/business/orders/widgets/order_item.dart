@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tes1/core/utils/status_colors.dart';
-import 'package:tes1/features/business/orders/widgets/order_actions_bottom_sheet.dart';
+import 'package:now_shipping/core/utils/status_colors.dart';
+import 'package:now_shipping/features/business/orders/widgets/order_actions_bottom_sheet.dart';
 
 class OrderItem extends StatelessWidget {
   final String orderId;

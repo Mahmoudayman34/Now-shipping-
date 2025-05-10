@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tes1/core/utils/status_colors.dart';
+import 'package:now_shipping/core/utils/status_colors.dart';
 
 /// Widget that displays an individual tracking step in the timeline
 class TrackingStepItem extends StatelessWidget {

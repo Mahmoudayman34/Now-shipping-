@@ -1,7 +1,7 @@
 // import 'package:flutter/material.dart';
 // import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
-// import 'package:tes1/core/utils/status_colors.dart';
-// import 'package:tes1/features/orders/screens/create_order/create_order_screen.dart';
+// import 'package:now_shipping/core/utils/status_colors.dart';
+// import 'package:now_shipping/features/orders/screens/create_order/create_order_screen.dart';
 
 // class OrderDetailsScreen extends StatefulWidget {
 //   final String orderId;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes1/features/business/orders/providers/order_providers.dart';
+import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
 
 class CashCollectionDetailsWidget extends ConsumerStatefulWidget {
   const CashCollectionDetailsWidget({Key? key}) : super(key: key);

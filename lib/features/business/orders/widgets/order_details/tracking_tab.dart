@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-//import 'package:tes1/core/utils/status_colors.dart';
-import 'package:tes1/features/business/orders/providers/order_details_provider.dart';
-import 'package:tes1/features/business/orders/widgets/order_details/tracking_step_item.dart';
+//import 'package:now_shipping/core/utils/status_colors.dart';
+import 'package:now_shipping/features/business/orders/providers/order_details_provider.dart';
+import 'package:now_shipping/features/business/orders/widgets/order_details/tracking_step_item.dart';
 
 /// The tracking tab showing order tracking timeline
 class TrackingTab extends ConsumerWidget {

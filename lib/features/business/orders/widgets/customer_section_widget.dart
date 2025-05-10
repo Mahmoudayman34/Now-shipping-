@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes1/features/business/orders/providers/order_providers.dart';
-import 'package:tes1/features/business/orders/screens/create_order/customer_details_screen.dart';
+import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
+import 'package:now_shipping/features/business/orders/screens/create_order/customer_details_screen.dart';
 
 class CustomerSectionWidget extends ConsumerWidget {
   const CustomerSectionWidget({Key? key}) : super(key: key);

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes1/features/business/dashboard/screens/dashboard_screen.dart';
-import 'package:tes1/features/auth/services/auth_service.dart'; 
-import 'package:tes1/core/widgets/toast_.dart'; 
-import 'package:tes1/features/business/orders/screens/create_order/create_order_screen.dart';
-import 'package:tes1/features/business/pickups/screens/create_pickup_screen.dart';
+import 'package:now_shipping/features/business/dashboard/screens/dashboard_screen.dart';
+import 'package:now_shipping/features/auth/services/auth_service.dart'; 
+import 'package:now_shipping/core/widgets/toast_.dart'; 
+import 'package:now_shipping/features/business/orders/screens/create_order/create_order_screen.dart';
+import 'package:now_shipping/features/business/pickups/screens/create_pickup_screen.dart';
 
 // Provider to manage the selected tab index
 final selectedTabIndexProvider = StateProvider<int>((ref) => 0);

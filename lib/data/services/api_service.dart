@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:tes1/config/env.dart';
-import 'package:tes1/core/exceptions/api_exception.dart';
+import 'package:now_shipping/config/env.dart';
+import 'package:now_shipping/core/exceptions/api_exception.dart';
 
 class ApiService {
   final http.Client _client;

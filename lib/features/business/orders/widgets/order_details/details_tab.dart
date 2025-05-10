@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes1/features/business/orders/providers/order_details_provider.dart';
-import 'package:tes1/features/business/orders/widgets/order_details/customer_section.dart';
-import 'package:tes1/features/business/orders/widgets/order_details/shipping_section.dart';
-import 'package:tes1/features/business/orders/widgets/order_details/delivery_details_section.dart';
-import 'package:tes1/features/business/orders/widgets/order_details/exchange_details_section.dart';
-import 'package:tes1/features/business/orders/widgets/order_details/return_details_section.dart';
-import 'package:tes1/features/business/orders/widgets/order_details/additional_details_section.dart';
-import 'package:tes1/features/business/orders/widgets/order_details/scan_sticker_button.dart';
+import 'package:now_shipping/features/business/orders/providers/order_details_provider.dart';
+import 'package:now_shipping/features/business/orders/widgets/order_details/customer_section.dart';
+import 'package:now_shipping/features/business/orders/widgets/order_details/shipping_section.dart';
+import 'package:now_shipping/features/business/orders/widgets/order_details/delivery_details_section.dart';
+import 'package:now_shipping/features/business/orders/widgets/order_details/exchange_details_section.dart';
+import 'package:now_shipping/features/business/orders/widgets/order_details/return_details_section.dart';
+import 'package:now_shipping/features/business/orders/widgets/order_details/additional_details_section.dart';
+import 'package:now_shipping/features/business/orders/widgets/order_details/scan_sticker_button.dart';
 
 /// The details tab showing customer and order information
 class DetailsTab extends ConsumerWidget {

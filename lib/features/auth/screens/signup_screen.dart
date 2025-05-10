@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes1/core/utils/validators.dart';
-import 'package:tes1/core/utils/responsive_utils.dart';
-import 'package:tes1/core/widgets/toast_.dart' show ToastService, ToastType;
-import 'package:tes1/features/auth/services/auth_service.dart';
+import 'package:now_shipping/core/utils/validators.dart';
+import 'package:now_shipping/core/utils/responsive_utils.dart';
+import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastType;
+import 'package:now_shipping/features/auth/services/auth_service.dart';
 import '../../common/widgets/app_text_field.dart';
 import '../../common/widgets/shimmer_loading.dart';
 import 'login_screen.dart';

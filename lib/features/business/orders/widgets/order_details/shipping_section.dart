@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tes1/features/business/orders/widgets/order_details/section_utilities.dart';
+import 'package:now_shipping/features/business/orders/widgets/order_details/section_utilities.dart';
 
 class ShippingSection extends StatelessWidget {
   final String deliveryType;

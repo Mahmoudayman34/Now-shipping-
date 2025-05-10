@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes1/core/widgets/toast_.dart' show ToastService, ToastType;
-import 'package:tes1/features/business/home/screens/home_container.dart';
+import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastType;
+import 'package:now_shipping/features/business/home/screens/home_container.dart';
 import '../../../auth/services/auth_service.dart';
 import 'email_verification_step.dart';
 import 'brand_info_step.dart';

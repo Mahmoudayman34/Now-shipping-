@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes1/core/widgets/toast_.dart';
-import 'package:tes1/features/auth/services/auth_service.dart';
-import 'package:tes1/features/business/pickups/models/pickup_model.dart';
-import 'package:tes1/features/business/pickups/screens/create_pickup_screen.dart';
-import 'package:tes1/features/business/pickups/screens/pickup_details_screen.dart';
-import 'package:tes1/features/business/pickups/widgets/pickup_card.dart';
+import 'package:now_shipping/core/widgets/toast_.dart';
+import 'package:now_shipping/features/auth/services/auth_service.dart';
+import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
+import 'package:now_shipping/features/business/pickups/screens/create_pickup_screen.dart';
+import 'package:now_shipping/features/business/pickups/screens/pickup_details_screen.dart';
+import 'package:now_shipping/features/business/pickups/widgets/pickup_card.dart';
 import 'package:intl/intl.dart';
 
 class PickupsScreen extends StatefulWidget {

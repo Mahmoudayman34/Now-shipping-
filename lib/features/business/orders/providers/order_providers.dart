@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes1/features/business/orders/models/order_model.dart';
+import 'package:now_shipping/features/business/orders/models/order_model.dart';
 
 // Provider for customer data
 final customerDataProvider = StateProvider<Map<String, dynamic>?>((ref) => null);

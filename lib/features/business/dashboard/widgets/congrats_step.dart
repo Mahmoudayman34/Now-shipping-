@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
-import 'package:tes1/features/business/dashboard/providers/profile_form_provider.dart';
+import 'package:now_shipping/features/business/dashboard/providers/profile_form_provider.dart';
 import 'profile_completion_form.dart';
 
 class DashboardCongratsStep extends ConsumerStatefulWidget {

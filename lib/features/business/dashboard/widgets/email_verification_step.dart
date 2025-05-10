@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:tes1/core/widgets/toast_.dart' show ToastService, ToastType;
-import 'package:tes1/features/business/dashboard/providers/profile_form_provider.dart';
-import 'package:tes1/features/business/dashboard/providers/dashboard_provider.dart';
+import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastType;
+import 'package:now_shipping/features/business/dashboard/providers/profile_form_provider.dart';
+import 'package:now_shipping/features/business/dashboard/providers/dashboard_provider.dart';
 import '../../../auth/services/auth_service.dart';
 import 'profile_completion_form.dart';
 

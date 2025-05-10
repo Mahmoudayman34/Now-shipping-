@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes1/core/widgets/toast_.dart';
-import 'package:tes1/features/business/dashboard/providers/profile_form_provider.dart';
+import 'package:now_shipping/core/widgets/toast_.dart';
+import 'package:now_shipping/features/business/dashboard/providers/profile_form_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;

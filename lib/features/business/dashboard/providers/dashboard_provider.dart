@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes1/data/services/api_service.dart';
-import 'package:tes1/features/auth/services/auth_service.dart';
+import 'package:now_shipping/data/services/api_service.dart';
+import 'package:now_shipping/features/auth/services/auth_service.dart';
 import '../models/dashboard_model.dart';
 
 class DashboardService {

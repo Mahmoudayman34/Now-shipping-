@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tes1/features/business/orders/providers/order_details_provider.dart';
-import 'package:tes1/features/business/orders/widgets/order_details/section_utilities.dart';
+import 'package:now_shipping/features/business/orders/providers/order_details_provider.dart';
+import 'package:now_shipping/features/business/orders/widgets/order_details/section_utilities.dart';
 
 class ReturnDetailsSection extends StatelessWidget {
   final OrderDetailsModel orderDetails;

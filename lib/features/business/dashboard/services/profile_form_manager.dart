@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/profile_form_provider.dart';
-import 'package:tes1/core/widgets/toast_.dart' show ToastService, ToastType;
+import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastType;
 import '../../../auth/services/auth_service.dart';
-import 'package:tes1/data/services/api_service.dart';
+import 'package:now_shipping/data/services/api_service.dart';
 import '../models/profile_completion_model.dart';
 
 /// A helper class to manage the profile completion form operations

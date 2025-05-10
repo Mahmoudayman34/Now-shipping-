@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:tes1/features/business/pickups/models/pickup_model.dart';
-import 'package:tes1/features/business/pickups/screens/create_pickup_screen.dart';
+import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
+import 'package:now_shipping/features/business/pickups/screens/create_pickup_screen.dart';
 
 class PickupDetailsScreen extends StatefulWidget {
   final PickupModel pickup;
