@@ -47,9 +47,7 @@ class MainLayout extends ConsumerWidget {
   }
   
   Widget _buildBottomNavigationBar(BuildContext context, int selectedIndex, WidgetRef ref) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Container(
+    return Container(
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
@@ -60,7 +58,7 @@ class MainLayout extends ConsumerWidget {
           ],
           color: Colors.white,
         ),
-        height: 60,
+        height: 68,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
@@ -71,7 +69,7 @@ class MainLayout extends ConsumerWidget {
             _buildNavItem(context, 4, 'assets/icons/more.png', 'More', selectedIndex, ref),
           ],
         ),
-      ),
+    
     );
   }
 

@@ -40,7 +40,7 @@ class DashboardStats {
     
     return DashboardStats(
       // Order stats
-      inHubPackages: orderStats['totalOrders'] ?? 0,
+      inHubPackages: orderStats['inStockCount'] ?? 0,
       headingToCustomer: orderStats['headingToCustomerCount'] ?? 0,
       awaitingAction: orderStats['awaitingActionCount'] ?? 0,
       successfulOrders: orderStats['completedCount'] ?? 0,

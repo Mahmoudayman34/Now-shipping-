@@ -5,10 +5,14 @@ class OrderModel {
   String? customerAddress;
   String? deliveryType;
   String? productDescription;
+  String? newProductDescription;
   int? numberOfItems;
   int? numberOfNewItems;
-  int? numberOfReturnItems;
+  int? numberOfReturnItems;  
   bool? cashOnDelivery;
+  String? cashOnDeliveryAmount;
+  bool? hasCashDifference;
+  String? cashDifferenceAmount;
   bool? allowPackageInspection;
   String? specialInstructions;
   String? referralNumber;
@@ -23,10 +27,14 @@ class OrderModel {
     this.customerAddress,
     this.deliveryType = 'Deliver',
     this.productDescription,
+    this.newProductDescription,
     this.numberOfItems = 1,
-    this.numberOfNewItems = 1,
+    this.numberOfNewItems = 1,    
     this.numberOfReturnItems = 1,
     this.cashOnDelivery = false,
+    this.cashOnDeliveryAmount,
+    this.hasCashDifference = false,
+    this.cashDifferenceAmount,
     this.allowPackageInspection = false,
     this.specialInstructions,
     this.referralNumber,
@@ -44,10 +52,14 @@ class OrderModel {
       'customerAddress': customerAddress,
       'deliveryType': deliveryType,
       'productDescription': productDescription,
-      'numberOfItems': numberOfItems,
+      'newProductDescription': newProductDescription,
+      'numberOfItems': numberOfItems,      
       'numberOfNewItems': numberOfNewItems,
       'numberOfReturnItems': numberOfReturnItems,
       'cashOnDelivery': cashOnDelivery,
+      'cashOnDeliveryAmount': cashOnDeliveryAmount,
+      'hasCashDifference': hasCashDifference,
+      'cashDifferenceAmount': cashDifferenceAmount,
       'allowPackageInspection': allowPackageInspection,
       'specialInstructions': specialInstructions,
       'referralNumber': referralNumber,
@@ -66,10 +78,14 @@ class OrderModel {
       customerAddress: map['customerAddress'],
       deliveryType: map['deliveryType'],
       productDescription: map['productDescription'],
+      newProductDescription: map['newProductDescription'],
       numberOfItems: map['numberOfItems'],
       numberOfNewItems: map['numberOfNewItems'],
       numberOfReturnItems: map['numberOfReturnItems'],
       cashOnDelivery: map['cashOnDelivery'],
+      cashOnDeliveryAmount: map['cashOnDeliveryAmount'],
+      hasCashDifference: map['hasCashDifference'],
+      cashDifferenceAmount: map['cashDifferenceAmount'],
       allowPackageInspection: map['allowPackageInspection'],
       specialInstructions: map['specialInstructions'],
       referralNumber: map['referralNumber'],

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
 
 class ExchangeDetailsWidget extends ConsumerStatefulWidget {
-  const ExchangeDetailsWidget({Key? key}) : super(key: key);
+  const ExchangeDetailsWidget({super.key});
 
   @override
   ConsumerState<ExchangeDetailsWidget> createState() => _ExchangeDetailsWidgetState();
@@ -12,12 +13,14 @@ class ExchangeDetailsWidget extends ConsumerStatefulWidget {
 class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
   late TextEditingController _currentProductDescriptionController;
   late TextEditingController _newProductDescriptionController;
+  late TextEditingController _cashDifferenceAmountController;
 
   @override
   void initState() {
     super.initState();
     _currentProductDescriptionController = TextEditingController();
     _newProductDescriptionController = TextEditingController();
+    _cashDifferenceAmountController = TextEditingController();
   }
 
   @override
@@ -28,12 +31,19 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
     if (order.productDescription != null && _currentProductDescriptionController.text.isEmpty) {
       _currentProductDescriptionController.text = order.productDescription!;
     }
+    if (order.newProductDescription != null && _newProductDescriptionController.text.isEmpty) {
+      _newProductDescriptionController.text = order.newProductDescription!;
+    }
+    if (order.cashDifferenceAmount != null && _cashDifferenceAmountController.text.isEmpty) {
+      _cashDifferenceAmountController.text = order.cashDifferenceAmount!;
+    }
   }
 
   @override
   void dispose() {
     _currentProductDescriptionController.dispose();
     _newProductDescriptionController.dispose();
+    _cashDifferenceAmountController.dispose();
     super.dispose();
   }
 
@@ -42,6 +52,7 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
     final order = ref.watch(orderModelProvider);
     final numberOfCurrentItems = order.numberOfItems ?? 1;
     final numberOfNewItems = order.numberOfNewItems ?? 1;
+    final hasCashDifference = order.hasCashDifference ?? false;
 
     return Container(
       width: double.infinity,
@@ -285,6 +296,72 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
               ),
             ],
           ),
+          
+          const SizedBox(height: 24),
+          
+          // Cash Difference Checkbox
+          Row(
+            children: [
+              Checkbox(
+                value: hasCashDifference,
+                activeColor: const Color(0xfff29620),
+                onChanged: (value) {
+                  ref.read(orderModelProvider.notifier).updateExchangeDetails(
+                    hasCashDifference: value,
+                  );
+                  if (value == false) {
+                    _cashDifferenceAmountController.clear();
+                    ref.read(orderModelProvider.notifier).updateExchangeDetails(
+                      cashDifferenceAmount: null,
+                    );
+                  }
+                },
+              ),
+              const Text(
+                'Cash Difference',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xff2F2F2F),
+                ),
+              ),
+            ],
+          ),
+          
+          // Cash Difference Amount TextField (only visible when checkbox is checked)
+          if (hasCashDifference) ...[
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _cashDifferenceAmountController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Cash Difference Amount',
+                labelStyle: const TextStyle(color: Color(0xff2F2F2F)),
+                hintText: 'Enter amount',
+                prefixText: 'EGP ',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Color(0xfff29620)),
+                ),
+              ),
+              onChanged: (value) {
+                // Only allow numeric input
+                if (value.isNotEmpty && double.tryParse(value) != null) {
+                  ref.read(orderModelProvider.notifier).updateExchangeDetails(
+                    cashDifferenceAmount: value,
+                  );
+                }
+              },
+              // Ensure only numbers are entered
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+              ],
+            ),
+          ],
         ],
       ),
     );

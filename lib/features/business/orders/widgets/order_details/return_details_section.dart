@@ -6,9 +6,9 @@ class ReturnDetailsSection extends StatelessWidget {
   final OrderDetailsModel orderDetails;
 
   const ReturnDetailsSection({
-    Key? key,
+    super.key,
     required this.orderDetails,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +25,7 @@ class ReturnDetailsSection extends StatelessWidget {
           // Number of Return Items
           DetailRow(
             label: 'Number of Items',
-            value: '${orderDetails.returnItems ?? 0}',
+            value: '${orderDetails.returnItems ?? orderDetails.numberOfItems ?? 1}',
           ),
           
           const SizedBox(height: 12),

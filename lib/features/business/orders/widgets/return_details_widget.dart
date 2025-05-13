@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
 
 class ReturnDetailsWidget extends ConsumerStatefulWidget {
-  const ReturnDetailsWidget({Key? key}) : super(key: key);
+  const ReturnDetailsWidget({super.key});
 
   @override
   ConsumerState<ReturnDetailsWidget> createState() => _ReturnDetailsWidgetState();
@@ -26,10 +26,37 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
     if (order.productDescription != null && _returnProductDescriptionController.text.isEmpty) {
       _returnProductDescriptionController.text = order.productDescription!;
     }
+    
+    // Ensure numberOfItems is initialized for Return order
+    if (order.numberOfItems == null || order.numberOfItems == 0) {
+      // Set a default of 1 if not already set
+      ref.read(orderModelProvider.notifier).updateDeliveryDetails(
+        numberOfItems: 1,
+      );
+      print('DEBUG RETURN: Initialized numberOfItems to 1');
+    }
+  }
+
+  // Validates the product description field
+  bool validateProductDescription() {
+    final description = _returnProductDescriptionController.text.trim();
+    if (description.isEmpty) {
+      print('DEBUG RETURN: Product description is empty');
+      return false;
+    }
+    
+    // Update the provider with validated description
+    ref.read(orderModelProvider.notifier).updateReturnDetails(
+      returnProductDescription: description,
+    );
+    print('DEBUG RETURN: Product description validated and saved: $description');
+    return true;
   }
 
   @override
   void dispose() {
+    // Ensure product description is validated before disposing
+    validateProductDescription();
     _returnProductDescriptionController.dispose();
     super.dispose();
   }
@@ -37,7 +64,7 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
   @override
   Widget build(BuildContext context) {
     final order = ref.watch(orderModelProvider);
-    final numberOfReturnItems = order.numberOfReturnItems ?? 1;
+    final numberOfItems = order.numberOfItems ?? 1;
 
     return Container(
       width: double.infinity,
@@ -88,6 +115,14 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
               ref.read(orderModelProvider.notifier).updateReturnDetails(
                 returnProductDescription: value,
               );
+              print('DEBUG RETURN: Product description updated to: $value');
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                print('DEBUG RETURN: Product description validation error - empty');
+                return 'Please enter a product description';
+              }
+              return null;
             },
             decoration: InputDecoration(
               hintText: 'Describe the products being returned',
@@ -121,10 +156,11 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
                   // Minus button
                   InkWell(
                     onTap: () {
-                      if (numberOfReturnItems > 1) {
-                        ref.read(orderModelProvider.notifier).updateReturnDetails(
-                          numberOfReturnItems: numberOfReturnItems - 1,
+                      if (numberOfItems > 1) {
+                        ref.read(orderModelProvider.notifier).updateDeliveryDetails(
+                          numberOfItems: numberOfItems - 1,
                         );
+                        print('DEBUG RETURN: Decreased numberOfItems to ${numberOfItems - 1}');
                       }
                     },
                     child: Container(
@@ -144,7 +180,7 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
                     height: 30,
                     alignment: Alignment.center,
                     child: Text(
-                      '$numberOfReturnItems',
+                      '$numberOfItems',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -155,9 +191,10 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
                   // Plus button
                   InkWell(
                     onTap: () {
-                      ref.read(orderModelProvider.notifier).updateReturnDetails(
-                        numberOfReturnItems: numberOfReturnItems + 1,
+                      ref.read(orderModelProvider.notifier).updateDeliveryDetails(
+                        numberOfItems: numberOfItems + 1,
                       );
+                      print('DEBUG RETURN: Increased numberOfItems to ${numberOfItems + 1}');
                     },
                     child: Container(
                       width: 30,

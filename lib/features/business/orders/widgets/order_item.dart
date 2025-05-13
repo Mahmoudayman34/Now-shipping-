@@ -11,14 +11,14 @@ class OrderItem extends StatelessWidget {
   final VoidCallback onTap;
 
   const OrderItem({
-    Key? key,
+    super.key,
     required this.orderId,
     required this.customerName,
     required this.location,
     required this.amount,
     required this.status,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +151,21 @@ class OrderItem extends StatelessWidget {
                   Expanded(
                     child: Row(
                       children: [
-                        const Icon(Icons.attach_money, color: Colors.green, size: 20),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.green.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'EGP',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           amount,

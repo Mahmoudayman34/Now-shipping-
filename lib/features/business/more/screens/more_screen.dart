@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../features/auth/services/auth_service.dart';
 import '../../../../features/auth/screens/login_screen.dart';
+import 'notifications_screen.dart';
+import 'profile_edit_screen.dart';
+import 'personal_info_screen.dart';
+import 'security_screen.dart';
+import 'language_screen.dart';
+import 'help_center_screen.dart';
+import 'contact_us_screen.dart';
+import 'about_screen.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
@@ -17,7 +25,13 @@ class MoreScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
-              // Implement notifications
+              // Navigate to notifications screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsScreen(),
+                ),
+              );
             },
           ),
         ],
@@ -79,6 +93,12 @@ class MoreScreen extends ConsumerWidget {
                     icon: const Icon(Icons.edit_outlined),
                     onPressed: () {
                       // Navigate to profile edit
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileEditScreen(),
+                        ),
+                      );
                     },
                   ),
                 ],
@@ -92,14 +112,31 @@ class MoreScreen extends ConsumerWidget {
             _buildSettingItem(
               icon: Icons.account_circle_outlined,
               title: 'Personal Information',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PersonalInfoScreen(),
+                  ),
+                );
+              },
             ),
 
+            // Commenting out Security option
+            /* 
             _buildSettingItem(
               icon: Icons.lock_outline,
               title: 'Security',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SecurityScreen(),
+                  ),
+                );
+              },
             ),
+            */
             
             const SizedBox(height: 24),
             
@@ -109,33 +146,58 @@ class MoreScreen extends ConsumerWidget {
               icon: Icons.language_outlined,
               title: 'Language',
               value: 'English',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LanguageScreen(),
+                  ),
+                );
+              },
             ),
-            // _buildSettingItem(
-            //   icon: Icons.notifications_outlined,
-            //   title: 'Notifications',
-            //   onTap: () {},
-            // ),
-
             
             const SizedBox(height: 24),
             
             // Support section
             _buildSectionTitle('Support'),
+            // Commenting out Help Center option
+            /*
             _buildSettingItem(
               icon: Icons.help_outline,
               title: 'Help Center',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HelpCenterScreen(),
+                  ),
+                );
+              },
             ),
+            */
             _buildSettingItem(
               icon: Icons.chat_outlined,
               title: 'Contact Us',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ContactUsScreen(),
+                  ),
+                );
+              },
             ),
             _buildSettingItem(
               icon: Icons.info_outline,
               title: 'About',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AboutScreen(),
+                  ),
+                );
+              },
             ),
             
             const SizedBox(height: 24),
@@ -147,13 +209,18 @@ class MoreScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    await authService.logout();
-                    // Navigate to login screen and clear the navigation stack
-                    if (context.mounted) {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (context) => const LoginScreen()),
-                        (route) => false, // Remove all previous routes
-                      );
+                    // Show confirmation dialog
+                    final shouldLogout = await _showLogoutConfirmationDialog(context);
+                    if (shouldLogout == true && context.mounted) {
+                      // Perform logout
+                      await authService.logout();
+                      // Navigate to login screen and clear the navigation stack
+                      if (context.mounted) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(builder: (context) => const LoginScreen()),
+                          (route) => false, // Remove all previous routes
+                        );
+                      }
                     }
                   },
                   icon: const Icon(Icons.exit_to_app),
@@ -168,6 +235,27 @@ class MoreScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+  
+  // Helper method to show logout confirmation dialog
+  Future<bool?> _showLogoutConfirmationDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Logout', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }

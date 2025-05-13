@@ -40,19 +40,29 @@ class ApiService {
         queryParameters: queryParams,
       );
       
+      print('DEBUG API: GET request to $uri');
+      print('DEBUG API: Headers: ${_getHeaders(token: token)}');
+      
       final response = await _client.get(
         uri,
         headers: _getHeaders(token: token),
       ).timeout(const Duration(seconds: 30));
       
+      print('DEBUG API: Response status code: ${response.statusCode}');
+      print('DEBUG API: Response body starts with: ${response.body.length > 100 ? "${response.body.substring(0, 100)}..." : response.body}');
+      
       return _handleResponse(response);
     } on SocketException {
+      print('DEBUG API: SocketException - No internet connection');
       throw ApiException(message: 'No internet connection');
     } on HttpException {
+      print('DEBUG API: HttpException - HTTP error occurred');
       throw ApiException(message: 'HTTP error occurred');
     } on FormatException {
+      print('DEBUG API: FormatException - Invalid response format');
       throw ApiException(message: 'Invalid response format');
     } catch (e) {
+      print('DEBUG API: Unknown error: $e');
       throw ApiException(message: 'Unknown error: $e');
     }
   }
@@ -65,20 +75,31 @@ class ApiService {
     try {
       final uri = Uri.parse('$_baseUrl$endpoint');
       
+      print('DEBUG API: POST request to $uri');
+      print('DEBUG API: Headers: ${_getHeaders(token: token)}');
+      print('DEBUG API: Request body: ${json.encode(body)}');
+      
       final response = await _client.post(
         uri,
         headers: _getHeaders(token: token),
         body: json.encode(body),
       ).timeout(const Duration(seconds: 30));
       
+      print('DEBUG API: Response status code: ${response.statusCode}');
+      print('DEBUG API: Response body: ${response.body}');
+      
       return _handleResponse(response);
     } on SocketException {
+      print('DEBUG API: SocketException - No internet connection');
       throw ApiException(message: 'No internet connection');
     } on HttpException {
+      print('DEBUG API: HttpException - HTTP error occurred');
       throw ApiException(message: 'HTTP error occurred');
     } on FormatException {
+      print('DEBUG API: FormatException - Invalid response format');
       throw ApiException(message: 'Invalid response format');
     } catch (e) {
+      print('DEBUG API: Unknown error in POST request: $e');
       throw ApiException(message: 'Unknown error: $e');
     }
   }
@@ -135,9 +156,22 @@ class ApiService {
   
   dynamic _handleResponse(http.Response response) {
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      if (response.body.isEmpty) return null;
-      return json.decode(response.body);
+      if (response.body.isEmpty) {
+        print('DEBUG API: Response body is empty, returning null');
+        return null;
+      }
+      
+      try {
+        final decoded = json.decode(response.body);
+        print('DEBUG API: Successfully decoded JSON, type: ${decoded.runtimeType}');
+        return decoded;
+      } catch (e) {
+        print('DEBUG API: Error decoding JSON: $e');
+        throw ApiException(message: 'Invalid JSON response: $e');
+      }
     } else {
+      print('DEBUG API: Request failed with status: ${response.statusCode}');
+      print('DEBUG API: Error response: ${response.body}');
       throw ApiException(
         message: 'Request failed with status: ${response.statusCode}',
         statusCode: response.statusCode,

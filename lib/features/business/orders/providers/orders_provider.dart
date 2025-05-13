@@ -1,76 +1,103 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:now_shipping/data/services/api_service.dart';
+import 'package:now_shipping/features/auth/services/auth_service.dart';
+import 'package:now_shipping/features/business/orders/repositories/order_repository.dart';
+import 'package:now_shipping/features/business/orders/services/order_service.dart';
+
+// Order loading state
+enum OrderLoadingState { initial, loading, loaded, error }
 
 // Provider for the selected tab in the orders screen
 final selectedOrderTabProvider = StateProvider<String>((ref) => 'All');
 
-// Provider for the mock orders data
-final ordersProvider = Provider<List<Map<String, dynamic>>>((ref) => [
-  {
-    'orderId': '32686112',
-    'customerName': 'Mohamed Ahmed Saad',
-    'location': 'Cairo, Abdeen',
-    'amount': '300 EGP',
-    'status': 'New',
-  },
-  {
-    'orderId': '32686113',
-    'customerName': 'Ahmed Hassan',
-    'location': 'Cairo, Maadi',
-    'amount': '450 EGP',
-    'status': 'In Progress',
-  },
-  {
-    'orderId': '32686114',
-    'customerName': 'Sara Ibrahim',
-    'location': 'Cairo, Heliopolis',
-    'amount': '600 EGP',
-    'status': 'Picked Up',
-  },
-  {
-    'orderId': '32686115',
-    'customerName': 'Omar Khaled',
-    'location': 'Cairo, Zamalek',
-    'amount': '275 EGP',
-    'status': 'Terminated',
-  },
-  {
-    'orderId': '32686116',
-    'customerName': 'Omar Khaled',
-    'location': 'Cairo, Zamalek',
-    'amount': '275 EGP',
-    'status': 'Canceled',
-  },
-  {
-    'orderId': '32686117',
-    'customerName': 'Omar Khaled',
-    'location': 'Cairo, Zamalek',
-    'amount': '275 EGP',
-    'status': 'In Stock',
-  },
-  {
-    'orderId': '32686118',
-    'customerName': 'Omar Khaled',
-    'location': 'Cairo, Zamalek',
-    'amount': '275 EGP',
-    'status': 'Completed',
-  },
-  {
-    'orderId': '32686119',
-    'customerName': 'Omar Khaled',
-    'location': 'Cairo, Zamalek',
-    'amount': '275 EGP',
-    'status': 'Heading To Customer',
-  },
-]);
+// Provider for API dependencies
+final orderRepositoryProvider = Provider<OrderRepository>((ref) {
+  final apiService = ApiService();
+  final authService = AuthService();
+  return OrderRepository(
+    apiService: apiService,
+    authService: authService,
+  );
+});
+
+final orderServiceProvider = Provider<OrderService>((ref) {
+  final repository = ref.watch(orderRepositoryProvider);
+  return OrderService(orderRepository: repository);
+});
+
+// Provider for orders loading state
+final ordersLoadingStateProvider = StateProvider<OrderLoadingState>((ref) => OrderLoadingState.initial);
+
+// Provider for orders data
+final ordersDataProvider = StateProvider<List<Map<String, dynamic>>>((ref) => []);
+
+// Provider for fetch orders function
+final fetchOrdersProvider = Provider<Future<void> Function()>((ref) {
+  return () async {
+    print('DEBUG PROVIDER: Fetching orders');
+    
+    // Set loading state
+    ref.read(ordersLoadingStateProvider.notifier).state = OrderLoadingState.loading;
+    
+    try {
+      final orderService = ref.read(orderServiceProvider);
+      final orders = await orderService.getAllOrders();
+      print('DEBUG PROVIDER: Orders fetched successfully: ${orders.length}');
+      
+      // Update orders data
+      ref.read(ordersDataProvider.notifier).state = orders;
+      
+      // Set loaded state
+      ref.read(ordersLoadingStateProvider.notifier).state = OrderLoadingState.loaded;
+    } catch (e) {
+      print('DEBUG PROVIDER: Error fetching orders: $e');
+      
+      // Set error state
+      ref.read(ordersLoadingStateProvider.notifier).state = OrderLoadingState.error;
+    }
+  };
+});
+
+// Provider for orders (backwards compatibility)
+final ordersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final orderService = ref.watch(orderServiceProvider);
+  // Fetch orders from the API
+  try {
+    final orders = await orderService.getAllOrders();
+    print('DEBUG PROVIDER: Orders fetched via legacy provider: ${orders.length}');
+    return orders;
+  } catch (e) {
+    print('DEBUG PROVIDER: Error fetching orders in legacy provider: $e');
+    rethrow;
+  }
+});
 
 // Provider for filtered orders based on selected tab
 final filteredOrdersProvider = Provider<List<Map<String, dynamic>>>((ref) {
-  final orders = ref.watch(ordersProvider);
+  final orders = ref.watch(ordersDataProvider);
   final selectedTab = ref.watch(selectedOrderTabProvider);
+  
+  print('DEBUG PROVIDER: Filtering orders. Total: ${orders.length}, Selected tab: $selectedTab');
   
   if (selectedTab == 'All') {
     return orders;
   } else {
-    return orders.where((order) => order['status'] == selectedTab).toList();
+    final filtered = orders.where((order) => order['status'] == selectedTab).toList();
+    print('DEBUG PROVIDER: Filtered orders: ${filtered.length}');
+    return filtered;
+  }
+});
+
+// Provider for order details
+final orderDetailsProvider = FutureProvider.family<Map<String, dynamic>, String>((ref, orderNumber) async {
+  final orderService = ref.watch(orderServiceProvider);
+  // Fetch order details from the API
+  try {
+    final details = await orderService.getOrderDetails(orderNumber);
+    print('DEBUG PROVIDER: Order details fetched for $orderNumber');
+    return details;
+  } catch (e) {
+    print('DEBUG PROVIDER: Error fetching order details: $e');
+    rethrow;
   }
 });

@@ -5,10 +5,10 @@ class CustomerDetailsScreen extends StatefulWidget {
   final Function(Map<String, dynamic>)? onCustomerDataSaved;
 
   const CustomerDetailsScreen({
-    Key? key,
+    super.key,
     this.initialData,
     this.onCustomerDataSaved,
-  }) : super(key: key);
+  });
 
   @override
   _CustomerDetailsScreenState createState() => _CustomerDetailsScreenState();
@@ -61,17 +61,20 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
     // Extract country code and phone number
     if (data['phoneNumber'] != null) {
       final phoneNumber = data['phoneNumber'] as String;
-      if (phoneNumber.startsWith('+')) {
-        // Find the position of the first digit after the + sign
-        int countryCodeEnd = 1;
-        while (countryCodeEnd < phoneNumber.length && 
-               (phoneNumber[countryCodeEnd] == '0' || 
-                int.tryParse(phoneNumber[countryCodeEnd]) != null)) {
-          countryCodeEnd++;
-        }
-        _selectedCountryCode = phoneNumber.substring(0, countryCodeEnd);
-        _phoneController.text = phoneNumber.substring(countryCodeEnd);
-      } else {
+      
+      // For Egyptian numbers, we expect format like +201xxxxxxxxx
+      if (phoneNumber.startsWith('+20')) {
+        _selectedCountryCode = '+20';
+        _phoneController.text = phoneNumber.substring(3);
+      } 
+      // For other international formats
+      else if (phoneNumber.startsWith('+')) {
+        // Just default to +20 and keep the entire number
+        _selectedCountryCode = '+20';
+        _phoneController.text = phoneNumber.substring(1);
+      } 
+      // No plus sign, just use the whole number
+      else {
         _phoneController.text = phoneNumber;
       }
     }
@@ -438,6 +441,12 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 ),
               ),
             ),
+            // Add a vertical divider
+            Container(
+              height: 30,
+              width: 1,
+              color: Colors.grey.shade300,
+            ),
           ],
           
           // Phone number input
@@ -446,25 +455,10 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
               controller: isSecondary ? _secondaryPhoneController : _phoneController,
               keyboardType: TextInputType.phone,
               decoration: InputDecoration(
-                hintText: 'Phone Number',
-                border: isSecondary 
-                  ? OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ) 
-                  : InputBorder.none,
-                enabledBorder: isSecondary 
-                  ? OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ) 
-                  : InputBorder.none,
-                focusedBorder: isSecondary 
-                  ? OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
-                    ) 
-                  : InputBorder.none,
+                hintText: isSecondary ? 'Secondary Phone Number' : 'Phone Number',
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
               ),
               validator: isSecondary

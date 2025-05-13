@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:now_shipping/features/business/orders/providers/orders_provider.dart';
 
 /// Model class to represent order details needed for display
 class OrderDetailsModel {
@@ -52,6 +53,41 @@ class OrderDetailsModel {
     this.returnProductDescription,
   });
 
+  // Create a model from API response
+  factory OrderDetailsModel.fromApiResponse(Map<String, dynamic> apiOrder) {
+    final orderCustomer = apiOrder['orderCustomer'] ?? {};
+    final orderShipping = apiOrder['orderShipping'] ?? {};
+    
+    // Determine if this is a return order
+    final isReturnOrder = orderShipping['orderType'] == 'Return';
+    
+    return OrderDetailsModel(
+      orderId: apiOrder['orderNumber'] ?? '',
+      customerName: orderCustomer['fullName'] ?? '',
+      customerPhone: orderCustomer['phoneNumber'] ?? '',
+      customerAddress: '${orderCustomer['government'] ?? ''}, ${orderCustomer['zone'] ?? ''}, ${orderCustomer['address'] ?? ''}',
+      deliveryType: orderShipping['orderType'] ?? 'Deliver',
+      packageType: 'Parcel', // Default value as not provided in API
+      numberOfItems: orderShipping['numberOfItems'] ?? 1,
+      packageDescription: orderShipping['productDescription'] ?? '',
+      collectCashAmount: orderShipping['amountType'] == 'COD' ? (orderShipping['amount'] ?? 0).toDouble() : 0.0,
+      allowOpeningPackage: apiOrder['isOrderAvailableForPreview'] ?? false,
+      deliveryNotes: apiOrder['orderNotes'] ?? '',
+      orderReference: apiOrder['referralNumber'] ?? '',
+      status: apiOrder['orderStatus'] ?? '',
+      createdAt: apiOrder['orderDate'] ?? '',
+      // Exchange fields
+      currentItems: orderShipping['numberOfItems'],
+      currentProductDescription: orderShipping['productDescription'],
+      newItems: orderShipping['numberOfItemsReplacement'],
+      newProductDescription: orderShipping['productDescriptionReplacement'],
+      // Return fields - for Return orders, use numberOfItems as returnItems
+      returnItems: isReturnOrder ? orderShipping['numberOfItems'] : null,
+      returnReason: isReturnOrder ? (orderShipping['returnReason'] ?? 'N/A') : null,
+      returnProductDescription: isReturnOrder ? orderShipping['productDescription'] : null,
+    );
+  }
+
   // Create a mock order for testing or when real data is not available
   factory OrderDetailsModel.mock({required String orderId, required String status}) {
     return OrderDetailsModel(
@@ -75,26 +111,53 @@ class OrderDetailsModel {
 
 /// Order details notifier that manages fetching and updating order details
 class OrderDetailsNotifier extends StateNotifier<OrderDetailsModel?> {
-  OrderDetailsNotifier() : super(null);
+  final Ref _ref;
 
-  // Fetch order details from API or local storage
+  OrderDetailsNotifier(this._ref) : super(null);
+
+  // Fetch order details from API
   Future<void> fetchOrderDetails(String orderId, String status) async {
-    // In a real app, you would make an API call here
-    // For now, we'll use mock data
+    try {
+      // Set loading state
+      state = null;
+      
+      // Get order details from API
+      final orderService = _ref.read(orderServiceProvider);
+      final orderData = await orderService.getOrderDetails(orderId);
+      
+      // Debug logs for return orders
+      final orderShipping = orderData['orderShipping'] ?? {};
+      if (orderShipping['orderType'] == 'Return') {
+        print('DEBUG ORDER DETAILS: Return order detected');
+        print('DEBUG ORDER DETAILS: numberOfItems = ${orderShipping['numberOfItems']}');
+        print('DEBUG ORDER DETAILS: productDescription = ${orderShipping['productDescription']}');
+      }
+      
+      // Convert API response to OrderDetailsModel
+      state = OrderDetailsModel.fromApiResponse(orderData);
+      
+      // Additional debug for Return orders after mapping
+      if (state?.deliveryType == 'Return') {
+        print('DEBUG ORDER DETAILS: Mapped returnItems = ${state?.returnItems}');
+      }
+    } catch (e) {
+      // If API fails, use mock data as fallback
+      print('Error fetching order details: $e');
     state = OrderDetailsModel.mock(orderId: orderId, status: status);
+    }
   }
 
   // Update order details after scanning a smart sticker
   void updateWithStickerInfo(String stickerId) {
     // In a real app, you would update the order with the sticker information
-    // For now, we'll just log it
+    // This would involve an API call
     print('Order updated with sticker: $stickerId');
   }
 }
 
 /// Provider for the order details state notifier
 final orderDetailsProvider = StateNotifierProvider.family<OrderDetailsNotifier, OrderDetailsModel?, String>(
-  (ref, orderId) => OrderDetailsNotifier(),
+  (ref, orderId) => OrderDetailsNotifier(ref),
 );
 
 /// Provider to get tracking steps based on the current order status
