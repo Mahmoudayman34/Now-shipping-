@@ -1,0 +1,2 @@
+C:/Users/LENOVO/Downloads/Now-shipping-/android/app/.cxx/RelWithDebInfo/6y2r3g4t/x86/CMakeFiles/edit_cache.dir
+C:/Users/LENOVO/Downloads/Now-shipping-/android/app/.cxx/RelWithDebInfo/6y2r3g4t/x86/CMakeFiles/rebuild_cache.dir
