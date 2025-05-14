@@ -12,6 +12,8 @@ import '../widgets/detailed_breakdown.dart';
 import '../widgets/profile_completion_form.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../common/widgets/shimmer_loading.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
+
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
@@ -19,17 +21,35 @@ class DashboardScreen extends ConsumerStatefulWidget {
   ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTickerProviderStateMixin {
   bool _isChecking = true;
   bool _isProfileComplete = false;
-  
+  bool _isRefreshing = false;
+  final RefreshController _refreshController = RefreshController(initialRefresh: false);
+  late AnimationController _rotationController;
   
   @override
   void initState() {
     super.initState();
+    
+    // Initialize the rotation animation controller for the refresh icon
+    _rotationController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(); // Makes it rotate continuously
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkProfileStatus();
+      // Initial data fetch
+      _refreshDashboard();
     });
+  }
+  
+  @override
+  void dispose() {
+    _refreshController.dispose();
+    _rotationController.dispose();
+    super.dispose();
   }
   
   Future<void> _checkProfileStatus() async {
@@ -40,6 +60,67 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         _isChecking = false;
         _isProfileComplete = user?.isProfileComplete ?? false;
       });
+    }
+  }
+  
+  Future<void> _refreshDashboard() async {
+    // Set refreshing state to true to show shimmer effect
+    if (mounted) {
+      setState(() {
+        _isRefreshing = true;
+      });
+    }
+    
+    try {
+      // Create a list of futures to wait for both data fetching operations
+      final futures = await Future.wait([
+        // Refresh dashboard data
+        ref.refresh(dashboardStatsProvider.future),
+        // Also refresh user data to get updated name and other user information  
+        ref.refresh(currentUserProvider.future),
+      ]);
+      
+      // If successful, complete the refresh
+      if (_refreshController.isRefresh) {
+        _refreshController.refreshCompleted();
+      }
+    } catch (e) {
+      // If there's an error, show the fail indicator
+      if (_refreshController.isRefresh) {
+        _refreshController.refreshFailed();
+      }
+      
+      // Show error snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 8),
+                const Text('Internet connection issue'),
+                const Spacer(),
+                TextButton(
+                  onPressed: _refreshDashboard,
+                  child: const Text('RETRY', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } finally {
+      // Only reset refreshing state after all data fetching is completed
+      if (mounted) {
+        // Give a slight delay to ensure UI updates completely
+        Future.delayed(const Duration(milliseconds: 300), () {
+          setState(() {
+            _isRefreshing = false;
+          });
+        });
+      }
     }
   }
   
@@ -159,87 +240,121 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget _buildCompleteDashboard(BuildContext context, WidgetRef ref, UserModel user) {
     final dashboardStatsAsyncValue = ref.watch(dashboardStatsProvider);
     
-    return dashboardStatsAsyncValue.when(
-      data: (stats) {
-        return RefreshIndicator(
-          onRefresh: () async {
-            // Refresh all dashboard data
-            ref.refresh(dashboardStatsProvider);
-          },
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header with logo and actions
-                DashboardHeader(userName: user.fullName),
-                
-                // Welcome message
-                WelcomeMessage(name: user.fullName),
-                
-                const SizedBox(height: 16),
-                
-                // Suggestion box
-                //const SuggestionBox(),
-                
-                const SizedBox(height: 20),
-                
-                // Today's overview
-                TodayOverview(
-                  inHubPackages: stats.inHubPackages,
-                ),
-                
-                // Statistics grid
-                StatisticsGrid(
-                  headingToCustomer: stats.headingToCustomer,
-                  awaitingAction: stats.awaitingAction,
-                  successfulOrders: stats.successfulOrders,
-                  unsuccessfulOrders: stats.unsuccessfulOrders,
-                  headingToYou: stats.headingToYou,
-                  newOrders: stats.newOrders,
-                  successRate: stats.successRate,
-                  unsuccessRate: stats.unsuccessRate,
-                ),
-                
-                const SizedBox(height: 20),
-                
-                // Cash summary
-                CashSummary(
-                  expectedCash: stats.expectedCash,
-                  collectedCash: stats.collectedCash,
-                  collectionRate: stats.collectionRate,
-                ),
-                
-                const SizedBox(height: 20),
-                
-                // New orders notification
-                NewOrdersNotification(newOrdersCount: stats.newOrders),
-                
-               // const SizedBox(height: 20),
-                
-                // Detailed breakdown
-                //const DetailedBreakdown(),
-                
-                const SizedBox(height: 30),
-              ],
+    return SmartRefresher(
+      controller: _refreshController,
+      onRefresh: _refreshDashboard,
+      enablePullDown: true,
+      enablePullUp: false,
+      physics: const ClampingScrollPhysics(),
+      header: ClassicHeader(
+        refreshStyle: RefreshStyle.Follow,
+        idleIcon: const Icon(Icons.arrow_downward, color: Color(0xFFFF9800)),
+        releaseIcon: const Icon(Icons.refresh, color: Color(0xFFFF9800)),
+        refreshingIcon: RotationTransition(
+          turns: _rotationController,
+          child: SizedBox(
+            width: 30.0,
+            height: 30.0,
+            child: Image.asset(
+              'assets/icons/icon_only.png',
+              color: const Color(0xFFFF9800),
             ),
           ),
-        );
-      },
-      loading: () => const DashboardShimmer(), // Use our custom shimmer layout for dashboard loading
-      error: (error, stackTrace) => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 48),
-            const SizedBox(height: 16),
-            Text('Error loading dashboard data: $error'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => ref.refresh(dashboardStatsProvider),
-              child: const Text('Retry'),
-            ),
-          ],
+        ),
+        completeIcon: const Icon(Icons.check, color: Colors.green),
+        failedIcon: const Icon(Icons.error, color: Colors.red),
+        textStyle: const TextStyle(color: Color(0xFF757575)),
+        idleText: "Pull down to refresh",
+        releaseText: "Release to refresh",
+        refreshingText: "Refreshing...",
+        completeText: "Refresh completed",
+        failedText: "Refresh failed",
+      ),
+      child: dashboardStatsAsyncValue.when(
+        data: (stats) {
+          // Show shimmer loading when refreshing or display the actual content
+          return _isRefreshing
+              ? const Center(child: DashboardShimmer())
+              : CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header with logo and actions
+                          DashboardHeader(userName: user.fullName),
+                          
+                          // Welcome message
+                          WelcomeMessage(name: user.fullName),
+                          
+                          const SizedBox(height: 16),
+                          
+                          // Suggestion box
+                          //const SuggestionBox(),
+                          
+                          const SizedBox(height: 20),
+                          
+                          // Today's overview
+                          TodayOverview(
+                            inHubPackages: stats.inHubPackages,
+                          ),
+                          
+                          // Statistics grid
+                          StatisticsGrid(
+                            headingToCustomer: stats.headingToCustomer,
+                            awaitingAction: stats.awaitingAction,
+                            successfulOrders: stats.successfulOrders,
+                            unsuccessfulOrders: stats.unsuccessfulOrders,
+                            headingToYou: stats.headingToYou,
+                            newOrders: stats.newOrders,
+                            successRate: stats.successRate,
+                            unsuccessRate: stats.unsuccessRate,
+                          ),
+                          
+                          const SizedBox(height: 20),
+                          
+                          // Cash summary
+                          CashSummary(
+                            expectedCash: stats.expectedCash,
+                            collectedCash: stats.collectedCash,
+                            collectionRate: stats.collectionRate,
+                          ),
+                          
+                          const SizedBox(height: 20),
+                          
+                          // New orders notification
+                          NewOrdersNotification(newOrdersCount: stats.newOrders),
+                          
+                         // const SizedBox(height: 20),
+                          
+                          // Detailed breakdown
+                          //const DetailedBreakdown(),
+                          
+                          const SizedBox(height: 30),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+        },
+        loading: () => const Center(
+          child: DashboardShimmer(),
+        ),
+        error: (error, stackTrace) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+              const SizedBox(height: 16),
+              const Text('Internet connection issue'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _refreshDashboard,
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
         ),
       ),
     );

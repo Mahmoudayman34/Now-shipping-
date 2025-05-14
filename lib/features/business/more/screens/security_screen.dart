@@ -178,7 +178,10 @@ class SecurityScreen extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              Navigator.pop(context);
+              _showDeleteConfirmationDialog(context);
+            },
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
             ),
@@ -187,6 +190,100 @@ class SecurityScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+  
+  void _showDeleteConfirmationDialog(BuildContext context) {
+    final TextEditingController passwordController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Deletion'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Please enter your password to confirm account deletion:',
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: 'Password',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteAccount(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Confirm Deletion'),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  void _deleteAccount(BuildContext context) {
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Deleting account...'),
+          ],
+        ),
+      ),
+    );
+    
+    // Simulate API call
+    Future.delayed(const Duration(seconds: 2), () {
+      // Close loading dialog
+      Navigator.pop(context);
+      
+      // Show success dialog
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Account Deleted'),
+          content: const Text(
+            'Your account has been successfully deleted. You will be logged out now.',
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Navigate to login screen and clear navigation stack
+                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xfff29620),
+              ),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
 
@@ -198,35 +295,35 @@ class ChangePasswordScreen extends StatefulWidget {
 }
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _currentPasswordController = TextEditingController();
-  final _newPasswordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+  final currentPasswordController = TextEditingController();
+  final newPasswordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
   
-  bool _isCurrentPasswordVisible = false;
-  bool _isNewPasswordVisible = false;
-  bool _isConfirmPasswordVisible = false;
-  bool _isLoading = false;
+  bool isCurrentPasswordVisible = false;
+  bool isNewPasswordVisible = false;
+  bool isConfirmPasswordVisible = false;
+  bool isLoading = false;
   
   @override
   void dispose() {
-    _currentPasswordController.dispose();
-    _newPasswordController.dispose();
-    _confirmPasswordController.dispose();
+    currentPasswordController.dispose();
+    newPasswordController.dispose();
+    confirmPasswordController.dispose();
     super.dispose();
   }
   
-  void _changePassword() async {
-    if (_formKey.currentState!.validate()) {
+  void changePassword() async {
+    if (formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true;
+        isLoading = true;
       });
       
       // Simulate API request
       await Future.delayed(const Duration(seconds: 2));
       
       setState(() {
-        _isLoading = false;
+        isLoading = false;
       });
       
       if (mounted) {
@@ -247,7 +344,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
-          key: _formKey,
+          key: formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -259,18 +356,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               
               // Current password field
               TextFormField(
-                controller: _currentPasswordController,
-                obscureText: !_isCurrentPasswordVisible,
+                controller: currentPasswordController,
+                obscureText: !isCurrentPasswordVisible,
                 decoration: InputDecoration(
                   labelText: 'Current Password',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _isCurrentPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                      isCurrentPasswordVisible ? Icons.visibility_off : Icons.visibility,
                     ),
                     onPressed: () {
                       setState(() {
-                        _isCurrentPasswordVisible = !_isCurrentPasswordVisible;
+                        isCurrentPasswordVisible = !isCurrentPasswordVisible;
                       });
                     },
                   ),
@@ -286,18 +383,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               
               // New password field
               TextFormField(
-                controller: _newPasswordController,
-                obscureText: !_isNewPasswordVisible,
+                controller: newPasswordController,
+                obscureText: !isNewPasswordVisible,
                 decoration: InputDecoration(
                   labelText: 'New Password',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _isNewPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                      isNewPasswordVisible ? Icons.visibility_off : Icons.visibility,
                     ),
                     onPressed: () {
                       setState(() {
-                        _isNewPasswordVisible = !_isNewPasswordVisible;
+                        isNewPasswordVisible = !isNewPasswordVisible;
                       });
                     },
                   ),
@@ -316,18 +413,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               
               // Confirm password field
               TextFormField(
-                controller: _confirmPasswordController,
-                obscureText: !_isConfirmPasswordVisible,
+                controller: confirmPasswordController,
+                obscureText: !isConfirmPasswordVisible,
                 decoration: InputDecoration(
                   labelText: 'Confirm New Password',
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                      isConfirmPasswordVisible ? Icons.visibility_off : Icons.visibility,
                     ),
                     onPressed: () {
                       setState(() {
-                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                        isConfirmPasswordVisible = !isConfirmPasswordVisible;
                       });
                     },
                   ),
@@ -336,7 +433,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please confirm your new password';
                   }
-                  if (value != _newPasswordController.text) {
+                  if (value != newPasswordController.text) {
                     return 'Passwords do not match';
                   }
                   return null;
@@ -347,7 +444,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _changePassword,
+                  onPressed: isLoading ? null : changePassword,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xfff29620),
                     foregroundColor: Colors.white,
@@ -356,7 +453,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: _isLoading
+                  child: isLoading
                       ? const CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         )

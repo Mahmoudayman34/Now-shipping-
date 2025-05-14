@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../config/env.dart';
 import '../../../data/models/auth_model.dart';
 import '../../../data/models/user_model.dart' as api_model;
+import '../../../data/services/api_service.dart';
 
 class UserModel {
   final String id;
@@ -156,8 +157,53 @@ class AuthService {
   Future<UserModel?> getCurrentUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userData = prefs.getString(_userKey);
+      final token = await getToken();
       
+      // Try to get fresh user data if we have a token
+      if (token != null) {
+        try {
+          // Use API service instead of direct HTTP call
+          final apiClient = http.Client();
+          final apiService = ApiService(client: apiClient);
+          
+          // Get fresh dashboard data which includes user info
+          final response = await apiService.get(
+            '/business/dashboard',
+            token: token,
+          );
+          
+          // Check if we got valid user data
+          if (response != null && 
+              response['status'] == 'success' && 
+              response['userDate'] != null) {
+            
+            final userDate = response['userDate'];
+            
+            // Create updated user model
+            final updatedUser = UserModel(
+              id: userDate['_id']?.toString() ?? '',
+              email: userDate['email']?.toString() ?? '',
+              fullName: userDate['name']?.toString() ?? '',
+              phone: userDate['phoneNumber']?.toString() ?? '',
+              isEmailVerified: userDate['isVerified'] as bool? ?? false,
+              isProfileComplete: userDate['isCompleted'] as bool? ?? false,
+              role: userDate['role']?.toString(),
+              isNeedStorage: userDate['isNeedStorage'] as bool? ?? false,
+            );
+            
+            // Update the stored user data
+            await prefs.setString(_userKey, jsonEncode(updatedUser.toJson()));
+            
+            return updatedUser;
+          }
+        } catch (e) {
+          print('Error fetching fresh user data: $e');
+          // Continue to fallback if fetch fails
+        }
+      }
+      
+      // Fallback to cached user data
+      final userData = prefs.getString(_userKey);
       if (userData != null) {
         final userMap = jsonDecode(userData) as Map<String, dynamic>;
         

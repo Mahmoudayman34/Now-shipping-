@@ -27,7 +27,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
   final TextEditingController _apartmentController = TextEditingController();
   final TextEditingController _landmarkController = TextEditingController();
   
-  String _selectedCountryCode = '+20';
+  String _selectedCountryCode = '+2';
   String? _selectedCity;
   bool _isWorkingAddress = false;
   bool _showSecondaryPhone = false;
@@ -64,13 +64,13 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
       
       // For Egyptian numbers, we expect format like +201xxxxxxxxx
       if (phoneNumber.startsWith('+20')) {
-        _selectedCountryCode = '+20';
+        _selectedCountryCode = '+2';
         _phoneController.text = phoneNumber.substring(3);
       } 
       // For other international formats
       else if (phoneNumber.startsWith('+')) {
-        // Just default to +20 and keep the entire number
-        _selectedCountryCode = '+20';
+        // Just default to +2 and keep the entire number
+        _selectedCountryCode = '+2';
         _phoneController.text = phoneNumber.substring(1);
       } 
       // No plus sign, just use the whole number

@@ -171,7 +171,7 @@ class ShippingInformationWidget extends ConsumerWidget {
                 type,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: isSelected? FontWeight.w600 : FontWeight.normal,
                   color: const Color(0xff2F2F2F),
                 ),

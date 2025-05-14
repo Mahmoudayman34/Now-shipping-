@@ -38,6 +38,11 @@ class OrderService {
             'location': _extractLocation(order),
             'amount': _extractAmount(order),
             'status': _mapOrderStatus(order['orderStatus'] ?? order['status'] ?? ''),
+            'deliveryType': order.containsKey('orderShipping') ? 
+                          order['orderShipping']['orderType'] : 
+                          order['deliveryType'] ?? 'Deliver',
+            'attempts': order['Attemps'] ?? 0,
+            'phoneNumber': _extractPhoneNumber(order),
             'rawOrder': order, // Keep the raw order for additional data if needed
           };
           print('DEBUG SERVICE: Successfully mapped order: ${result['orderId']}');
@@ -145,6 +150,22 @@ class OrderService {
       return '${order['amountToCollect'] ?? 0}';
     }
     return '0';
+  }
+
+  String _extractPhoneNumber(Map<String, dynamic> order) {
+    String phoneNumber = '';
+    if (order.containsKey('orderCustomer') && order['orderCustomer'] is Map) {
+      phoneNumber = order['orderCustomer']['phoneNumber'] ?? '';
+    } else if (order.containsKey('customerPhone')) {
+      phoneNumber = order['customerPhone'] ?? '';
+    }
+    
+    // Format phone number to use +2 instead of +20
+    if (phoneNumber.startsWith('+20')) {
+      phoneNumber = '+2${phoneNumber.substring(3)}';
+    }
+    
+    return phoneNumber;
   }
 
   // Map API's order status to the app's status format

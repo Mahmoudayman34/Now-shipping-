@@ -20,8 +20,8 @@ final deliveryFeeProvider = FutureProvider.autoDispose<double>((ref) async {
   final government = orderModel.customerAddress?.split(',').first.trim();
   final orderType = orderModel.deliveryType;
   
-  // Default to false for express shipping (you can add this to your OrderModel if needed)
-  const isExpressShipping = false;
+  // Get express shipping value from order model
+  final isExpressShipping = orderModel.expressShipping ?? false;
   
   // Skip calculation if we don't have required parameters
   if (government == null || government.isEmpty || orderType == null || orderType.isEmpty) {
@@ -76,7 +76,7 @@ class DeliveryFeeService {
       final requestBody = {
         'government': government,
         'orderType': orderType,
-        'isExpressShipping': true,
+        'isExpressShipping': isExpressShipping,
       };
       
       print('DEBUG FEE: Sending API request with body: $requestBody');

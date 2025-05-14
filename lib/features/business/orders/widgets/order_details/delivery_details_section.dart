@@ -6,9 +6,9 @@ class DeliveryDetailsSection extends StatelessWidget {
   final OrderDetailsModel orderDetails;
 
   const DeliveryDetailsSection({
-    Key? key,
+    super.key,
     required this.orderDetails,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +69,29 @@ class DeliveryDetailsSection extends StatelessWidget {
               const SizedBox(width: 8),
               const Text(
                 'Allow customer to inspect package',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF2F2F2F),
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Express Shipping
+          Row(
+            children: [
+              Icon(
+                orderDetails.isExpressShipping
+                    ? Icons.check_box_outlined
+                    : Icons.check_box_outline_blank,
+                color: const Color(0xFF26A2B9),
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Express Shipping',
                 style: TextStyle(
                   fontSize: 14,
                   color: Color(0xFF2F2F2F),

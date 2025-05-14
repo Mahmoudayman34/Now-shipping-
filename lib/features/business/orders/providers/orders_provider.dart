@@ -34,27 +34,9 @@ final ordersDataProvider = StateProvider<List<Map<String, dynamic>>>((ref) => []
 // Provider for fetch orders function
 final fetchOrdersProvider = Provider<Future<void> Function()>((ref) {
   return () async {
-    print('DEBUG PROVIDER: Fetching orders');
-    
-    // Set loading state
-    ref.read(ordersLoadingStateProvider.notifier).state = OrderLoadingState.loading;
-    
-    try {
-      final orderService = ref.read(orderServiceProvider);
-      final orders = await orderService.getAllOrders();
-      print('DEBUG PROVIDER: Orders fetched successfully: ${orders.length}');
-      
-      // Update orders data
-      ref.read(ordersDataProvider.notifier).state = orders;
-      
-      // Set loaded state
-      ref.read(ordersLoadingStateProvider.notifier).state = OrderLoadingState.loaded;
-    } catch (e) {
-      print('DEBUG PROVIDER: Error fetching orders: $e');
-      
-      // Set error state
-      ref.read(ordersLoadingStateProvider.notifier).state = OrderLoadingState.error;
-    }
+    print('DEBUG PROVIDER: This provider is deprecated. Use OrderService.getAllOrders directly with the orderType parameter');
+    // The actual fetching is now done directly in the screen using the OrderService
+    // This provider is kept for backwards compatibility
   };
 });
 

@@ -36,6 +36,7 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       'orderType': state.deliveryType ?? 'Deliver',
       'previewPermission': state.allowPackageInspection == true ? 'on' : 'off',
       'Notes': state.specialInstructions ?? '',
+      'expressShipping': state.expressShipping ?? false,
     };
 
     // Add fields based on order type
@@ -158,6 +159,7 @@ class OrderNotifier extends StateNotifier<OrderModel> {
     int? numberOfItems,
     bool? cashOnDelivery,
     String? cashOnDeliveryAmount,
+    bool? expressShipping,
   }) {
     state = OrderModel(
       id: state.id,
@@ -180,6 +182,7 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       amountToCollect: state.amountToCollect,
       createdAt: state.createdAt,
       status: state.status,
+      expressShipping: expressShipping ?? state.expressShipping,
     );
   }
     // Update exchange details
@@ -190,6 +193,7 @@ class OrderNotifier extends StateNotifier<OrderModel> {
     int? numberOfNewItems,
     bool? hasCashDifference,
     String? cashDifferenceAmount,
+    bool? expressShipping,
   }) {
     state = OrderModel(
       id: state.id,
@@ -212,12 +216,14 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       amountToCollect: state.amountToCollect,
       createdAt: state.createdAt,
       status: state.status,
+      expressShipping: expressShipping ?? state.expressShipping,
     );
   }
     // Update return details
   void updateReturnDetails({
     String? returnProductDescription,
     int? numberOfReturnItems,
+    bool? expressShipping,
   }) {
     state = OrderModel(
       id: state.id,
@@ -232,16 +238,19 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       numberOfReturnItems: numberOfReturnItems ?? state.numberOfReturnItems,
       cashOnDelivery: state.cashOnDelivery,
       cashOnDeliveryAmount: state.cashOnDeliveryAmount,
+      hasCashDifference: state.hasCashDifference,
+      cashDifferenceAmount: state.cashDifferenceAmount,
       allowPackageInspection: state.allowPackageInspection,
       specialInstructions: state.specialInstructions,
       referralNumber: state.referralNumber,
       amountToCollect: state.amountToCollect,
       createdAt: state.createdAt,
       status: state.status,
+      expressShipping: expressShipping ?? state.expressShipping,
     );
   }
     // Update cash collection details
-  void updateCashCollectionDetails(String amountToCollect) {
+  void updateCashCollectionDetails(String amountToCollect, {bool? expressShipping}) {
     state = OrderModel(
       id: state.id,
       customerName: state.customerName,
@@ -255,12 +264,15 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       numberOfReturnItems: state.numberOfReturnItems,
       cashOnDelivery: state.cashOnDelivery,
       cashOnDeliveryAmount: state.cashOnDeliveryAmount,
+      hasCashDifference: state.hasCashDifference,
+      cashDifferenceAmount: state.cashDifferenceAmount,
       allowPackageInspection: state.allowPackageInspection,
       specialInstructions: state.specialInstructions,
       referralNumber: state.referralNumber,
       amountToCollect: amountToCollect,
       createdAt: state.createdAt,
       status: state.status,
+      expressShipping: expressShipping ?? state.expressShipping,
     );
   }
     // Update additional options

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:now_shipping/core/utils/status_colors.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_actions_bottom_sheet.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrderItem extends StatelessWidget {
   final String orderId;
@@ -8,6 +9,9 @@ class OrderItem extends StatelessWidget {
   final String location;
   final String amount;
   final String status;
+  final String orderType;
+  final int attempts;
+  final String phoneNumber;
   final VoidCallback onTap;
 
   const OrderItem({
@@ -17,8 +21,19 @@ class OrderItem extends StatelessWidget {
     required this.location,
     required this.amount,
     required this.status,
+    required this.orderType,
+    required this.attempts,
+    required this.phoneNumber,
     required this.onTap,
   });
+
+  // Function to make a phone call
+  Future<void> _makePhoneCall() async {
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (!await launchUrl(phoneUri)) {
+      throw Exception('Could not launch $phoneUri');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,9 +62,9 @@ class OrderItem extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      const Text(
-                        'Deliver ',
-                        style: TextStyle(
+                      Text(
+                        '$orderType ',
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Color(0xff2F2F2F),
@@ -61,7 +76,7 @@ class OrderItem extends StatelessWidget {
                           color: const Color(0xFFF5F5F5),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: const Text('0/3', style: TextStyle(color: Color(0xff2F2F2F))),
+                        child: Text('$attempts/2', style: const TextStyle(color: Color(0xff2F2F2F))),
                       ),
                     ],
                   ),
@@ -108,9 +123,7 @@ class OrderItem extends StatelessWidget {
                     width: 36,
                     height: 36,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // Handle call action for customer
-                      },
+                      onPressed: _makePhoneCall,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xff2F2F2F),

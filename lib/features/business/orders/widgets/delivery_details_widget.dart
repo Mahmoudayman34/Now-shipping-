@@ -245,6 +245,34 @@ class _DeliveryDetailsWidgetState extends ConsumerState<DeliveryDetailsWidget> {
               ),
             ),
           ],
+
+          const SizedBox(height: 16),
+          
+          // Express Shipping Checkbox
+          Row(
+            children: [
+              Checkbox(
+                value: order.expressShipping ?? false,
+                onChanged: (value) {
+                  ref.read(orderModelProvider.notifier).updateDeliveryDetails(
+                    expressShipping: value,
+                  );
+                },
+                activeColor: Colors.orange.shade300,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const Text(
+                'Express Shipping',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xff2F2F2F),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );

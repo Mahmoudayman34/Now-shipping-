@@ -7,7 +7,7 @@ class AppTheme {
       brightness: Brightness.light,
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-      textTheme: GoogleFonts.nunitoTextTheme(
+      textTheme: GoogleFonts.interTextTheme(
         Theme.of(context).textTheme,
       ),
     );

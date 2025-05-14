@@ -8,6 +8,9 @@ import 'package:now_shipping/features/business/orders/widgets/order_item.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_tab.dart';
 import 'package:now_shipping/features/common/widgets/shimmer_loading.dart';
 
+// Provider to keep track of the selected delivery type filter
+final deliveryTypeFilterProvider = StateProvider<String>((ref) => 'All');
+
 class OrdersScreen extends ConsumerStatefulWidget {
   const OrdersScreen({super.key});
 
@@ -43,19 +46,155 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
 
   Future<void> _fetchOrders() async {
     final fetchOrders = ref.read(fetchOrdersProvider);
-    await fetchOrders();
+    final deliveryTypeFilter = ref.read(deliveryTypeFilterProvider);
+    
+    try {
+      // Get the OrderService to make the API call with the filter
+      final orderService = ref.read(orderServiceProvider);
+      
+      // Set loading state
+      ref.read(ordersLoadingStateProvider.notifier).state = OrderLoadingState.loading;
+      
+      // Fetch orders with the delivery type filter
+      final orders = await orderService.getAllOrders(orderType: deliveryTypeFilter);
+      
+      // Update orders data
+      ref.read(ordersDataProvider.notifier).state = orders;
+      
+      // Set loaded state
+      ref.read(ordersLoadingStateProvider.notifier).state = OrderLoadingState.loaded;
+    } catch (e) {
+      print('Error fetching orders: $e');
+      ref.read(ordersLoadingStateProvider.notifier).state = OrderLoadingState.error;
+    }
+    
+    _refreshController.refreshCompleted();
   }
 
   void _onRefresh() async {
     // Refresh orders data
     await _fetchOrders();
-    _refreshController.refreshCompleted();
+  }
+
+  // Show the filter options bottom sheet
+  void _showFilterOptions() {
+    final currentFilter = ref.read(deliveryTypeFilterProvider);
+    String selectedFilter = currentFilter; // Track selection locally
+    
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Filter by Delivery Type',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2F2F2F),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Filter options
+                  _buildFilterOption('All', 'All', selectedFilter, (value) {
+                    setState(() => selectedFilter = value);
+                  }),
+                  _buildFilterOption('Deliver', 'Deliver', selectedFilter, (value) {
+                    setState(() => selectedFilter = value);
+                  }),
+                  _buildFilterOption('Exchange', 'Exchange', selectedFilter, (value) {
+                    setState(() => selectedFilter = value);
+                  }),
+                  _buildFilterOption('Return', 'Return', selectedFilter, (value) {
+                    setState(() => selectedFilter = value);
+                  }),
+                  _buildFilterOption('Cash Collection', 'Cash Collection', selectedFilter, (value) {
+                    setState(() => selectedFilter = value);
+                  }),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Apply button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Update the provider and apply filter only when the Apply button is pressed
+                        ref.read(deliveryTypeFilterProvider.notifier).state = selectedFilter;
+                        Navigator.pop(context);
+                        // Refresh orders with the new filter
+                        _fetchOrders();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF26A2B9),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: const Text(
+                        'Apply Filter',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  
+  // Build a single filter option
+  Widget _buildFilterOption(String label, String value, String currentFilter, Function(String) onSelect) {
+    return InkWell(
+      onTap: () => onSelect(value),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          children: [
+            Icon(
+              value == currentFilter
+                ? Icons.radio_button_checked
+                : Icons.radio_button_unchecked,
+              color: const Color(0xFF26A2B9),
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Color(0xFF2F2F2F),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
   
   @override
   Widget build(BuildContext context) {
     final loadingState = ref.watch(ordersLoadingStateProvider);
     final selectedTab = ref.watch(selectedOrderTabProvider);
+    final deliveryTypeFilter = ref.watch(deliveryTypeFilterProvider);
     final filteredOrders = ref.watch(filteredOrdersProvider);
 
     return Scaffold(
@@ -63,11 +202,28 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
         title: const Text('Orders', style: TextStyle(color: Color(0xff2F2F2F))),
         backgroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Color(0xff2F2F2F)),
-            onPressed: () {
-              // Implement search functionality
-            },
+          // Badge to show if filter is active
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.filter_list, color: Color(0xff2F2F2F)),
+                onPressed: _showFilterOptions,
+              ),
+              if (deliveryTypeFilter != 'All')
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFF9800),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -133,6 +289,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
                       location: order['location'],
                       amount: order['amount'],
                       status: order['status'],
+                      orderType: order['deliveryType'] ?? 'Deliver',
+                      attempts: order['attempts'] ?? 0,
+                      phoneNumber: order['phoneNumber'] ?? '',
                       onTap: () => _navigateToOrderDetails(order),
                     );
                   }

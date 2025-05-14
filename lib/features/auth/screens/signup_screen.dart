@@ -285,7 +285,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       ),
                     ),
                     child: const Text(
-                      '+20',
+                      '+2',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,

@@ -6,23 +6,30 @@ import 'package:now_shipping/features/business/orders/widgets/order_details/trac
 
 /// The tracking tab showing order tracking timeline
 class TrackingTab extends ConsumerWidget {
+  final String orderId;
   final String status;
 
   const TrackingTab({
-    Key? key,
+    super.key,
+    required this.orderId,
     required this.status,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Get tracking steps based on current order status
-    final trackingSteps = ref.watch(trackingStepsProvider(status));
+    // Get tracking steps based on orderStages data
+    final trackingSteps = ref.watch(orderStagesTrackingProvider(orderId));
+    
+    // If we don't have any tracking steps from orderStages, fall back to the status-based steps
+    final steps = trackingSteps.isEmpty 
+        ? ref.watch(trackingStepsProvider(status))
+        : trackingSteps;
     
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-      itemCount: trackingSteps.length,
+      itemCount: steps.length,
       itemBuilder: (context, index) {
-        final step = trackingSteps[index];
+        final step = steps[index];
         return TrackingStepItem(
           isCompleted: step['isCompleted'],
           title: step['title'],

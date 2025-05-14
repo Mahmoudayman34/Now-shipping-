@@ -100,14 +100,6 @@ class OrderActionsBottomSheet extends StatelessWidget {
             },
           ),
           ActionItem(
-            icon: Icons.confirmation_number_outlined,
-            title: 'Create ticket',
-            onTap: () {
-              Navigator.pop(context);
-              // Handle create ticket
-            },
-          ),
-          ActionItem(
             icon: Icons.delete_outline,
             title: 'Delete order',
             titleColor: Colors.red,

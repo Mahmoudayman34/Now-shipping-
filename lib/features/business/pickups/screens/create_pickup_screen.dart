@@ -565,7 +565,7 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: const Text(
-              '+20',
+              '+2',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,

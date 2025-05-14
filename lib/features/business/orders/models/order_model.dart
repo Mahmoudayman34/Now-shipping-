@@ -19,6 +19,7 @@ class OrderModel {
   String? amountToCollect;
   DateTime? createdAt;
   String? status;
+  bool? expressShipping;
 
   OrderModel({
     this.id,
@@ -41,6 +42,7 @@ class OrderModel {
     this.amountToCollect,
     this.createdAt,
     this.status = 'Pending',
+    this.expressShipping = false,
   });
 
   // Convert to Map for storing in database
@@ -66,6 +68,7 @@ class OrderModel {
       'amountToCollect': amountToCollect,
       'createdAt': createdAt?.toIso8601String(),
       'status': status,
+      'expressShipping': expressShipping,
     };
   }
 
@@ -92,6 +95,7 @@ class OrderModel {
       amountToCollect: map['amountToCollect'],
       createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt']) : null,
       status: map['status'],
+      expressShipping: map['expressShipping'],
     );
   }
 }

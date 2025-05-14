@@ -10,6 +10,7 @@ import 'language_screen.dart';
 import 'help_center_screen.dart';
 import 'contact_us_screen.dart';
 import 'about_screen.dart';
+import 'delete_account_screen.dart';
 
 class MoreScreen extends ConsumerWidget {
   const MoreScreen({super.key});
@@ -201,6 +202,23 @@ class MoreScreen extends ConsumerWidget {
             ),
             
             const SizedBox(height: 24),
+            
+            // Account Actions section
+            _buildSectionTitle('Account Actions'),
+            _buildSettingItem(
+              icon: Icons.delete_outline,
+              title: 'Delete Account',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DeleteAccountScreen(),
+                  ),
+                );
+              },
+            ),
+            
+            const SizedBox(height: 8),
             
             // Logout button
             Padding(

@@ -301,7 +301,10 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
         controller: _tabController,
         children: [
           // Tracking Tab
-          TrackingTab(status: widget.status),
+          TrackingTab(
+            orderId: widget.orderId,
+            status: widget.status,
+          ),
           
           // Details Tab
           DetailsTab(
