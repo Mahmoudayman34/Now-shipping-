@@ -1,16 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/pickup_model.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../screens/pickup_details_tabbed_screen.dart';
 
 class PickupCard extends StatelessWidget {
   final PickupModel pickup;
   final VoidCallback? onTap;
 
   const PickupCard({
-    Key? key,
+    super.key,
     required this.pickup,
     this.onTap,
-  }) : super(key: key);
+  });
+
+  // Function to make a phone call
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (!await launchUrl(phoneUri)) {
+      throw Exception('Could not launch $phoneUri');
+    }
+  }
+
+  // Navigate to tabbed details screen
+  void _navigateToDetailsScreen(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PickupDetailsTabbedScreen(pickup: pickup),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,117 +39,160 @@ class PickupCard extends StatelessWidget {
     final Color statusColor = isPickedUp ? Colors.green : const Color(0xFFF89C29);
     final String formattedDate = DateFormat('EEE, MMM d, y').format(pickup.pickupDate);
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: () => _navigateToDetailsScreen(context),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Pickup ID and Status
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Pickup #${pickup.pickupId}',
-                    style: const TextStyle(
-                      fontSize: 16,
+                  const Text(
+                    'Pickup ',
+                    style: TextStyle(
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xff2F2F2F),
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       pickup.status,
                       style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
                         color: statusColor,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              
-              // Pickup Date
+              const SizedBox(height: 4),
+              Text(
+                'Pickup #${pickup.pickupId}',
+                style: const TextStyle(
+                  color: Color(0xff2F2F2F),
+                  fontSize: 14,
+                ),
+              ),
+              const Divider(),
               Row(
                 children: [
-                  const Icon(Icons.calendar_today_outlined, size: 18, color: Colors.grey),
+                  const Icon(Icons.person_outline, color: Colors.grey, size: 20),
                   const SizedBox(width: 8),
-                  Text(
-                    formattedDate,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
+                  Expanded(
+                    child: Text(
+                      'Contact: ${pickup.contactNumber}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xff2F2F2F),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 36,
+                    height: 36,
+                    child: ElevatedButton(
+                      onPressed: () => _makePhoneCall(pickup.contactNumber),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xff2F2F2F),
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
+                      ),
+                      child: const Center(
+                        child: Icon(Icons.phone, color: Color(0xff2F2F2F), size: 18),
+                      ),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              
-              // Location
               Row(
                 children: [
-                  const Icon(Icons.location_on_outlined, size: 18, color: Colors.grey),
+                  const Icon(Icons.location_on_outlined, color: Colors.grey, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       pickup.address,
                       style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.grey,
+                        color: Color(0xff2F2F2F),
                       ),
-                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              
-              // Contact Number
+              const Divider(),
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(Icons.phone_outlined, size: 18, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Text(
-                    pickup.contactNumber,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
+                  Expanded(
+                    child: Row(
+                      children: [
+                        if (pickup.isFragileItem || pickup.isLargeItem)
+                         Expanded(
+                           child: Wrap(
+                             spacing: 8,
+                             children: [
+                               if (pickup.isFragileItem)
+                                 _buildTag('Fragile', Colors.red),
+                               if (pickup.isLargeItem)
+                                 _buildTag('Large Item', Colors.blue),
+                             ],
+                           ),
+                         ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF5F5F5),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                formattedDate, 
+                                style: const TextStyle(color: Color(0xff2F2F2F), fontSize: 12)
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  // IconButton(
+                  //   icon: const Icon(Icons.more_horiz, color: Color(0xff2F2F2F)),
+                  //   onPressed: () {
+                  //     // Action for more options
+                  //   },
+                  // ),
                 ],
               ),
-              
-              // Special Requirements Tags
-              if (pickup.isFragileItem || pickup.isLargeItem)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12.0),
-                  child: Wrap(
-                    spacing: 8,
-                    children: [
-                      if (pickup.isFragileItem)
-                        _buildTag('Fragile', Colors.red),
-                      if (pickup.isLargeItem)
-                        _buildTag('Large Item', Colors.blue),
-                    ],
-                  ),
-                ),
             ],
           ),
         ),
@@ -142,7 +205,7 @@ class PickupCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(4),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Text(

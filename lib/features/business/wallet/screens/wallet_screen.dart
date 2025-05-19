@@ -9,14 +9,14 @@ class WalletScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wallet'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // Implement notifications
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.notifications_outlined),
+        //     onPressed: () {
+        //       // Implement notifications
+        //     },
+        //   ),
+        // ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

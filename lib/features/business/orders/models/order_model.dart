@@ -72,6 +72,32 @@ class OrderModel {
     };
   }
 
+  // Convert to JSON for debugging
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'customerName': customerName,
+      'customerPhone': customerPhone,
+      'customerAddress': customerAddress,
+      'deliveryType': deliveryType,
+      'productDescription': productDescription,
+      'newProductDescription': newProductDescription,
+      'numberOfItems': numberOfItems,
+      'numberOfNewItems': numberOfNewItems,
+      'numberOfReturnItems': numberOfReturnItems,
+      'cashOnDelivery': cashOnDelivery,
+      'cashOnDeliveryAmount': cashOnDeliveryAmount,
+      'hasCashDifference': hasCashDifference,
+      'cashDifferenceAmount': cashDifferenceAmount,
+      'allowPackageInspection': allowPackageInspection,
+      'specialInstructions': specialInstructions,
+      'referralNumber': referralNumber,
+      'amountToCollect': amountToCollect,
+      'status': status,
+      'expressShipping': expressShipping,
+    };
+  }
+
   // Create OrderModel from Map
   factory OrderModel.fromMap(Map<String, dynamic> map) {
     return OrderModel(

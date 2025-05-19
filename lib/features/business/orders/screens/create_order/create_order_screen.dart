@@ -47,19 +47,19 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
   void initState() {
     super.initState();
     
-    // Initialize order with existing data if editing
-    if (widget.isEditing) {
-      final order = OrderModel(
-        deliveryType: widget.initialDeliveryType,
-        productDescription: widget.initialProductDescription,
-        numberOfItems: widget.initialNumberOfItems,
-        allowPackageInspection: widget.initialAllowPackageInspection,
-        specialInstructions: widget.initialSpecialInstructions,
-        referralNumber: widget.initialReferralNumber,
-      );
-      
-      // Use Future.microtask to avoid setState during build
-      Future.microtask(() {
+    // Use Future.microtask to avoid setState during build
+    Future.microtask(() {
+      // Initialize order with existing data if editing
+      if (widget.isEditing) {
+        final order = OrderModel(
+          deliveryType: widget.initialDeliveryType,
+          productDescription: widget.initialProductDescription,
+          numberOfItems: widget.initialNumberOfItems,
+          allowPackageInspection: widget.initialAllowPackageInspection,
+          specialInstructions: widget.initialSpecialInstructions,
+          referralNumber: widget.initialReferralNumber,
+        );
+        
         // Initialize order data in provider
         ref.read(orderModelProvider.notifier).setOrder(order);
         
@@ -67,8 +67,13 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         if (widget.initialCustomerData != null) {
           ref.read(customerDataProvider.notifier).state = widget.initialCustomerData;
         }
-      });
-    }
+      } else {
+        // If not editing, ensure we have clean state
+        ref.read(orderModelProvider.notifier).resetOrder();
+        ref.read(customerDataProvider.notifier).state = null;
+        print('DEBUG CREATE: Reset order data when entering create order screen');
+      }
+    });
   }
   
   @override
@@ -77,8 +82,8 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     final order = ref.watch(orderModelProvider);
     final selectedDeliveryType = order.deliveryType ?? 'Deliver';
     
-    // Update the app bar title based on editing mode
-    String appBarTitle = widget.isEditing ? 'Edit Order' : 'Create New Order';
+    // Set appropriate title based on editing mode
+    final String appBarTitle = widget.isEditing ? 'Edit Order' : 'Create New Order';
     
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -113,10 +118,12 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
                     ),
                     ),
                     titlePadding: const EdgeInsets.fromLTRB(16, 16, 16, 5), // Reduced bottom padding
-                    content: const Text(
-                    "Order data and updates won't be saved if you decided to exit",
+                    content: Text(
+                    widget.isEditing 
+                      ? "Changes to the order won't be saved if you exit"
+                      : "Order data and updates won't be saved if you decided to exit",
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Color(0xff2F2F2F),
                       fontSize: 14,
                       fontFamily: 'Inter',
@@ -244,7 +251,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
             ),
           ),
           child: Text(
-            widget.isEditing ? 'Update Order' : 'Confirm Order',
+            widget.isEditing ? 'Save Changes' : 'Confirm Order',
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -357,7 +364,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(widget.isEditing 
-              ? 'Order updated successfully with ID: ${orderResult.id}' 
+              ? 'Changes saved successfully for Order #${orderResult.id}' 
               : 'Order created successfully with ID: ${orderResult.id}'
             ),
             backgroundColor: Colors.green,

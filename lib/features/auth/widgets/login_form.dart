@@ -22,16 +22,19 @@ class LoginForm extends HookConsumerWidget {
     final passwordController = useTextEditingController();
     final isPasswordVisible = useState(false);
     final formKey = useMemoized(() => GlobalKey<FormState>());
+    final rememberMe = useState(false);
 
     return Form(
       key: formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          AppTextField(
+          // Email field with icon
+          _buildTextField(
+            controller: emailController,
             label: 'Email or Phone Number',
             hintText: 'johndoe@email.com or 1234567890',
-            controller: emailController,
+            icon: Icons.email_outlined,
             validator: (val) {
               if (val == null || val.isEmpty) return 'Email or phone number is required';
               
@@ -47,37 +50,85 @@ class LoginForm extends HookConsumerWidget {
               return null;
             },
           ),
-          const SizedBox(height: 16),
-          AppTextField(
-            label:  'Password',
-            hintText: '********',
+          
+          const SizedBox(height: 20),
+          
+          // Password field with icon
+          _buildTextField(
             controller: passwordController,
+            label: 'Password',
+            hintText: '********',
+            icon: Icons.lock_outline,
             obscureText: !isPasswordVisible.value,
             suffixIcon: IconButton(
-              icon: Icon(isPasswordVisible.value ? Icons.visibility : Icons.visibility_off),
+              icon: Icon(
+                isPasswordVisible.value ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                color: Colors.grey[600],
+                size: 20,
+              ),
               onPressed: () => isPasswordVisible.value = !isPasswordVisible.value,
             ),
             validator: (val) => val == null || val.length < 6 ? 'Min 6 characters' : null,
           ),
-          const SizedBox(height: 14),
+          
+          const SizedBox(height: 16),
+          
+          // Remember me and Forgot password row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(''),
-              Text(
-              'Forgot Password?', 
-              style: GoogleFonts.inter(
-                color: Colors.blue,
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
+              // Remember me checkbox
+              Row(
+                children: [
+                  SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: Checkbox(
+                      value: rememberMe.value,
+                      onChanged: (value) => rememberMe.value = value ?? false,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      activeColor: const Color(0xFF3266A2),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Remember me',
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              
+              // Forgot password button
+              TextButton(
+                onPressed: () {
+                  // Handle forgot password
+                },
+                style: TextButton.styleFrom(
+                  minimumSize: Size.zero,
+                  padding: EdgeInsets.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  'Forgot Password?', 
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF3266A2),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ],
           ),
           
           const SizedBox(height: 32),
+          
+          // Login button with gradient
           SizedBox(
             width: double.infinity,
+            height: 56,
             child: ElevatedButton(
               onPressed: () {
                 if (formKey.currentState!.validate()) {
@@ -85,51 +136,87 @@ class LoginForm extends HookConsumerWidget {
                 }
               },
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                backgroundColor: const Color(0xFFF89C29),
+                padding: EdgeInsets.zero,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
               ),
-              child: Consumer(
-                builder: (_, ref, __) {
-                  final isLoading = ref.watch(loginProvider);
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: isLoading
-                        ? const ShimmerLoading(
-                            baseColor: Colors.white70,
-                            highlightColor: Colors.white,
-                            child: SizedBox(
-                              width: 80,
-                              height: 20,
-                              child: Center(
-                                child: Text(
-                                  'Logging in...',
-                                  style: TextStyle(
-                                    color: Colors.transparent,
-                                    fontWeight: FontWeight.bold,
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFF89C29), Color(0xFFF7A540)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Container(
+                  alignment: Alignment.center,
+                  child: Consumer(
+                    builder: (_, ref, __) {
+                      final isLoading = ref.watch(loginProvider);
+                      return AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 300),
+                        child: isLoading
+                            ? const ShimmerLoading(
+                                baseColor: Colors.white70,
+                                highlightColor: Colors.white,
+                                child: SizedBox(
+                                  width: 80,
+                                  height: 20,
+                                  child: Center(
+                                    child: Text(
+                                      'Logging in...',
+                                      style: TextStyle(
+                                        color: Colors.transparent,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
                                 ),
+                              )
+                            : const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Login',
+                                    key: ValueKey('login'),
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                ],
                               ),
-                            ),
-                          )
-                        : const Text('Login', 
-                            key: ValueKey('login'), 
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white, 
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                  );
-                },
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 80),
+          
+          const SizedBox(height: 32),
+          
+          // Sign up row
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("Don't have an account? "),
+              Text(
+                "Don't have an account?",
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(width: 4),
               GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -142,8 +229,9 @@ class LoginForm extends HookConsumerWidget {
                 child: const Text(
                   "Sign Up", 
                   style: TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF3266A2),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
                   ),
                 ),
               ),
@@ -151,6 +239,66 @@ class LoginForm extends HookConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+  
+  // Custom text field builder with icon
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hintText,
+    required IconData icon,
+    bool obscureText = false,
+    Widget? suffixIcon,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[800],
+            ),
+          ),
+        ),
+        TextFormField(
+          controller: controller,
+          obscureText: obscureText,
+          style: const TextStyle(fontSize: 16),
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+            prefixIcon: Icon(icon, color: Colors.grey[600], size: 20),
+            suffixIcon: suffixIcon,
+            filled: true,
+            fillColor: Colors.grey[100],
+            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFFF9800), width: 1),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+            ),
+            errorStyle: const TextStyle(fontSize: 12),
+          ),
+          validator: validator,
+        ),
+      ],
     );
   }
   

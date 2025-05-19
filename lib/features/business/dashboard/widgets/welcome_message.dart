@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class WelcomeMessage extends StatelessWidget {
   final String name;
   
   const WelcomeMessage({
-    Key? key,
+    super.key,
     required this.name,
-  }) : super(key: key);
+  });
+
+  Future<void> _launchUrl() async {
+    final Uri url = Uri.parse('https://nowshipping.co/');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,37 +34,37 @@ class WelcomeMessage extends StatelessWidget {
                 ),
               ),
 
-              Stack(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Image.asset('assets/icons/notification.png', width: 24, height: 24,color: Colors.teal,),
-                  ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Text(
-                        '6',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              // Stack(
+              //   children: [
+              //     Container(
+              //       padding: const EdgeInsets.all(8),
+              //       decoration: BoxDecoration(
+              //         color: Colors.grey.withOpacity(0.1),
+              //         borderRadius: BorderRadius.circular(20),
+              //       ),
+              //       child: Image.asset('assets/icons/notification.png', width: 24, height: 24,color: Colors.teal,),
+              //     ),
+              //     Positioned(
+              //       top: 0,
+              //       right: 0,
+              //       child: Container(
+              //         padding: const EdgeInsets.all(4),
+              //         decoration: const BoxDecoration(
+              //           color: Colors.red,
+              //           shape: BoxShape.circle,
+              //         ),
+              //         child: const Text(
+              //           '6',
+              //           style: TextStyle(
+              //             color: Colors.white,
+              //             fontSize: 10,
+              //             fontWeight: FontWeight.bold,
+              //           ),
+              //         ),
+              //       ),
+              //     ),
+              //   ],
+              // ),
             ],
           ),
 
@@ -68,7 +76,7 @@ class WelcomeMessage extends StatelessWidget {
               ),
               const SizedBox(width: 4),
               TextButton(
-                onPressed: () {},
+                onPressed: _launchUrl,
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
                 child: const Row(
                   children: [

@@ -293,7 +293,7 @@ class AuthService {
     required String fullName,
     required String password,
     required String phoneNumber,
-    required bool storageCheck,
+    bool storageCheck = false,
     required bool termsCheck,
     required String otp,
   }) async {
@@ -311,7 +311,7 @@ class AuthService {
           'fullName': fullName,
           'password': password,
           'phoneNumber': phoneNumber,
-          'storageCheck': storageCheck,
+          'storageCheck': storageCheck ? "true" : "false",
           'termsCheck': termsCheck,
           'otp': otp,
         }),

@@ -10,6 +10,14 @@ class AppTheme {
       textTheme: GoogleFonts.interTextTheme(
         Theme.of(context).textTheme,
       ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.white,
+        foregroundColor: Color(0xff2F2F2F),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(color: Color(0xff2F2F2F)),
+      ),
+      scaffoldBackgroundColor: Colors.white,
     );
   }
 
@@ -20,6 +28,13 @@ class AppTheme {
       colorScheme: ColorScheme.fromSeed(
         seedColor: Colors.blue,
         brightness: Brightness.dark,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFF121212),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
       ),
     );
   }

@@ -254,9 +254,12 @@ class _DeliveryDetailsWidgetState extends ConsumerState<DeliveryDetailsWidget> {
               Checkbox(
                 value: order.expressShipping ?? false,
                 onChanged: (value) {
+                  print('DEBUG EXPRESS WIDGET: Checkbox toggled to: $value');
                   ref.read(orderModelProvider.notifier).updateDeliveryDetails(
                     expressShipping: value,
                   );
+                  print('DEBUG EXPRESS WIDGET: After toggle, state value is: ${ref.read(orderModelProvider).expressShipping}');
+                  print('DEBUG FEE: Express shipping changed, should trigger fee recalculation');
                 },
                 activeColor: Colors.orange.shade300,
                 shape: RoundedRectangleBorder(

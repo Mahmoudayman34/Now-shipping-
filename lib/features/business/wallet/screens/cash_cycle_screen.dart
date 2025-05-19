@@ -12,14 +12,14 @@ class CashCycleScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xff2F2F2F)),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.file_download_outlined),
-            onPressed: () {
-              // Export functionality
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.file_download_outlined),
+        //     onPressed: () {
+        //       // Export functionality
+        //     },
+        //   ),
+        // ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -79,16 +79,16 @@ class CashCycleScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                TextButton.icon(
-                  onPressed: () {
-                    // Export functionality
-                  },
-                  icon: const Icon(Icons.file_download_outlined, size: 18),
-                  label: const Text('Export'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.blue,
-                  ),
-                ),
+                // TextButton.icon(
+                //   onPressed: () {
+                //     // Export functionality
+                //   },
+                //   icon: const Icon(Icons.file_download_outlined, size: 18),
+                //   label: const Text('Export'),
+                //   style: TextButton.styleFrom(
+                //     foregroundColor: Colors.blue,
+                //   ),
+                // ),
               ],
             ),
             const SizedBox(height: 8),

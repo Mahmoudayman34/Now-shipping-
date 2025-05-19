@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:now_shipping/features/business/orders/screens/create_order/create_order_screen.dart';
+import 'package:now_shipping/features/business/orders/screens/edit_order_screen.dart';
 import 'package:now_shipping/features/business/orders/screens/order_details_screen_refactored.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/action_item.dart';
+import 'package:now_shipping/features/business/orders/widgets/print_selection_dialog.dart';
 
 /// Shows a bottom sheet with actions for an order
 void showOrderActionsBottomSheet(BuildContext context, Map<String, dynamic> order) {
@@ -25,9 +27,9 @@ class OrderActionsBottomSheet extends StatelessWidget {
   final Map<String, dynamic> order;
 
   const OrderActionsBottomSheet({
-    Key? key,
+    super.key,
     required this.order,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +45,7 @@ class OrderActionsBottomSheet extends StatelessWidget {
                 const Expanded(
                   child: Center(
                     child: Text(
-                      'Pickup Actions',
+                      'Order Actions',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -72,7 +74,7 @@ class OrderActionsBottomSheet extends StatelessWidget {
             title: 'Scan Smart Sticker',
             onTap: () {
               Navigator.pop(context);
-              // Handle scan sticker
+              _handleScanSmartSticker(context, order);
             },
           ),
           ActionItem(
@@ -80,7 +82,7 @@ class OrderActionsBottomSheet extends StatelessWidget {
             title: 'Print Airwaybill',
             onTap: () {
               Navigator.pop(context);
-              // Handle print
+              _handlePrintAirwaybill(context, order);
             },
           ),
           ActionItem(
@@ -165,7 +167,7 @@ class OrderActionsBottomSheet extends StatelessWidget {
       'createdAt': DateTime.now().toString().substring(0, 10),
     };
 
-    // Prepare customer data in the format expected by CreateOrderScreen
+    // Prepare customer data in the format expected by EditOrderScreen
     Map<String, dynamic> customerData = {
       'name': orderData['customerName'],
       'phoneNumber': orderData['customerPhone'],
@@ -176,13 +178,12 @@ class OrderActionsBottomSheet extends StatelessWidget {
       'apartment': '',
     };
 
-    // Navigate to CreateOrderScreen in edit mode with the order data
+    // Navigate to EditOrderScreen with the order data
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CreateOrderScreen(
-          isEditing: true,
-          initialOrderId: order['orderId'],
+        builder: (context) => EditOrderScreen(
+          orderId: order['orderId'],
           initialCustomerData: customerData,
           initialDeliveryType: orderData['deliveryType'],
           initialProductDescription: orderData['packageDescription'],
@@ -191,6 +192,41 @@ class OrderActionsBottomSheet extends StatelessWidget {
           initialSpecialInstructions: orderData['deliveryNotes'],
           initialReferralNumber: orderData['orderReference'],
         ),
+      ),
+    );
+  }
+
+  // Method to handle scan smart sticker action
+  void _handleScanSmartSticker(BuildContext context, Map<String, dynamic> order) {
+    // Simply navigate to the OrderDetailsScreen where user can use the scan functionality
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderDetailsScreenRefactored(
+          orderId: order['orderId'],
+          status: order['status'],
+          initialTabIndex: 1, // Navigate to tracking tab
+        ),
+      ),
+    );
+  }
+
+  // Method to handle print airwaybill action
+  void _handlePrintAirwaybill(BuildContext context, Map<String, dynamic> order) {
+    showDialog(
+      context: context,
+      builder: (context) => PrintSelectionDialog(
+        orderId: order['orderId'],
+        onPrintSelected: (paperSize) {
+          // Handle printing with the selected paper size
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Printing $paperSize airwaybill for order #${order['orderId']}'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Here you would integrate with your actual printing service
+        },
       ),
     );
   }

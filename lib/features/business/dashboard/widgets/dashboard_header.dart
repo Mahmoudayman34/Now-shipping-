@@ -44,35 +44,35 @@ class DashboardHeader extends StatelessWidget {
                   const SizedBox(width: 4),
             ],
           ),
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Image.asset('assets/icons/receipt.png', width: 16, height: 16),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade500.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
+          // Row(
+          //   children: [
+          //     Container(
+          //       padding: const EdgeInsets.all(4),
+          //       decoration: BoxDecoration(
+          //         color: Colors.red.withOpacity(0.1),
+          //         borderRadius: BorderRadius.circular(20),
+          //       ),
+          //       child: Image.asset('assets/icons/receipt.png', width: 16, height: 16),
+          //     ),
+          //     const SizedBox(width: 12),
+          //     Container(
+          //       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          //       decoration: BoxDecoration(
+          //         color: Colors.grey.shade500.withOpacity(0.1),
+          //         borderRadius: BorderRadius.circular(20),
+          //       ),
+          //       child: Row(
 
-                  children: [
-                    Image.asset('assets/icons/support.png', width: 24, height: 24,
-                      color: Colors.teal),
-                    const SizedBox(width: 4),
-                    const Text('Support', style: TextStyle(color: Colors.teal)),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          //         children: [
+          //           Image.asset('assets/icons/support.png', width: 24, height: 24,
+          //             color: Colors.teal),
+          //           const SizedBox(width: 4),
+          //           const Text('Support', style: TextStyle(color: Colors.teal)),
+          //         ],
+          //       ),
+          //     ),
+          //   ],
+          // ),
         ],
       ),
     );

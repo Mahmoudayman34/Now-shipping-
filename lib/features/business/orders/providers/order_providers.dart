@@ -27,6 +27,8 @@ class OrderNotifier extends StateNotifier<OrderModel> {
   
   // Convert current state to API request format
   Map<String, dynamic> toApiRequest() {
+    print('DEBUG EXPRESS: Original expressShipping value from state: ${state.expressShipping}');
+    
     final Map<String, dynamic> request = {
       'fullName': state.customerName ?? '',
       'phoneNumber': state.customerPhone ?? '',
@@ -38,6 +40,8 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       'Notes': state.specialInstructions ?? '',
       'expressShipping': state.expressShipping ?? false,
     };
+
+    print('DEBUG EXPRESS: expressShipping in initial request: ${request['expressShipping']}');
 
     // Add fields based on order type
     if (state.deliveryType == 'Deliver') {
@@ -95,8 +99,19 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       request['referralNumber'] = state.referralNumber;
     }
 
+    // Save expressShipping value before removing false booleans
+    final bool expressShippingValue = request['expressShipping'] ?? false;
+    print('DEBUG EXPRESS: expressShipping value before removeWhere: $expressShippingValue');
+
     // Make sure we're not sending empty fields that the API doesn't expect
     request.removeWhere((key, value) => value == '' || value == null || (value is bool && value == false));
+    
+    // Always include expressShipping regardless of its value
+    request['expressShipping'] = expressShippingValue;
+    print('DEBUG EXPRESS: expressShipping value after explicitly setting it: ${request['expressShipping']}');
+
+    print('DEBUG EXPRESS: Final request map contains expressShipping key: ${request.containsKey('expressShipping')}');
+    print('DEBUG EXPRESS: Final request expressShipping value: ${request['expressShipping']}');
 
     return request;
   }
@@ -294,12 +309,15 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       numberOfReturnItems: state.numberOfReturnItems,
       cashOnDelivery: state.cashOnDelivery,
       cashOnDeliveryAmount: state.cashOnDeliveryAmount,
+      hasCashDifference: state.hasCashDifference,
+      cashDifferenceAmount: state.cashDifferenceAmount,
       allowPackageInspection: allowPackageInspection ?? state.allowPackageInspection,
       specialInstructions: specialInstructions ?? state.specialInstructions,
       referralNumber: referralNumber ?? state.referralNumber,
       amountToCollect: state.amountToCollect,
       createdAt: state.createdAt,
       status: state.status,
+      expressShipping: state.expressShipping,
     );
   }
   

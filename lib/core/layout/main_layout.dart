@@ -5,9 +5,16 @@ import 'package:now_shipping/features/auth/services/auth_service.dart';
 import 'package:now_shipping/core/widgets/toast_.dart'; 
 import 'package:now_shipping/features/business/orders/screens/create_order/create_order_screen.dart';
 import 'package:now_shipping/features/business/pickups/screens/create_pickup_screen.dart';
+import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
 
 // Provider to manage the selected tab index
 final selectedTabIndexProvider = StateProvider<int>((ref) => 0);
+
+// Provider to cache the current user data
+final layoutUserProvider = FutureProvider<UserModel?>((ref) async {
+  final authService = ref.read(authServiceProvider);
+  return await authService.getCurrentUser();
+});
 
 class MainLayout extends ConsumerWidget {
   final List<Widget> screens;
@@ -20,6 +27,9 @@ class MainLayout extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedIndex = ref.watch(selectedTabIndexProvider);
+    
+    // Preload user data when layout is built
+    ref.watch(layoutUserProvider);
     
     return Scaffold(
       body: IndexedStack(
@@ -127,174 +137,181 @@ class MainLayout extends ConsumerWidget {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (BuildContext context) {
-        final ref = ProviderScope.containerOf(context);
-        
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Padding(
-                    padding: EdgeInsets.only(left: 130.0),
-                    child: Text(
-                      'Create',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xff2F2F2F),
+        // Access the preloaded user data using a Consumer
+        return Consumer(
+          builder: (context, ref, child) {
+            final userAsync = ref.watch(layoutUserProvider);
+            
+            return userAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) => const Center(child: Text('Error loading user data')),
+              data: (user) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(left: 130.0),
+                            child: Text(
+                              'Create',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xff2F2F2F),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Color(0xff2F2F2F)),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Color(0xff2F2F2F)),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: InkWell(
-                onTap: () async {
-                  // Check if user profile is complete before navigating
-                  final authService = ref.read(authServiceProvider);
-                  final user = await authService.getCurrentUser();
-                  
-                  if (user != null && user.isProfileComplete) {
-                    // Profile is complete, proceed with navigation
-                    Navigator.pop(context);
-                    // Navigate to order creation screen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CreateOrderScreen(),
-                      ),
-                    );
-                  } else {
-                    // Profile is not complete, show toast message
-                    Navigator.pop(context);
-                    ToastService.show(
-                      context,
-                      'Please complete and activate your account first',
-                      type: ToastType.warning,
-                    );
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(120, 233, 233, 233),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        'assets/icons/order.png',
-                        width: 30,
-                        height: 30,
-                      ),
-                      const SizedBox(width: 16),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Single Order',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xff2F2F2F),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: InkWell(
+                        onTap: () {
+                          if (user != null && user.isProfileComplete) {
+                            // Reset order data before navigating
+                            ref.read(orderModelProvider.notifier).resetOrder();
+                            ref.read(customerDataProvider.notifier).state = null;
+                            
+                            // Profile is complete, proceed with navigation
+                            Navigator.pop(context);
+                            // Navigate to order creation screen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const CreateOrderScreen(),
                               ),
-                            ),
-                            SizedBox(height: 0.5),
-                            Text(
-                              'Create orders one by one.',
-                              style: TextStyle(
-                                color: Colors.grey,
+                            );
+                          } else {
+                            // Profile is not complete, show toast message
+                            Navigator.pop(context);
+                           ToastService.show(
+                           context,
+                          'Please complete and activate your account first',
+                          type: ToastType.warning,
+                             );
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(120, 233, 233, 233),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              Image.asset(
+                                'assets/icons/order.png',
+                                width: 30,
+                                height: 30,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 16),
+                              const Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Single Order',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xff2F2F2F),
+                                      ),
+                                    ),
+                                    SizedBox(height: 0.5),
+                                    Text(
+                                      'Create orders one by one.',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: InkWell(
-                onTap: () async {
-                  // Check if user profile is complete before navigating
-                  final authService = ref.read(authServiceProvider);
-                  final user = await authService.getCurrentUser();
-                  
-                  if (user != null && user.isProfileComplete) {
-                    // Profile is complete, proceed with navigation
-                    Navigator.pop(context);
-                    // Navigate to pickup creation screen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CreatePickupScreen(),
-                      ),
-                    );
-                  } else {
-                    // Profile is not complete, show toast message
-                    Navigator.pop(context);
-                    ToastService.show(
-                      context,
-                      'Please complete and activate your account first',
-                      type: ToastType.warning,
-                    );
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(120, 233, 233, 233),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      Image.asset(
-                        'assets/icons/pickup.png',
-                        width: 30,
-                        height: 30,
-                      ),
-                      const SizedBox(width: 16),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Schedule Pickup',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xff2F2F2F),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: InkWell(
+                        onTap: () {
+                          if (user != null && user.isProfileComplete) {
+                            // Profile is complete, proceed with navigation
+                            Navigator.pop(context);
+                            // Navigate to pickup creation screen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const CreatePickupScreen(),
                               ),
-                            ),
-                            SizedBox(height: 0.5),
-                            Text(
-                              'Request a pickup to pick your orders.',
-                              style: TextStyle(
-                                color: Colors.grey,
+                            );
+                          } else {
+                            // Profile is not complete, show toast message
+                            Navigator.pop(context);
+                            ToastService.show(
+                              context,
+                              'Please complete and activate your account first',
+                              type: ToastType.warning,
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16.0),
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(120, 233, 233, 233),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            children: [
+                              Image.asset(
+                                'assets/icons/pickup.png',
+                                width: 30,
+                                height: 30,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 16),
+                              const Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Schedule Pickup',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xff2F2F2F),
+                                      ),
+                                    ),
+                                    SizedBox(height: 0.5),
+                                    Text(
+                                      'Request a pickup to pick your orders.',
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-          ],
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                );
+              }
+            );
+          }
         );
       },
     );

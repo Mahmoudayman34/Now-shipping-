@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:now_shipping/features/business/orders/models/order_model.dart';
+import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
 import 'package:now_shipping/features/business/orders/providers/orders_provider.dart';
 import 'package:now_shipping/features/business/orders/screens/order_details_screen_refactored.dart';
 import 'package:now_shipping/features/business/orders/screens/create_order/create_order_screen.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_item.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_tab.dart';
 import 'package:now_shipping/features/common/widgets/shimmer_loading.dart';
+import 'package:now_shipping/features/auth/services/auth_service.dart';
+import 'package:now_shipping/core/widgets/toast_.dart';
 
 // Provider to keep track of the selected delivery type filter
 final deliveryTypeFilterProvider = StateProvider<String>((ref) => 'All');
+
+// Provider to store cached user data for this screen
+final ordersScreenUserProvider = StateProvider<UserModel?>((ref) => null);
 
 class OrdersScreen extends ConsumerStatefulWidget {
   const OrdersScreen({super.key});
@@ -34,7 +41,17 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
     // Force refresh orders when screen loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchOrders();
+      _preloadUserData(); // Preload user data
     });
+  }
+  
+  // Preload user data to avoid delay when creating orders
+  Future<void> _preloadUserData() async {
+    final authService = ref.read(authServiceProvider);
+    final user = await authService.getCurrentUser();
+    
+    // Store in the provider for later use
+    ref.read(ordersScreenUserProvider.notifier).state = user;
   }
   
   @override
@@ -493,11 +510,27 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
   }
   
   void _navigateToCreateOrder() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const CreateOrderScreen(),
-      ),
-    ).then((_) => _fetchOrders());
+    // Use the preloaded user data
+    final user = ref.read(ordersScreenUserProvider);
+    
+    if (user != null && user.isProfileComplete) {
+      // Reset all order-related state before navigating to create screen
+      ref.read(orderModelProvider.notifier).resetOrder();
+      ref.read(customerDataProvider.notifier).state = null;
+      
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const CreateOrderScreen(),
+        ),
+      ).then((_) => _fetchOrders());
+    } else {
+      // Profile is not complete, show toast message
+      ToastService.show(
+        context,
+        'Please complete and activate your account first',
+        type: ToastType.warning,
+      );
+    }
   }
 }

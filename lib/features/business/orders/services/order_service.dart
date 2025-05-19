@@ -116,6 +116,58 @@ class OrderService {
     }
   }
   
+  // Update existing order
+  Future<OrderModel> updateOrder(String orderId, Map<String, dynamic> orderData) async {
+    try {
+      print('DEBUG SERVICE: Updating order $orderId with data: $orderData');
+      final response = await _orderRepository.updateOrder(orderId, orderData);
+      
+      print('DEBUG SERVICE: Update order response received');
+      
+      // Check if the API call was successful
+      if (response.containsKey('message') && response['message'] == 'Order updated successfully.' && response['order'] != null) {
+        print('DEBUG SERVICE: Order updated successfully');
+        // Convert API response to OrderModel
+        return _mapToOrderModel(response['order']);
+      } else if (response.containsKey('orderNumber') || response.containsKey('id')) {
+        // Direct order object was returned
+        print('DEBUG SERVICE: Direct order object returned');
+        return _mapToOrderModel(response);
+      } else {
+        print('DEBUG SERVICE: Failed to update order: $response');
+        throw Exception('Failed to update order: ${response['message'] ?? 'Unknown error'}');
+      }
+    } catch (e) {
+      print('DEBUG SERVICE: Exception in updateOrder: $e');
+      throw Exception('Failed to update order: $e');
+    }
+  }
+  
+  // Calculate order fees
+  Future<Map<String, dynamic>> calculateOrderFees(
+    String government, 
+    String orderType, 
+    {bool isExpressShipping = false}
+  ) async {
+    try {
+      print('DEBUG SERVICE: Calculating fees for $orderType in $government, express: $isExpressShipping');
+      
+      final Map<String, dynamic> requestData = {
+        'government': government,
+        'orderType': orderType,
+        'isExpressShipping': isExpressShipping,
+      };
+      
+      final response = await _orderRepository.calculateFees(requestData);
+      print('DEBUG SERVICE: Fee calculation response: $response');
+      
+      return response;
+    } catch (e) {
+      print('DEBUG SERVICE: Exception in calculateOrderFees: $e');
+      throw Exception('Failed to calculate order fees: $e');
+    }
+  }
+
   // Helper methods to extract data from different API response formats
   String _extractCustomerName(Map<String, dynamic> order) {
     if (order.containsKey('orderCustomer') && order['orderCustomer'] is Map) {

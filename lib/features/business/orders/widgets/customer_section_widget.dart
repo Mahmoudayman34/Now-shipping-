@@ -158,8 +158,14 @@ class CustomerSectionWidget extends ConsumerWidget {
         builder: (context) => CustomerDetailsScreen(
           initialData: initialData,
           onCustomerDataSaved: (data) {
+            print('DEBUG FEE: Customer data updated, should trigger fee recalculation');
+            print('DEBUG FEE: New government/city: ${data['city']}');
+            
+            // Update the customer data in the provider
             ref.read(customerDataProvider.notifier).state = data;
+            
             // Also update order model with customer data
+            // This will trigger the listener in EditOrderScreen that recalculates fees
             ref.read(orderModelProvider.notifier).updateCustomerData(data);
           },
         ),

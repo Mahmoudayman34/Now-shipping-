@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:now_shipping/features/business/orders/providers/order_details_provider.dart';
 import 'package:now_shipping/features/business/orders/screens/create_order/create_order_screen.dart';
+import 'package:now_shipping/features/business/orders/screens/edit_order_screen.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/action_item.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/tracking_tab.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/details_tab.dart';
+import 'package:now_shipping/features/business/orders/widgets/print_selection_dialog.dart';
 
 class OrderDetailsScreenRefactored extends ConsumerStatefulWidget {
   final String orderId;
@@ -84,7 +86,7 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
                 title: 'Print Airwaybill',
                 onTap: () {
                   Navigator.pop(context);
-                  // Implementation for print airwaybill
+                  _showPrintOptions();
                 },
               ),
               ActionItem(
@@ -199,24 +201,26 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
     final orderDetails = ref.read(orderDetailsProvider(widget.orderId));
     if (orderDetails == null) return;
     
-    // Prepare customer data in the format expected by CreateOrderScreen
+    // Prepare customer data in the format expected by EditOrderScreen
+    // Extract complete address details to match edit order format
+    final addressParts = orderDetails.customerAddress.split(',');
+    
     Map<String, dynamic> customerData = {
       'name': orderDetails.customerName,
       'phoneNumber': orderDetails.customerPhone,
       'addressDetails': orderDetails.customerAddress,
-      'city': orderDetails.customerAddress.split(',').first, // Extract city from address
-      'building': '15', // Extracted from address
-      'floor': '3', // Extracted from address
-      'apartment': '301', // Extracted from address
+      'city': addressParts.isNotEmpty ? addressParts[0].trim() : '',
+      'building': addressParts.length > 1 ? addressParts[1].trim() : '',
+      'floor': addressParts.length > 2 ? addressParts[2].trim() : '',
+      'apartment': addressParts.length > 3 ? addressParts[3].trim() : '',
     };
 
-    // Navigate to CreateOrderScreen in edit mode with the order data
+    // Navigate to EditOrderScreen with the order data
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CreateOrderScreen(
-          isEditing: true,
-          initialOrderId: widget.orderId,
+        builder: (context) => EditOrderScreen(
+          orderId: widget.orderId,
           initialCustomerData: customerData,
           initialDeliveryType: orderDetails.deliveryType,
           initialProductDescription: orderDetails.packageDescription,
@@ -258,6 +262,26 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
             child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
+      ),
+    );
+  }
+
+  // Show print options dialog
+  void _showPrintOptions() {
+    showDialog(
+      context: context,
+      builder: (context) => PrintSelectionDialog(
+        orderId: widget.orderId,
+        onPrintSelected: (paperSize) {
+          // Handle printing with the selected paper size
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Printing $paperSize airwaybill for order #${widget.orderId}'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Here you would integrate with your actual printing service
+        },
       ),
     );
   }

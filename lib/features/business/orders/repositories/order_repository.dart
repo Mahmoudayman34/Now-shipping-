@@ -118,6 +118,18 @@ class OrderRepository {
   Future<Map<String, dynamic>> createOrder(Map<String, dynamic> orderData) async {
     try {
       print('DEBUG REPO: Creating order with data: $orderData');
+      print('DEBUG EXPRESS REPO: expressShipping in repository: ${orderData['expressShipping']}');
+      
+      // Rename expressShipping to isExpressShipping for API compatibility
+      if (orderData.containsKey('expressShipping')) {
+        // Store the value and remove the old key
+        bool expressValue = orderData['expressShipping'];
+        orderData.remove('expressShipping');
+        
+        // Add with the correct key name that matches the API response format
+        orderData['isExpressShipping'] = expressValue;
+        print('DEBUG EXPRESS REPO: Renamed parameter to isExpressShipping: ${orderData['isExpressShipping']}');
+      }
       
       // Special handling for Cash Collection orders
       if (orderData['orderType'] == 'Cash Collection') {
@@ -146,6 +158,7 @@ class OrderRepository {
       
       // Send order data to API
       print('DEBUG REPO: Sending create order request with body: ${json.encode(orderData)}');
+      print('DEBUG EXPRESS REPO: isExpressShipping right before API call: ${orderData['isExpressShipping']}');
       
       final response = await _apiService.post(
         '/business/submit-order',
@@ -154,6 +167,12 @@ class OrderRepository {
       );
       
       print('DEBUG REPO: Create order response: $response');
+      if (response is Map && response.containsKey('order')) {
+        final orderResponse = response['order'];
+        if (orderResponse is Map && orderResponse.containsKey('orderShipping')) {
+          print('DEBUG EXPRESS REPO: isExpressShipping in response: ${orderResponse['orderShipping']['isExpressShipping']}');
+        }
+      }
       
       // Return the created order
       if (response is Map<String, dynamic>) {
@@ -178,6 +197,87 @@ class OrderRepository {
       }
       
       throw Exception('Failed to create order: $e');
+    }
+  }
+
+  // Update an existing order
+  Future<Map<String, dynamic>> updateOrder(String orderId, Map<String, dynamic> orderData) async {
+    try {
+      print('DEBUG REPO: Updating order $orderId with data: $orderData');
+      
+      // Rename expressShipping to isExpressShipping for API compatibility
+      if (orderData.containsKey('expressShipping')) {
+        // Store the value and remove the old key
+        bool expressValue = orderData['expressShipping'];
+        orderData.remove('expressShipping');
+        
+        // Add with the correct key name that matches the API response format
+        orderData['isExpressShipping'] = expressValue;
+        print('DEBUG EXPRESS REPO: Renamed parameter to isExpressShipping: ${orderData['isExpressShipping']}');
+      }
+      
+      // Get authentication token
+      final token = await _authService.getToken();
+      if (token == null) {
+        print('DEBUG REPO: Auth token is null');
+        throw Exception('Authentication token not found');
+      }
+      
+      // Send update order data to API
+      print('DEBUG REPO: Sending update order request with body: ${json.encode(orderData)}');
+      
+      final response = await _apiService.put(
+        '/business/orders/edit-order/$orderId',
+        token: token,
+        body: orderData,
+      );
+      
+      print('DEBUG REPO: Update order response: $response');
+      
+      // Return the updated order
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else {
+        print('DEBUG REPO: Response is not a map: $response');
+        return {};
+      }
+    } catch (e) {
+      print('DEBUG REPO: Exception in updateOrder: $e');
+      throw Exception('Failed to update order: $e');
+    }
+  }
+
+  // Calculate order delivery fees
+  Future<Map<String, dynamic>> calculateFees(Map<String, dynamic> requestData) async {
+    try {
+      print('DEBUG REPO: Calculating fees with data: $requestData');
+      
+      // Get authentication token
+      final token = await _authService.getToken();
+      if (token == null) {
+        print('DEBUG REPO: Auth token is null');
+        throw Exception('Authentication token not found');
+      }
+      
+      // Send calculate fees request to API
+      final response = await _apiService.post(
+        '/business/calculate-fees',
+        token: token,
+        body: requestData,
+      );
+      
+      print('DEBUG REPO: Calculate fees response: $response');
+      
+      // Return the fee calculation
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else {
+        print('DEBUG REPO: Response is not a map: $response');
+        return {};
+      }
+    } catch (e) {
+      print('DEBUG REPO: Exception in calculateFees: $e');
+      throw Exception('Failed to calculate fees: $e');
     }
   }
 }

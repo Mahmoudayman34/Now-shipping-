@@ -8,6 +8,9 @@ import 'package:now_shipping/features/business/pickups/screens/pickup_details_sc
 import 'package:now_shipping/features/business/pickups/widgets/pickup_card.dart';
 import 'package:intl/intl.dart';
 
+// Provider to store cached user data for this screen
+final pickupsScreenUserProvider = StateProvider<UserModel?>((ref) => null);
+
 class PickupsScreen extends StatefulWidget {
   const PickupsScreen({super.key});
 
@@ -57,6 +60,25 @@ class _PickupsScreenState extends State<PickupsScreen> {
       notes: 'Large glass table',
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Preload user data when screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _preloadUserData();
+    });
+  }
+  
+  // Preload user data to avoid delay when creating pickups
+  Future<void> _preloadUserData() async {
+    final ref = ProviderScope.containerOf(context);
+    final authService = ref.read(authServiceProvider);
+    final user = await authService.getCurrentUser();
+    
+    // Store in the provider for later use
+    ref.read(pickupsScreenUserProvider.notifier).state = user;
+  }
   
   // Filtered pickups based on selected tab
   List<PickupModel> get _filteredPickups {
@@ -71,14 +93,14 @@ class _PickupsScreenState extends State<PickupsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pickups'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {
-              // Implement search functionality
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.search),
+        //     onPressed: () {
+        //       // Implement search functionality
+        //     },
+        //   ),
+        // ],
       ),
       body: Column(
         children: [
@@ -138,14 +160,14 @@ class _PickupsScreenState extends State<PickupsScreen> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFE5F8F9) : Colors.transparent,
-          borderRadius: BorderRadius.circular(25),
-          border: isSelected ? null : Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+          border: isSelected ? Border.all(color: const Color(0xFFFF9800)) : Border.all(color: Colors.grey.shade300),
         ),
         child: Center(
           child: Text(
             title,
             style: TextStyle(
-              color: isSelected ? const Color(0xFF00ADB5) : Colors.grey,
+              color: isSelected ? const Color(0xFFFF9800) : Colors.grey,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
@@ -155,7 +177,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
   }
   
   Widget _buildEmptyState() {
-final ref = ProviderScope.containerOf(context);
+    final ref = ProviderScope.containerOf(context);
 
     return Center(
       child: Column(
@@ -190,10 +212,9 @@ final ref = ProviderScope.containerOf(context);
               ],
             ),
             child: ElevatedButton(
-                onPressed: () async {
-                  // Check if user profile is complete before navigating
-                  final authService = ref.read(authServiceProvider);
-                  final user = await authService.getCurrentUser();
+                onPressed: () {
+                  // Use the preloaded user data
+                  final user = ref.read(pickupsScreenUserProvider);
                   
                   if (user != null && user.isProfileComplete) {
                     // Profile is complete, proceed with navigation
