@@ -8,7 +8,6 @@ import '../widgets/today_overview.dart';
 import '../widgets/statistics_grid.dart';
 import '../widgets/cash_summary.dart';
 import '../widgets/new_orders_notification.dart';
-import '../widgets/detailed_breakdown.dart';
 import '../widgets/profile_completion_form.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../common/widgets/shimmer_loading.dart';

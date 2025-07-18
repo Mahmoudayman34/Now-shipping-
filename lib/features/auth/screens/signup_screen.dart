@@ -5,10 +5,8 @@ import 'package:now_shipping/core/utils/validators.dart';
 import 'package:now_shipping/core/utils/responsive_utils.dart';
 import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastType;
 import 'package:now_shipping/features/auth/services/auth_service.dart';
-import '../../common/widgets/app_text_field.dart';
 import '../../common/widgets/shimmer_loading.dart';
 import 'login_screen.dart';
-import 'account_success_screen.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});

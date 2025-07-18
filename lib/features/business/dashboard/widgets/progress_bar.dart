@@ -6,6 +6,9 @@ class ProgressBar extends StatelessWidget {
   final int totalSteps;
   final List<String> stepLabels;
   final Function(int)? onStepTap;
+  
+  // Define the theme color
+  static const Color themeColor = Color(0xfff29620);
 
   const ProgressBar({
     super.key,
@@ -32,7 +35,7 @@ class ProgressBar extends StatelessWidget {
             return Expanded(
               child: Container(
                 height: 2,
-                color: (i ~/ 2) < currentStep - 1 ? Colors.green : Colors.grey.shade300,
+                color: (i ~/ 2) < currentStep - 1 ? themeColor : Colors.grey.shade300,
               ),
             );
           } else {
@@ -47,10 +50,10 @@ class ProgressBar extends StatelessWidget {
             Widget inner;
 
             if (isCompleted) {
-              circleColor = Colors.green;
+              circleColor = themeColor;
               inner = const Icon(Icons.check, color: Colors.white, size: 16);
             } else if (isCurrent) {
-              circleColor = Colors.blue;
+              circleColor = themeColor;
               inner = const Icon(Icons.radio_button_checked, color: Colors.white, size: 16);
             } else {
               circleColor = Colors.grey.shade400;
@@ -77,7 +80,7 @@ class ProgressBar extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                      color: isCurrent ? Colors.black : Colors.grey.shade600,
+                      color: isCurrent ? themeColor : Colors.grey.shade600,
                     ),
                   ),
                 ],

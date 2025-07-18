@@ -12,6 +12,7 @@ class DashboardPickupAddressStep extends ConsumerStatefulWidget {
   final VoidCallback onPrevious;
   final GlobalKey<FormState>? formKey;
   final Function(Function)? onRegisterSave;
+  final Color themeColor;
   
   const DashboardPickupAddressStep({
     super.key, 
@@ -19,6 +20,7 @@ class DashboardPickupAddressStep extends ConsumerStatefulWidget {
     required this.onPrevious,
     this.formKey,
     this.onRegisterSave,
+    this.themeColor = Colors.blue, // Default to blue if not provided
   });
 
   @override
@@ -345,7 +347,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
               'Where can we pick up your orders?',
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
+                color: Color(0xffF29620),
               ),
             ),
             const SizedBox(height: 8),
@@ -444,7 +446,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
                                   fontWeight: FontWeight.bold,
                                   color: theme.colorScheme.primary,
                                 ),
-                              ),
+                              ), 
                               const SizedBox(height: 4),
                               Text(
                                 'Lat: ${_latitude!.toStringAsFixed(6)}, Lng: ${_longitude!.toStringAsFixed(6)}',
@@ -707,24 +709,20 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
         Expanded(
           flex: 1,
           child: OutlinedButton(
-            onPressed: () {
-              // Save data before going back
-              _saveFormData();
-              widget.onPrevious();
-            },
+            onPressed: widget.onPrevious,
             style: OutlinedButton.styleFrom(
-              foregroundColor: theme.colorScheme.primary,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              side: BorderSide(color: theme.colorScheme.primary),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+            foregroundColor: widget.themeColor,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            side: BorderSide(color: widget.themeColor),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             ),
             child: const Text(
               "Back",
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
@@ -737,20 +735,20 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
           flex: 2,
           child: ElevatedButton(
             onPressed: _submitForm,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary,
-              foregroundColor: theme.colorScheme.onPrimary,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+             style: ElevatedButton.styleFrom(
+                      backgroundColor: widget.themeColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
             child: const Text(
               "Next",
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),

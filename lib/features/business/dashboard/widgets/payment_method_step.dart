@@ -9,6 +9,7 @@ class DashboardPaymentMethodStep extends ConsumerStatefulWidget {
   final VoidCallback onPrevious;
   final GlobalKey<FormState>? formKey;
   final Function(Function)? onRegisterSave;
+  final Color themeColor;
   
   const DashboardPaymentMethodStep({
     super.key, 
@@ -16,6 +17,7 @@ class DashboardPaymentMethodStep extends ConsumerStatefulWidget {
     required this.onPrevious,
     this.formKey,
     this.onRegisterSave,
+    this.themeColor = Colors.blue, // Default to blue if not provided
   });
 
   @override
@@ -272,56 +274,42 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
             // Navigation buttons
             Row(
               children: [
-                // Back button
                 Expanded(
-                  flex: 1,
                   child: OutlinedButton(
-                    onPressed: () {
-                      // Save data before going back
-                      _saveFormData();
-                      widget.onPrevious();
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: theme.colorScheme.primary,
+                    onPressed: widget.onPrevious,
+                                        style: OutlinedButton.styleFrom(
+                      foregroundColor: widget.themeColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: theme.colorScheme.primary),
+                      side: BorderSide(color: widget.themeColor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      "Back",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: const Text('Back',
+                    style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),),
                   ),
                 ),
-
                 const SizedBox(width: 16),
-
-                // Next button
                 Expanded(
-                  flex: 2,
                   child: ElevatedButton(
-                    onPressed: _submitForm,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
+                    onPressed: _validateAndContinue,
+                     style: ElevatedButton.styleFrom(
+                      backgroundColor: widget.themeColor,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       elevation: 2,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      "Next",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: const Text('Next',
+                     style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,),
+                ),
                   ),
                 ),
               ],
@@ -666,7 +654,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
     );
   }
 
-  void _submitForm() {
+  void _validateAndContinue() {
     if (_selectedPaymentMethod == null) {
       // Show error message if no payment method is selected
       ToastService.show(

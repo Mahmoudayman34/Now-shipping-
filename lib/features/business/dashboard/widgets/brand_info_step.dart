@@ -10,6 +10,7 @@ class DashboardBrandInfoStep extends ConsumerStatefulWidget {
   final VoidCallback onPrevious;
   final GlobalKey<FormState>? formKey;
   final Function(Function)? onRegisterSave;
+  final Color themeColor;
   
   const DashboardBrandInfoStep({
     super.key, 
@@ -17,6 +18,7 @@ class DashboardBrandInfoStep extends ConsumerStatefulWidget {
     required this.onPrevious,
     this.formKey,
     this.onRegisterSave,
+    this.themeColor = const Color(0xffF29620), // Default to blue if not provided
   });
 
   @override
@@ -179,7 +181,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                     'Tell us about your brand',
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
+                      color: const Color(0xffF29620),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -248,7 +250,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: const Color(0xffF29620)),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: DropdownButtonFormField<String>(
@@ -300,7 +302,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: const Color(0xffF29620)),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: DropdownButtonFormField<String>(
@@ -347,7 +349,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                     'Where do you sell your products?',
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.primary,
+                      color: Color(0xffF29620),
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -378,17 +380,17 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                           ) : null,
                           labelStyle: TextStyle(
                             color: isSelected 
-                                ? theme.colorScheme.onPrimary
+                                ? Colors.white
                                 : theme.colorScheme.onSurface,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                           ),
                           backgroundColor: theme.colorScheme.surface,
-                          selectedColor: theme.colorScheme.primary,
+                          selectedColor: Color(0xffF29620),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                             side: BorderSide(
                               color: isSelected 
-                                  ? theme.colorScheme.primary 
+                                  ? Color(0xffF29620)
                                   : theme.colorScheme.outline.withOpacity(0.5),
                             ),
                           ),
@@ -431,7 +433,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                             hintText: 'Enter your $channel URL',
                             prefixIcon: Icon(
                               _getChannelIcon(channel),
-                              color: theme.colorScheme.primary.withOpacity(0.7),
+                              color: Color(0xffF29620).withOpacity(0.7),
                               size: 20,
                             ),
                             border: OutlineInputBorder(
@@ -485,9 +487,9 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                       widget.onPrevious();
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: theme.colorScheme.primary,
+                      foregroundColor: widget.themeColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: theme.colorScheme.primary),
+                      side: BorderSide(color: widget.themeColor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -496,7 +498,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                       "Back",
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -510,8 +512,8 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                   child: ElevatedButton(
                     onPressed: _submitForm,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
+                      backgroundColor: widget.themeColor,
+                      foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       elevation: 2,
                       shape: RoundedRectangleBorder(
@@ -522,7 +524,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                       "Next",
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),

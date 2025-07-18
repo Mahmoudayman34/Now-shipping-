@@ -88,7 +88,7 @@ class PickupCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Pickup #${pickup.pickupId}',
+                'Pickup #${pickup.pickupNumber}',
                 style: const TextStyle(
                   color: Color(0xff2F2F2F),
                   fontSize: 14,

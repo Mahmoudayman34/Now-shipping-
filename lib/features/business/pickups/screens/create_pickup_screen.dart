@@ -634,16 +634,26 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
 
       // Create the updated or new pickup model
       final pickup = PickupModel(
-        pickupId: _isEditing
-            ? widget.pickupToEdit!.pickupId
+        id: _isEditing
+            ? widget.pickupToEdit!.id
             : DateTime.now().millisecondsSinceEpoch.toString(),
-        address: _pickupAddressController.text,
-        contactNumber: '+20${_contactNumberController.text}',
+        pickupNumber: _isEditing
+            ? widget.pickupToEdit!.pickupNumber
+            : DateTime.now().millisecondsSinceEpoch.toString().substring(0, 6),
+        numberOfOrders: _isEditing ? widget.pickupToEdit!.numberOfOrders : 1,
+        pickupFees: _isEditing ? widget.pickupToEdit!.pickupFees : 0.0,
         pickupDate: _selectedDate!,
-        status: _isEditing ? widget.pickupToEdit!.status : 'Upcoming',
-        isFragileItem: _isFragileItem,
-        isLargeItem: _isLargeItem,
-        notes: _notesController.text.isEmpty ? null : _notesController.text,
+        phoneNumber: '+20${_contactNumberController.text}',
+        isFragileItems: _isFragileItem,
+        isLargeItems: _isLargeItem,
+        pickupStatus: _isEditing ? widget.pickupToEdit!.pickupStatus : 'new',
+        pickupNotes: _notesController.text.isEmpty ? '' : _notesController.text,
+        ordersPickedUp: _isEditing ? widget.pickupToEdit!.ordersPickedUp : [],
+        business: _isEditing ? widget.pickupToEdit!.business : null,
+        pickupStages: _isEditing ? widget.pickupToEdit!.pickupStages : [],
+        createdAt: _isEditing ? widget.pickupToEdit!.createdAt : DateTime.now(),
+        updatedAt: DateTime.now(),
+        assignedDriver: _isEditing ? widget.pickupToEdit!.assignedDriver : null,
       );
 
       // Return the pickup to the previous screen

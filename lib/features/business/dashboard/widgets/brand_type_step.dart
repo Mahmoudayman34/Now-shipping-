@@ -11,17 +11,19 @@ import 'dart:async';
 class DashboardBrandTypeStep extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
   final VoidCallback onPrevious;
-  final VoidCallback? validateAndSubmit; // For validation
   final GlobalKey<FormState>? formKey;
   final Function(Function)? onRegisterSave;
-
+  final VoidCallback? validateAndSubmit;
+  final Color themeColor;
+  
   const DashboardBrandTypeStep({
     super.key,
     required this.onComplete,
     required this.onPrevious,
-    this.validateAndSubmit,
     this.formKey,
     this.onRegisterSave,
+    this.validateAndSubmit,
+    this.themeColor = Colors.blue, // Default to blue if not provided
   });
 
   @override
@@ -379,7 +381,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                             : 'Example: 29811234',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                          borderSide: const BorderSide(color: Color(0xffF29620)),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -590,14 +592,18 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                       widget.onPrevious();
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: theme.colorScheme.primary,
+                      foregroundColor: widget.themeColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: theme.colorScheme.primary),
+                      side: BorderSide(color: widget.themeColor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('Back'),
+                    child: const Text('Back',
+                    style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),),
                   ),
                 ),
 
@@ -609,10 +615,10 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                   child: ElevatedButton(
                     onPressed: (_isSubmitting || _isUploading) ? null : _submitForm,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: theme.colorScheme.onPrimary,
-                      disabledBackgroundColor: theme.colorScheme.primary.withOpacity(0.3),
-                      disabledForegroundColor: theme.colorScheme.onPrimary.withOpacity(0.5),
+                      backgroundColor: widget.themeColor,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: widget.themeColor.withOpacity(0.3),
+                      disabledForegroundColor: Colors.white.withOpacity(0.5),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       elevation: 2,
                       shape: RoundedRectangleBorder(
@@ -620,7 +626,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                       ),
                     ),
                     child: _isSubmitting
-                        ? Row(
+                        ? const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               SizedBox(
@@ -628,11 +634,11 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                                 height: 16,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: theme.colorScheme.onPrimary,
+                                  color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              const Text("Submitting..."),
+                              SizedBox(width: 8),
+                              Text("Submitting..."),
                             ],
                           )
                         : _isUploading
@@ -648,7 +654,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                                 "Submit Profile",
                                 style: TextStyle(
                                   fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                   ),

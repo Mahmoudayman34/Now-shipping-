@@ -26,6 +26,9 @@ class _ProfileCompletionFormState extends ConsumerState<ProfileCompletionForm> {
   final int _totalSteps = 5;
   bool _isSubmitting = false;
   
+  // Define theme color to match progress bar
+  static const Color themeColor = Color(0xfff29620);
+  
   // Step labels for the progress bar and validation messages
   final List<String> stepLabels = [
     "Email",
@@ -209,7 +212,11 @@ class _ProfileCompletionFormState extends ConsumerState<ProfileCompletionForm> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(themeColor),
+        )
+      ),
     );
 
     try {
@@ -303,6 +310,7 @@ class _ProfileCompletionFormState extends ConsumerState<ProfileCompletionForm> {
         onComplete: goToNextStep,
         formKey: _formKeys[0],
         onRegisterSave: (saveCallback) => registerSaveCallback(0, saveCallback),
+        themeColor: themeColor,
       ),
       // Step 2: Brand info
       DashboardBrandInfoStep(
@@ -310,6 +318,7 @@ class _ProfileCompletionFormState extends ConsumerState<ProfileCompletionForm> {
         onPrevious: goToPreviousStep,
         formKey: _formKeys[1],
         onRegisterSave: (saveCallback) => registerSaveCallback(1, saveCallback),
+        themeColor: themeColor,
       ),
       // Step 3: Pickup address
       DashboardPickupAddressStep(
@@ -317,6 +326,7 @@ class _ProfileCompletionFormState extends ConsumerState<ProfileCompletionForm> {
         onPrevious: goToPreviousStep,
         formKey: _formKeys[2],
         onRegisterSave: (saveCallback) => registerSaveCallback(2, saveCallback),
+        themeColor: themeColor,
       ),
       // Step 4: Payment method
       DashboardPaymentMethodStep(
@@ -324,6 +334,7 @@ class _ProfileCompletionFormState extends ConsumerState<ProfileCompletionForm> {
         onPrevious: goToPreviousStep,
         formKey: _formKeys[3],
         onRegisterSave: (saveCallback) => registerSaveCallback(3, saveCallback),
+        themeColor: themeColor,
       ),
       // Step 5: Brand type (last form step)
       DashboardBrandTypeStep(
@@ -332,6 +343,12 @@ class _ProfileCompletionFormState extends ConsumerState<ProfileCompletionForm> {
         formKey: _formKeys[4],
         onRegisterSave: (saveCallback) => registerSaveCallback(4, saveCallback),
         validateAndSubmit: _validateAndSubmit,
+        themeColor: themeColor,
+      ),
+      // Congrats step (shown after form submission)
+      DashboardCongratsStep(
+        onComplete: _finishForm,
+        themeColor: themeColor,
       ),
     ];
   }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
 import 'package:now_shipping/features/business/pickups/screens/pickup_details_screen.dart';
+import 'package:now_shipping/features/business/pickups/providers/pickup_provider.dart';
 
-class PickupDetailsTabbedScreen extends StatefulWidget {
+class PickupDetailsTabbedScreen extends ConsumerStatefulWidget {
   final PickupModel pickup;
 
   const PickupDetailsTabbedScreen({
@@ -11,10 +13,10 @@ class PickupDetailsTabbedScreen extends StatefulWidget {
   });
 
   @override
-  State<PickupDetailsTabbedScreen> createState() => _PickupDetailsTabbedScreenState();
+  ConsumerState<PickupDetailsTabbedScreen> createState() => _PickupDetailsTabbedScreenState();
 }
 
-class _PickupDetailsTabbedScreenState extends State<PickupDetailsTabbedScreen> with SingleTickerProviderStateMixin {
+class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   // Search controller for Orders Picked tab
   final TextEditingController _searchController = TextEditingController();
@@ -41,7 +43,7 @@ class _PickupDetailsTabbedScreenState extends State<PickupDetailsTabbedScreen> w
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Pickup #${widget.pickup.pickupId}',
+          'Pickup #${widget.pickup.pickupNumber}',
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Color(0xff2F2F2F),
@@ -115,71 +117,92 @@ class _PickupDetailsTabbedScreenState extends State<PickupDetailsTabbedScreen> w
   }
 
   Widget _buildTrackingTimeline() {
-    final bool isPickedUp = widget.pickup.status == 'Picked Up';
+    final pickupStages = widget.pickup.pickupStages;
+    
+    // Define the expected stages in order
+    final expectedStages = [
+      {'name': 'Pickup Created', 'icon': Icons.inventory_2_outlined, 'color': const Color(0xFFE57254)},
+      {'name': 'driverAssigned', 'icon': Icons.person_outline, 'color': const Color(0xFFEF9A7B)},
+      {'name': 'pickedUp', 'icon': Icons.shopping_bag_outlined, 'color': const Color(0xFFFFBE98)},
+      {'name': 'completed', 'icon': Icons.check_circle_outline, 'color': const Color(0xFFFFD1B8)},
+    ];
     
     return Column(
-      children: [
-        // Pickup Created
-        _buildTimelineItem(
-          title: 'Pickup Created',
-          time: '4:14:10 PM',
-          date: '3/31/2025',
-          status: 'Completed',
-          isFirst: true,
-          isLast: false,
-          icon: Icons.inventory_2_outlined,
-          iconBgColor: const Color(0xFFE57254),
-        ),
+      children: expectedStages.asMap().entries.map((entry) {
+        final index = entry.key;
+        final expectedStage = entry.value;
+        final isFirst = index == 0;
+        final isLast = index == expectedStages.length - 1;
         
-        // Driver Assigned
-        _buildTimelineItem(
-          title: 'Driver Assigned',
-          time: '4:14:33 PM',
-          date: '3/31/2025',
-          status: 'In Progress',
-          isFirst: false,
-          isLast: false,
-          icon: Icons.person_outline,
-          iconBgColor: const Color(0xFFEF9A7B),
-        ),
+        // Find matching stage from API data
+        final apiStage = pickupStages.firstWhere(
+          (stage) => stage.stageName.toLowerCase() == expectedStage['name'].toString().toLowerCase(),
+          orElse: () => PickupStage(
+            id: '',
+            stageName: expectedStage['name'] as String,
+            stageDate: DateTime.now(), // Dummy date, will be checked as null
+            stageNotes: [],
+          ),
+        );
         
-        // Items PickedUp
-        _buildTimelineItem(
-          title: 'Items PickedUp',
-          time: '4:18:19 PM',
-          date: '3/31/2025',
-          status: 'Pending',
-          isFirst: false,
-          isLast: false,
-          icon: Icons.shopping_bag_outlined,
-          iconBgColor: const Color(0xFFFFBE98),
-        ),
+        // Determine status based on whether stage exists and has a date
+        String status;
+        String displayTime = '--:--';
+        String displayDate = '--/--/----';
+        bool stageExists = pickupStages.any((stage) => 
+          stage.stageName.toLowerCase() == expectedStage['name'].toString().toLowerCase()
+        );
         
-        // Storage Station
-        _buildTimelineItem(
-          title: 'Storage Station',
-          time: '4:22:29 PM',
-          date: '3/31/2025',
-          status: 'Pending',
-          isFirst: false,
-          isLast: false,
-          icon: Icons.location_on_outlined,
-          iconBgColor: const Color(0xFFFFD1B8),
-        ),
+        if (stageExists) {
+          status = 'Completed';
+          final stageDateTime = apiStage.stageDate;
+          displayTime = '${stageDateTime.hour.toString().padLeft(2, '0')}:${stageDateTime.minute.toString().padLeft(2, '0')}:${stageDateTime.second.toString().padLeft(2, '0')}';
+          displayDate = '${stageDateTime.day}/${stageDateTime.month}/${stageDateTime.year}';
+        } else {
+          // Check if this stage should be "In Progress" (next expected stage)
+          final previousStageCompleted = index == 0 || expectedStages.take(index).every((prevStage) {
+            return pickupStages.any((stage) => 
+              stage.stageName.toLowerCase() == prevStage['name'].toString().toLowerCase()
+            );
+          });
+          
+          status = previousStageCompleted && index < expectedStages.length - 1 ? 'In Progress' : 'Pending';
+        }
         
-        // Completed - add as the final stage
-        _buildTimelineItem(
-          title: 'Completed',
-          time: '--:--',
-          date: '--/--/----',
-          status: 'Pending',
-          isFirst: false,
-          isLast: true,
-          icon: Icons.check_circle_outline,
-          iconBgColor: Colors.grey.withOpacity(0.5),
-        ),
-      ],
+        // Get display name
+        String displayName = _getDisplayStageName(expectedStage['name'] as String);
+        
+        // Convert stageNotes to list of strings
+        List<String> noteTexts = stageExists ? apiStage.stageNotes.map((note) => note.text).toList() : [];
+        
+        return _buildTimelineItem(
+          title: displayName,
+          time: displayTime,
+          date: displayDate,
+          status: status,
+          isFirst: isFirst,
+          isLast: isLast,
+          icon: expectedStage['icon'] as IconData,
+          iconBgColor: expectedStage['color'] as Color,
+          stageNotes: noteTexts,
+        );
+      }).toList(),
     );
+  }
+  
+  String _getDisplayStageName(String stageName) {
+    switch (stageName.toLowerCase()) {
+      case 'pickup created':
+        return 'Pickup Created';
+      case 'driverassigned':
+        return 'Driver Assigned';
+      case 'pickedup':
+        return 'Items Picked Up';
+      case 'completed':
+        return 'Completed';
+      default:
+        return stageName;
+    }
   }
   
   Widget _buildTimelineItem({
@@ -191,6 +214,7 @@ class _PickupDetailsTabbedScreenState extends State<PickupDetailsTabbedScreen> w
     required bool isLast,
     required IconData icon,
     required Color iconBgColor,
+    required List<String> stageNotes,
   }) {
     Color statusColor;
     Color statusBgColor;
@@ -264,6 +288,21 @@ class _PickupDetailsTabbedScreenState extends State<PickupDetailsTabbedScreen> w
                   ),
                 ],
               ),
+              // Display stage notes if available
+              if (stageNotes.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                ...stageNotes.map((note) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    note,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                )),
+              ],
               if (!isLast) const SizedBox(height: 30),
             ],
           ),
@@ -293,43 +332,8 @@ class _PickupDetailsTabbedScreenState extends State<PickupDetailsTabbedScreen> w
   }
 
   Widget _buildOrdersPickedTab() {
-    // This would typically connect to your order data
-    // For now, I'll create a sample UI with search functionality
-    
-    // Sample orders data
-    final List<Map<String, dynamic>> orders = [
-      {
-        'id': 10045,
-        'customerName': 'John Doe',
-        'location': '123 Main St, New York',
-        'amount': 150.00,
-        'paymentMethod': 'Cash on delivery',
-      },
-      {
-        'id': 10046,
-        'customerName': 'Jane Smith',
-        'location': '456 Park Ave, Boston',
-        'amount': 175.00,
-        'paymentMethod': 'Cash on delivery',
-      },
-      {
-        'id': 10047,
-        'customerName': 'Mike Johnson',
-        'location': '789 Broadway, Chicago',
-        'amount': 200.00,
-        'paymentMethod': 'Cash on delivery',
-      },
-    ];
-    
-    // Filter orders based on search query
-    final filteredOrders = orders.where((order) {
-      final query = _searchQuery.toLowerCase();
-      if (query.isEmpty) return true;
-      
-      return order['id'].toString().contains(query) ||
-          order['customerName'].toLowerCase().contains(query) ||
-          order['location'].toLowerCase().contains(query);
-    }).toList();
+    // Watch the picked up orders from the API
+    final pickedUpOrdersAsync = ref.watch(pickedUpOrdersProvider(widget.pickup.pickupNumber));
     
     return Column(
       children: [
@@ -357,141 +361,281 @@ class _PickupDetailsTabbedScreenState extends State<PickupDetailsTabbedScreen> w
           ),
         ),
         
-        // Orders list
+        // Orders list from API
         Expanded(
-          child: filteredOrders.isEmpty
-              ? Center(
+          child: pickedUpOrdersAsync.when(
+            data: (orders) {
+              // Filter orders based on search query
+              final filteredOrders = orders.where((order) {
+                final query = _searchQuery.toLowerCase();
+                if (query.isEmpty) return true;
+                
+                return order.orderNumber.toLowerCase().contains(query) ||
+                    order.orderCustomer.fullName.toLowerCase().contains(query) ||
+                    order.orderCustomer.address.toLowerCase().contains(query);
+              }).toList();
+              
+              if (filteredOrders.isEmpty) {
+                return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.search_off, size: 48, color: Colors.grey.shade400),
+                      Icon(
+                        _searchQuery.isNotEmpty ? Icons.search_off : Icons.inventory_2_outlined, 
+                        size: 48, 
+                        color: Colors.grey.shade400
+                      ),
                       const SizedBox(height: 16),
                       Text(
-                        'No orders found matching "$_searchQuery"',
+                        _searchQuery.isNotEmpty 
+                            ? 'No orders found matching "$_searchQuery"'
+                            : 'No orders picked up yet',
                         style: TextStyle(color: Colors.grey.shade600),
                       ),
                     ],
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  itemCount: filteredOrders.length,
-                  itemBuilder: (context, index) {
-                    final order = filteredOrders[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Order #${order['id']}',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xff2F2F2F),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Text(
-                                    'Picked',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                const Icon(Icons.person_outline, size: 18, color: Colors.grey),
-                                const SizedBox(width: 8),
-                                Text(
-                                  order['customerName'],
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Color(0xff2F2F2F),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.location_on_outlined, size: 18, color: Colors.grey),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    order['location'],
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xff2F2F2F),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Text(
-                                    'EGP',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${order['amount']}.00',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Color(0xff2F2F2F),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  order['paymentMethod'],
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                );
+              }
+              
+              return ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                itemCount: filteredOrders.length,
+                itemBuilder: (context, index) {
+                  final order = filteredOrders[index];
+                  return _buildOrderCard(order);
+                },
+              );
+            },
+            loading: () => const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF26A2B9),
+              ),
+            ),
+            error: (error, stack) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Failed to load orders',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    error.toString(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      ref.invalidate(pickedUpOrdersProvider(widget.pickup.pickupNumber));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF26A2B9),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ],
     );
+  }
+  
+  Widget _buildOrderCard(PickedUpOrder order) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Order #${order.orderNumber}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff2F2F2F),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(order.orderStatus).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    _getStatusDisplayName(order.orderStatus),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: _getStatusColor(order.orderStatus),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                const Icon(Icons.person_outline, size: 18, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(
+                  order.orderCustomer.fullName,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xff2F2F2F),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.location_on_outlined, size: 18, color: Colors.grey),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    order.orderCustomer.address,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xff2F2F2F),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.phone_outlined, size: 18, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(
+                  order.orderCustomer.phoneNumber,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xff2F2F2F),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'EGP',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.green,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${order.orderShipping.amount.toStringAsFixed(0)}.00',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xff2F2F2F),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  order.orderShipping.amountType,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+            if (order.orderShipping.productDescription.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.inventory_2_outlined, size: 18, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      order.orderShipping.productDescription,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xff2F2F2F),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return Colors.green;
+      case 'picked':
+      case 'pickedup':
+        return Colors.orange;
+      case 'in stock':
+      case 'instock':
+        return Colors.blue;
+      case 'heading to customer':
+      case 'headingtocustomer':
+        return Colors.purple;
+      default:
+        return Colors.grey;
+    }
+  }
+  
+  String _getStatusDisplayName(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return 'Completed';
+      case 'picked':
+      case 'pickedup':
+        return 'Picked';
+      case 'in stock':
+      case 'instock':
+        return 'In Stock';
+      case 'heading to customer':
+      case 'headingtocustomer':
+        return 'Heading to Customer';
+      default:
+        return status;
+    }
   }
 }
 
@@ -570,10 +714,10 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
           _buildDetailSection(
             'Driver Details',
             [
-              _buildDetailItem('Driver Name', 'Man 3'),
-              _buildDetailItem('Vehicle Type', 'Car'),
-              _buildDetailItem('Plate', '31313ss'),
-              _buildDetailItem('Picked Up Orders', '1'),
+              _buildDetailItem('Driver Name', widget.pickup.assignedDriver?.name ?? 'Not assigned yet'),
+              _buildDetailItem('Vehicle Type', widget.pickup.assignedDriver?.vehicleType ?? 'N/A'),
+              _buildDetailItem('Plate', widget.pickup.assignedDriver?.vehiclePlateNumber ?? 'N/A'),
+              _buildDetailItem('Picked Up Orders', '${widget.pickup.ordersPickedUp.length}'),
               _buildRatingItem(isPickedUp),
             ],
             icon: Icons.person_outline,
@@ -626,9 +770,9 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
 
           // Pickup Information Section
           _buildSubsectionHeader('Pickup Information'),
-          _buildDetailItem('Pickup ID', '#${widget.pickup.pickupId}'),
+          _buildDetailItem('Pickup ID', '#${widget.pickup.pickupNumber}'),
           _buildDetailItem('Pickup Type', 'Normal'),
-          _buildDetailItem('Number of Orders', '2'),
+          _buildDetailItem('Number of Orders', '${widget.pickup.numberOfOrders}'),
           _buildDetailItem('Scheduled Date', formattedDate),
           _buildDetailItem('Status', widget.pickup.status),
           const Divider(height: 1),

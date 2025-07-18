@@ -1,78 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:now_shipping/core/widgets/toast_.dart';
 import 'package:now_shipping/features/auth/services/auth_service.dart';
 import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
+import 'package:now_shipping/features/business/pickups/providers/pickup_provider.dart';
 import 'package:now_shipping/features/business/pickups/screens/create_pickup_screen.dart';
 import 'package:now_shipping/features/business/pickups/screens/pickup_details_screen.dart';
 import 'package:now_shipping/features/business/pickups/widgets/pickup_card.dart';
-import 'package:intl/intl.dart';
+import 'package:now_shipping/features/common/widgets/shimmer_loading.dart';
 
 // Provider to store cached user data for this screen
 final pickupsScreenUserProvider = StateProvider<UserModel?>((ref) => null);
 
-class PickupsScreen extends StatefulWidget {
+class PickupsScreen extends ConsumerStatefulWidget {
   const PickupsScreen({super.key});
 
   @override
-  State<PickupsScreen> createState() => _PickupsScreenState();
+  ConsumerState<PickupsScreen> createState() => _PickupsScreenState();
 }
 
-class _PickupsScreenState extends State<PickupsScreen> {
+class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTickerProviderStateMixin {
   String _selectedTab = 'Upcoming';
-  
-  // Sample pickup data
-  final List<PickupModel> _pickups = [
-    PickupModel(
-      pickupId: '10001',
-      address: 'Cairo, Maadi, Street 9',
-      contactNumber: '+201234567890',
-      pickupDate: DateTime.now().add(const Duration(days: 1)),
-      status: 'Upcoming',
-      isFragileItem: true,
-      notes: 'Please handle with care',
-    ),
-    PickupModel(
-      pickupId: '10002',
-      address: 'Cairo, Heliopolis, Triumph Square',
-      contactNumber: '+201234567891',
-      pickupDate: DateTime.now().add(const Duration(days: 2)),
-      status: 'Upcoming',
-      isLargeItem: true,
-      notes: 'Large furniture item',
-    ),
-    PickupModel(
-      pickupId: '10003',
-      address: 'Cairo, Downtown, Tahrir Square',
-      contactNumber: '+201234567892',
-      pickupDate: DateTime.now().subtract(const Duration(days: 2)),
-      status: 'Picked Up',
-      notes: 'Electronics',
-    ),
-    PickupModel(
-      pickupId: '10004',
-      address: 'Cairo, New Cairo, 5th Settlement',
-      contactNumber: '+201234567893',
-      pickupDate: DateTime.now().subtract(const Duration(days: 5)),
-      status: 'Picked Up',
-      isFragileItem: true,
-      isLargeItem: true,
-      notes: 'Large glass table',
-    ),
-  ];
+  final RefreshController _refreshController = RefreshController(initialRefresh: false);
+  late AnimationController _rotationController;
+  bool _isRefreshing = false;
 
   @override
   void initState() {
     super.initState();
+    // Initialize the rotation animation controller
+    _rotationController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    )..repeat(); // Makes it rotate continuously
+    
     // Preload user data when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _preloadUserData();
     });
   }
+
+  @override
+  void dispose() {
+    _refreshController.dispose();
+    _rotationController.dispose();
+    super.dispose();
+  }
   
   // Preload user data to avoid delay when creating pickups
   Future<void> _preloadUserData() async {
-    final ref = ProviderScope.containerOf(context);
     final authService = ref.read(authServiceProvider);
     final user = await authService.getCurrentUser();
     
@@ -80,27 +57,39 @@ class _PickupsScreenState extends State<PickupsScreen> {
     ref.read(pickupsScreenUserProvider.notifier).state = user;
   }
   
-  // Filtered pickups based on selected tab
-  List<PickupModel> get _filteredPickups {
-    return _pickups.where((pickup) => 
-      (_selectedTab == 'Upcoming' && pickup.status == 'Upcoming') ||
-      (_selectedTab == 'History' && pickup.status == 'Picked Up')
-    ).toList();
+  void _onRefresh() async {
+    // Set refreshing state
+    setState(() {
+      _isRefreshing = true;
+    });
+    
+    // Refresh pickups data based on selected tab
+    if (_selectedTab == 'Upcoming') {
+      ref.invalidate(upcomingPickupsProvider);
+    } else {
+      ref.invalidate(completedPickupsProvider);
+    }
+    
+    // Wait a bit for the data to load and then complete refresh
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    setState(() {
+      _isRefreshing = false;
+    });
+    
+    _refreshController.refreshCompleted();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Watch the pickups data based on selected tab
+    final pickupsAsync = _selectedTab == 'Upcoming' 
+        ? ref.watch(upcomingPickupsProvider)
+        : ref.watch(completedPickupsProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Pickups'),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.search),
-        //     onPressed: () {
-        //       // Implement search functionality
-        //     },
-        //   ),
-        // ],
       ),
       body: Column(
         children: [
@@ -111,7 +100,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
               children: [
                 Expanded(
                   child: _buildPickupTab(
-                    'Upcoming (${_pickups.where((p) => p.status == 'Upcoming').length})',
+                    'Upcoming',
                     _selectedTab == 'Upcoming',
                   ),
                 ),
@@ -126,23 +115,102 @@ class _PickupsScreenState extends State<PickupsScreen> {
             ),
           ),
           
-          // Pickup list or empty state
           Expanded(
-            child: _filteredPickups.isNotEmpty
-              ? ListView.builder(
-                  itemCount: _filteredPickups.length,
-                  itemBuilder: (context, index) {
-                    final pickup = _filteredPickups[index];
-                    return PickupCard(
-                      pickup: pickup,
-                      onTap: () {
-                        // Navigate to pickup details screen when implemented
-                        _showPickupActions(context, pickup);
+            child: SmartRefresher(
+              controller: _refreshController,
+              onRefresh: _onRefresh,
+              header: ClassicHeader(
+                refreshStyle: RefreshStyle.Follow,
+                idleIcon: const Icon(Icons.arrow_downward, color: Color(0xFFFF9800)),
+                releaseIcon: const Icon(Icons.refresh, color: Color(0xFFFF9800)),
+                refreshingIcon: RotationTransition(
+                  turns: _rotationController,
+                  child: SizedBox(
+                    width: 30.0,
+                    height: 30.0,
+                    child: Image.asset(
+                      'assets/icons/icon_only.png',
+                      color: const Color(0xFFFF9800),
+                      errorBuilder: (context, error, stackTrace) => 
+                          const Icon(Icons.refresh, color: Color(0xFFFF9800), size: 24),
+                    ),
+                  ),
+                ),
+                completeIcon: const Icon(Icons.check, color: Colors.green),
+                failedIcon: const Icon(Icons.error, color: Colors.red),
+                textStyle: const TextStyle(color: Color(0xFF757575)),
+                idleText: "Pull down to refresh",
+                releaseText: "Release to refresh",
+                refreshingText: "Refreshing...",
+                completeText: "Refresh completed",
+                failedText: "Refresh failed",
+              ),
+              child: pickupsAsync.when(
+                data: (pickups) {
+                  // Show shimmer if we're refreshing
+                  if (_isRefreshing) {
+                    return _buildLoadingState();
+                  }
+                  
+                  if (pickups.isNotEmpty) {
+                    return ListView.builder(
+                      itemCount: pickups.length,
+                      itemBuilder: (context, index) {
+                        final pickup = pickups[index];
+                        return PickupCard(
+                          pickup: pickup,
+                          onTap: () {
+                            _showPickupActions(context, pickup);
+                          },
+                        );
                       },
                     );
-                  },
-                )
-              : _buildEmptyState(),
+                  } else {
+                    return _buildEmptyState();
+                  }
+                },
+                loading: () => _buildLoadingState(),
+                error: (error, stack) => Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Failed to load pickups',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        error.toString(),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[500],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => refreshPickups(ref),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFF9800),
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
@@ -153,7 +221,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedTab = title.contains('Upcoming') ? 'Upcoming' : 'History';
+          _selectedTab = title == 'History' ? 'History' : 'Upcoming';
         });
       },
       child: Container(
@@ -176,9 +244,22 @@ class _PickupsScreenState extends State<PickupsScreen> {
     );
   }
   
+  Widget _buildLoadingState() {
+    return ListView.builder(
+      itemCount: 8,
+      itemBuilder: (context, index) {
+        return const ShimmerListItem(
+          height: 80,
+          hasLeadingCircle: false, 
+          hasTrailingBox: true,
+          lines: 3,
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        );
+      },
+    );
+  }
+  
   Widget _buildEmptyState() {
-    final ref = ProviderScope.containerOf(context);
-
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -188,17 +269,33 @@ class _PickupsScreenState extends State<PickupsScreen> {
             width: 100,
             height: 100,
             color: Colors.grey[300],
+            errorBuilder: (context, error, stackTrace) => 
+                Icon(Icons.inventory_2_outlined, size: 100, color: Colors.grey.shade300),
           ),
           const SizedBox(height: 24),
           Text(
-            'You didn\'t create pickups yet!',
+            _selectedTab == 'Upcoming' 
+                ? 'No upcoming pickups'
+                : 'No pickup history',
             style: TextStyle(
               fontSize: 18,
               color: Colors.grey[600],
               fontWeight: FontWeight.w500,
             ),
           ),
+          const SizedBox(height: 8),
+          Text(
+            _selectedTab == 'Upcoming'
+                ? 'Create your first pickup to get started'
+                : 'Completed pickups will appear here',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[500],
+            ),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 32),
+          if (_selectedTab == 'Upcoming')
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
@@ -218,13 +315,15 @@ class _PickupsScreenState extends State<PickupsScreen> {
                   
                   if (user != null && user.isProfileComplete) {
                     // Profile is complete, proceed with navigation
-                    // Navigate to pickup creation screen
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => const CreatePickupScreen(),
                       ),
-                    );
+                    ).then((_) {
+                      // Refresh pickups after creating a new one
+                      refreshPickups(ref);
+                    });
                   } else {
                     // Profile is not complete, show toast message
                     ToastService.show(
@@ -298,7 +397,7 @@ class _PickupsScreenState extends State<PickupsScreen> {
                 child: Row(
                   children: [
                     Text(
-                      'Pickup #${pickup.pickupId}',
+                      'Pickup #${pickup.pickupNumber}',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
@@ -322,72 +421,83 @@ class _PickupsScreenState extends State<PickupsScreen> {
                 onTap: () async {
                   Navigator.pop(context);
                   // Navigate to Pickup Details screen
-                  final updatedPickup = await Navigator.push<PickupModel>(
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => PickupDetailsScreen(pickup: pickup),
                     ),
                   );
                   
-                  // Update the pickup if changes were made
-                  if (updatedPickup != null) {
-                    setState(() {
-                      final index = _pickups.indexWhere((p) => p.pickupId == pickup.pickupId);
-                      if (index != -1) {
-                        _pickups[index] = updatedPickup;
-                      }
-                    });
-                  }
+                  // Refresh pickups after viewing details
+                  refreshPickups(ref);
                 },
               ),
                             
+              if (pickup.status == 'Upcoming')
               _buildActionItem(
                 icon: Icons.edit_outlined,
                 title: 'Edit Pickup',
                 onTap: () async {
                   Navigator.pop(context);
                   // Navigate to CreatePickupScreen with the pickup data for editing
-                  final updatedPickup = await Navigator.push<PickupModel>(
+                    await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => CreatePickupScreen(pickupToEdit: pickup),
                     ),
                   );
                   
-                  // Update the pickup if changes were made
-                  if (updatedPickup != null) {
-                    setState(() {
-                      final index = _pickups.indexWhere((p) => p.pickupId == pickup.pickupId);
-                      if (index != -1) {
-                        _pickups[index] = updatedPickup;
-                      }
-                    });
-                    
-                    // Show success message
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Pickup updated successfully')),
-                    );
-                  }
-                },
-              ),
+                    // Refresh pickups after editing
+                    refreshPickups(ref);
+                  },
+                ),
               
+              if (pickup.status == 'Upcoming')
               _buildActionItem(
                 icon: Icons.delete_outline,
-                title: 'Delete Pickup',
+                  title: 'Cancel Pickup',
                 titleColor: Colors.red,
                 backgroundColor: const Color(0xFFFEE8E8),
                 onTap: () {
                   Navigator.pop(context);
-                  // Handle delete pickup
-                  setState(() {
-                    _pickups.removeWhere((p) => p.pickupId == pickup.pickupId);
-                  });
+                    _showCancelConfirmation(context, pickup);
                 },
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  void _showCancelConfirmation(BuildContext context, PickupModel pickup) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Pickup'),
+        content: Text(
+          'Are you sure you want to cancel pickup #${pickup.pickupNumber}? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: Implement cancel pickup API call
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Pickup cancellation feature coming soon'),
+                ),
+              );
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
+      ),
     );
   }
   

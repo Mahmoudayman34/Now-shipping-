@@ -13,12 +13,14 @@ class DashboardEmailVerification extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
   final GlobalKey<FormState>? formKey;
   final Function(Function)? onRegisterSave;
+  final Color themeColor;
   
   const DashboardEmailVerification({
     super.key, 
     required this.onComplete,
     this.formKey,
     this.onRegisterSave,
+    this.themeColor = Colors.blue, // Default to blue if not provided
   });
 
   @override
@@ -307,7 +309,7 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
                           : "Verify Your Email",
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: _isVerified ? Colors.green : theme.colorScheme.primary,
+                        color: _isVerified ? Colors.green : widget.themeColor,
                       ),
                     ),
                     
@@ -337,7 +339,7 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
                               : _resendVerificationEmail,
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
-                            side: BorderSide(color: theme.colorScheme.primary),
+                            side: BorderSide(color: widget.themeColor),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -352,7 +354,7 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
                                     fontWeight: FontWeight.bold,
                                     color: _remainingSeconds > 0
                                         ? theme.disabledColor
-                                        : theme.colorScheme.primary,
+                                        : widget.themeColor,
                                   ),
                                 ),
                         ),

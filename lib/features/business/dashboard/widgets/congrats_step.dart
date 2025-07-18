@@ -6,8 +6,13 @@ import 'profile_completion_form.dart';
 
 class DashboardCongratsStep extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
+  final Color themeColor;
   
-  const DashboardCongratsStep({super.key, required this.onComplete});
+  const DashboardCongratsStep({
+    super.key, 
+    required this.onComplete,
+    this.themeColor = Colors.blue, // Default to blue if not provided
+  });
 
   @override
   ConsumerState<DashboardCongratsStep> createState() => _DashboardCongratsStepState();
@@ -75,7 +80,7 @@ class _DashboardCongratsStepState extends ConsumerState<DashboardCongratsStep> {
                   "You're all set!",
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.primary,
+                    color: widget.themeColor,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -169,7 +174,7 @@ class _DashboardCongratsStepState extends ConsumerState<DashboardCongratsStep> {
             child: ElevatedButton(
               onPressed: widget.onComplete,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: widget.themeColor,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
