@@ -28,6 +28,9 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+// Load Google Maps API Key from local.properties
+def googleMapsApiKey = localProperties.getProperty('google.maps.api.key') ?: 'YOUR_API_KEY_HERE'
+
 android {
     namespace "co.nowshipping.nowshipping"
     compileSdk 35 // Updated from 34 to 35 for plugin compatibility
@@ -53,6 +56,11 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
+        
+        // Provide Google Maps API key as manifest placeholder
+        manifestPlaceholders = [
+            googleMapsApiKey: googleMapsApiKey
+        ]
     }
 
 

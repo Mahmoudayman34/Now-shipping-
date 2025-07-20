@@ -14,7 +14,7 @@ void main() {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]).then((_) {
-    runApp(const ProviderScope(child: MyApp()));
+    runApp(const ProviderScope(child: MyApp()));    
   });
 }
 
