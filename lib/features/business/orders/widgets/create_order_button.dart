@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
 import 'package:now_shipping/features/business/orders/screens/create_order/create_order_screen.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class CreateOrderButton extends ConsumerWidget {
   const CreateOrderButton({super.key});
@@ -23,7 +24,10 @@ class CreateOrderButton extends ConsumerWidget {
         );
       },
       backgroundColor: Colors.red,
-      child: const Icon(Icons.add),
+      child: Icon(
+        Icons.add,
+        size: ResponsiveUtils.getResponsiveIconSize(context),
+      ),
     );
   }
 }

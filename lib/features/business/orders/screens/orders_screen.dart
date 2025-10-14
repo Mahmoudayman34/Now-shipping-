@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:now_shipping/features/business/orders/models/order_model.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
 import 'package:now_shipping/features/business/orders/providers/orders_provider.dart';
 import 'package:now_shipping/features/business/orders/screens/order_details_screen_refactored.dart';
@@ -11,6 +12,8 @@ import 'package:now_shipping/features/business/orders/widgets/order_tab.dart';
 import 'package:now_shipping/features/common/widgets/shimmer_loading.dart';
 import 'package:now_shipping/features/auth/services/auth_service.dart';
 import 'package:now_shipping/core/widgets/toast_.dart';
+import '../../../../core/mixins/refreshable_screen_mixin.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 // Provider to keep track of the selected delivery type filter
 final deliveryTypeFilterProvider = StateProvider<String>((ref) => 'All');
@@ -25,7 +28,7 @@ class OrdersScreen extends ConsumerStatefulWidget {
   ConsumerState<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerProviderStateMixin {
+class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerProviderStateMixin, RefreshableScreenMixin {
   final RefreshController _refreshController = RefreshController(initialRefresh: false);
   late AnimationController _rotationController;
 
@@ -42,6 +45,8 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchOrders();
       _preloadUserData(); // Preload user data
+      // Register refresh callback for tab tap refresh
+      registerRefreshCallback(_onRefresh, 1);
     });
   }
   
@@ -58,11 +63,12 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
   void dispose() {
     _refreshController.dispose();
     _rotationController.dispose();
+    // Unregister refresh callback
+    unregisterRefreshCallback(1);
     super.dispose();
   }
 
   Future<void> _fetchOrders() async {
-    final fetchOrders = ref.read(fetchOrdersProvider);
     final deliveryTypeFilter = ref.read(deliveryTypeFilterProvider);
     
     try {
@@ -100,46 +106,54 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
     
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(ResponsiveUtils.getResponsiveBorderRadius(context) * 2.5),
+        ),
       ),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+            final horizontalPadding = ResponsiveUtils.getResponsiveHorizontalPadding(context);
+            
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            padding: EdgeInsets.symmetric(
+              vertical: spacing * 1.5, 
+              horizontal: horizontalPadding.horizontal / 2,
+            ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Filter by Delivery Type',
+                  Text(
+                    AppLocalizations.of(context).filterByDeliveryType,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 18, desktop: 20),
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2F2F2F),
+                      color: const Color(0xFF2F2F2F),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: spacing),
                   
                   // Filter options
-                  _buildFilterOption('All', 'All', selectedFilter, (value) {
+                  _buildFilterOption(AppLocalizations.of(context).allOrders, 'All', selectedFilter, (value) {
                     setState(() => selectedFilter = value);
                   }),
-                  _buildFilterOption('Deliver', 'Deliver', selectedFilter, (value) {
+                  _buildFilterOption(AppLocalizations.of(context).deliverType, 'Deliver', selectedFilter, (value) {
                     setState(() => selectedFilter = value);
                   }),
-                  _buildFilterOption('Exchange', 'Exchange', selectedFilter, (value) {
+                  _buildFilterOption(AppLocalizations.of(context).exchangeType, 'Exchange', selectedFilter, (value) {
                     setState(() => selectedFilter = value);
                   }),
-                  _buildFilterOption('Return', 'Return', selectedFilter, (value) {
+                  _buildFilterOption(AppLocalizations.of(context).returnType, 'Return', selectedFilter, (value) {
                     setState(() => selectedFilter = value);
                   }),
-                  _buildFilterOption('Cash Collection', 'Cash Collection', selectedFilter, (value) {
+                  _buildFilterOption(AppLocalizations.of(context).cashCollectionType, 'Cash Collection', selectedFilter, (value) {
                     setState(() => selectedFilter = value);
                   }),
                   
-                  const SizedBox(height: 20),
+                  SizedBox(height: spacing * 1.5),
                   
                   // Apply button
                   SizedBox(
@@ -154,15 +168,19 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF26A2B9),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: EdgeInsets.symmetric(
+                          vertical: ResponsiveUtils.getResponsiveSpacing(context) * 1.2,
+                        ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(
+                            ResponsiveUtils.getResponsiveBorderRadius(context),
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        'Apply Filter',
+                      child: Text(
+                        AppLocalizations.of(context).applyFilter,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14, tablet: 16, desktop: 18),
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
@@ -180,31 +198,33 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
   
   // Build a single filter option
   Widget _buildFilterOption(String label, String value, String currentFilter, Function(String) onSelect) {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    
     return InkWell(
       onTap: () => onSelect(value),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            Icon(
-              value == currentFilter
-                ? Icons.radio_button_checked
-                : Icons.radio_button_unchecked,
-              color: const Color(0xFF26A2B9),
-              size: 20,
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: spacing * 0.8),
+            child: Row(
+              children: [
+                Icon(
+                  value == currentFilter
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_unchecked,
+                  color: const Color(0xFF26A2B9),
+                  size: ResponsiveUtils.getResponsiveIconSize(context) * 0.9,
+                ),
+                SizedBox(width: spacing),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14, tablet: 16, desktop: 18),
+                    color: const Color(0xFF2F2F2F),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xFF2F2F2F),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+          ),
+        );
   }
   
   @override
@@ -214,74 +234,111 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
     final deliveryTypeFilter = ref.watch(deliveryTypeFilterProvider);
     final filteredOrders = ref.watch(filteredOrdersProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Orders', style: TextStyle(color: Color(0xff2F2F2F))),
-        backgroundColor: Colors.white,
-        actions: [
-          // Badge to show if filter is active
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.filter_list, color: Color(0xff2F2F2F)),
-                onPressed: _showFilterOptions,
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            AppLocalizations.of(context).orders, 
+            style: TextStyle(
+              color: const Color(0xff2F2F2F),
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 18, 
+                tablet: 20, 
+                desktop: 22,
               ),
-              if (deliveryTypeFilter != 'All')
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFF9800),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Tab bar for Orders categories
-          _buildTabBar(selectedTab),
-          
-          // Order list, loading state, error state or empty state
-          Expanded(
-            child: SmartRefresher(
-              controller: _refreshController,
-              onRefresh: _onRefresh,
-              header: ClassicHeader(
-                refreshStyle: RefreshStyle.Follow,
-                idleIcon: const Icon(Icons.arrow_downward, color: Color(0xFFFF9800)),
-                releaseIcon: const Icon(Icons.refresh, color: Color(0xFFFF9800)),
-                refreshingIcon: RotationTransition(
-                  turns: _rotationController,
-                  child: SizedBox(
-                    width: 30.0,
-                    height: 30.0,
-                    child: Image.asset(
-                      'assets/icons/icon_only.png',
-                      color: const Color(0xFFFF9800),
-                    ),
-                  ),
-                ),
-                completeIcon: const Icon(Icons.check, color: Colors.green),
-                failedIcon: const Icon(Icons.error, color: Colors.red),
-                textStyle: const TextStyle(color: Color(0xFF757575)),
-                idleText: "Pull down to refresh",
-                releaseText: "Release to refresh",
-                refreshingText: "Refreshing...",
-                completeText: "Refresh completed",
-                failedText: "Refresh failed",
-              ),
-              child: _buildOrderContent(loadingState, filteredOrders, selectedTab),
             ),
           ),
-        ],
+          backgroundColor: Colors.white,
+          actions: [
+            // Badge to show if filter is active
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.filter_list, 
+                    color: const Color(0xff2F2F2F),
+                    size: ResponsiveUtils.getResponsiveIconSize(context),
+                  ),
+                  onPressed: _showFilterOptions,
+                ),
+                if (deliveryTypeFilter != 'All')
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      width: ResponsiveUtils.getResponsiveSpacing(context) * 0.5,
+                      height: ResponsiveUtils.getResponsiveSpacing(context) * 0.5,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF9800),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Tab bar for Orders categories
+            _buildTabBar(selectedTab),
+            
+            // Order list, loading state, error state or empty state
+            Expanded(
+              child: SmartRefresher(
+                controller: _refreshController,
+                onRefresh: _onRefresh,
+                physics: const AlwaysScrollableScrollPhysics(),
+                header: ClassicHeader(
+                  refreshStyle: RefreshStyle.Follow,
+                  idleIcon: Icon(
+                    Icons.arrow_downward, 
+                    color: const Color(0xFFFF9800),
+                    size: ResponsiveUtils.getResponsiveIconSize(context),
+                  ),
+                  releaseIcon: Icon(
+                    Icons.refresh, 
+                    color: const Color(0xFFFF9800),
+                    size: ResponsiveUtils.getResponsiveIconSize(context),
+                  ),
+                  refreshingIcon: RotationTransition(
+                    turns: _rotationController,
+                    child: SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(context) * 2.5,
+                      height: ResponsiveUtils.getResponsiveSpacing(context) * 2.5,
+                      child: Image.asset(
+                        'assets/icons/icon_only.png',
+                        color: const Color(0xFFFF9800),
+                      ),
+                    ),
+                  ),
+                  completeIcon: Icon(
+                    Icons.check, 
+                    color: Colors.green,
+                    size: ResponsiveUtils.getResponsiveIconSize(context),
+                  ),
+                  failedIcon: Icon(
+                    Icons.error, 
+                    color: Colors.red,
+                    size: ResponsiveUtils.getResponsiveIconSize(context),
+                  ),
+                  textStyle: TextStyle(
+                    color: const Color(0xFF757575),
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 12, tablet: 14, desktop: 16),
+                  ),
+                  idleText: AppLocalizations.of(context).pullDownToRefresh,
+                  releaseText: AppLocalizations.of(context).releaseToRefresh,
+                  refreshingText: AppLocalizations.of(context).refreshingText,
+                  completeText: AppLocalizations.of(context).refreshCompleted,
+                  failedText: AppLocalizations.of(context).refreshFailedText,
+                ),
+                child: _buildOrderContent(loadingState, filteredOrders, selectedTab),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -346,19 +403,19 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
             color: Colors.red,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Error loading orders',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            AppLocalizations.of(context).errorLoadingOrders,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Please check your connection and try again',
-            style: TextStyle(color: Colors.grey),
+          Text(
+            AppLocalizations.of(context).checkConnectionRetry,
+            style: const TextStyle(color: Colors.grey),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: _fetchOrders,
-            child: const Text('Retry'),
+            child: Text(AppLocalizations.of(context).retry),
           ),
         ],
       ),
@@ -366,134 +423,169 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
   }
   
   Widget _buildEmptyState(String selectedTab) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Empty illustration
-          Image.asset(
-            'assets/icons/icon_only.png',
-            width: 100,
-            height: 100,
-            color: Colors.grey[300],
-            // Handle if image is missing, show a placeholder icon
-            errorBuilder: (context, error, stackTrace) => 
-                Icon(Icons.inventory_2_outlined, size: 100, color: Colors.grey.shade300),
-          ),
-          const SizedBox(height: 24),
-          
-          // Message
-          Text(
-            selectedTab == 'All' 
-                ? "You didn't create orders yet!"
-                : "No orders with status \"$selectedTab\"",
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          
-          const SizedBox(height: 32),
-          
-          // Create Order Button - Matching the pickups screen style
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFF9800).withOpacity(0.4),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                  spreadRadius: 0,
-                ),
-              ],
-            ),
-            child: ElevatedButton(
-              onPressed: () => _navigateToCreateOrder(),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.zero,
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+        final imageSize = ResponsiveUtils.getResponsiveImageSize(context) * 2.5;
+        
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Empty illustration
+              Image.asset(
+                'assets/icons/icon_only.png',
+                width: imageSize,
+                height: imageSize,
+                color: Colors.grey[300],
+                // Handle if image is missing, show a placeholder icon
+                errorBuilder: (context, error, stackTrace) => 
+                    Icon(Icons.inventory_2_outlined, size: imageSize, color: Colors.grey.shade300),
               ),
-              child: Ink(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF9800), Color(0xFFFF6D00)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
+              SizedBox(height: spacing * 1.5),
+              
+              // Message
+              Text(
+                selectedTab == 'All' 
+                    ? AppLocalizations.of(context).noOrdersYet
+                    : "${AppLocalizations.of(context).noOrdersWithStatus} \"$selectedTab\"",
+                style: TextStyle(
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 18, desktop: 20),
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
                 ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.add, size: 22),
-                      SizedBox(width: 8),
-                      Text(
-                        'Create Order',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
+                textAlign: TextAlign.center,
+              ),
+              
+              SizedBox(height: spacing * 2),
+          
+              // Create Order Button - Matching the pickups screen style
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveUtils.getResponsiveBorderRadius(context) * 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF9800).withOpacity(0.4),
+                      blurRadius: ResponsiveUtils.getResponsiveSpacing(context) * 1.5,
+                      offset: const Offset(0, 4),
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: () => _navigateToCreateOrder(),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.zero,
+                    elevation: 0,
+                    backgroundColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        ResponsiveUtils.getResponsiveBorderRadius(context) * 2,
                       ),
+                    ),
+                  ),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFF9800), Color(0xFFFF6D00)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(
+                        ResponsiveUtils.getResponsiveBorderRadius(context) * 2,
+                      ),
+                    ),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: spacing * 2.5, 
+                        vertical: spacing * 1.2,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.add, 
+                            size: ResponsiveUtils.getResponsiveIconSize(context),
+                          ),
+                          SizedBox(width: spacing * 0.8),
+                          Text(
+                            AppLocalizations.of(context).createNewOrder,
+                            style: TextStyle(
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 14, tablet: 16, desktop: 18),
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                     ],
                   ),
                 ),
               ),
             ),
           ),
-        ],
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
   
   Widget _buildTabBar(String selectedTab) {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final horizontalPadding = ResponsiveUtils.getResponsiveHorizontalPadding(context);
+    final screenType = ResponsiveUtils.getScreenType(context);
+    
+    // Adjust height based on screen type
+    final tabBarHeight = screenType == ScreenType.mobile 
+        ? spacing * 5.0  // Full height on mobile
+        : screenType == ScreenType.tablet 
+            ? spacing * 4.2  // Reduced height on tablet
+            : spacing * 4.5;  // Medium height on desktop
+    
     return Container(
-      height: 50,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey.shade200,
-            width: 1,
+          height: tabBarHeight,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(
+              bottom: BorderSide(
+                color: Colors.grey.shade200,
+                width: 1,
+              ),
+            ),
           ),
-        ),
-      ),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        children: [
-          _buildTabItem('All', selectedTab),
-          _buildTabItem('New', selectedTab),
-          _buildTabItem('Picked Up', selectedTab),
-          _buildTabItem('In Stock', selectedTab),
-          _buildTabItem('In Progress', selectedTab),
-          _buildTabItem('Heading To Customer', selectedTab),
-          _buildTabItem('Heading To You', selectedTab),
-          _buildTabItem('Completed', selectedTab),
-          _buildTabItem('Canceled', selectedTab),
-          _buildTabItem('Rejected', selectedTab),
-          _buildTabItem('Returned', selectedTab),
-          _buildTabItem('Terminated', selectedTab),
-        ],
-      ),
-    );
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding.horizontal / 2, 
+              vertical: screenType == ScreenType.tablet ? spacing * 0.5 : spacing * 0.8,
+            ),
+            children: [
+              _buildTabItem(AppLocalizations.of(context).allOrders, 'All', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).newStatus, 'New', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).pickedUpStatus, 'Picked Up', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).inStockStatus, 'In Stock', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).inProgressStatus, 'In Progress', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).headingToCustomerStatus, 'Heading To Customer', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).headingToYouStatus, 'Heading To You', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).completedStatus, 'Completed', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).canceledStatus, 'Canceled', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).rejectedStatus, 'Rejected', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).returnedStatus, 'Returned', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).terminatedStatus, 'Terminated', selectedTab),
+            ],
+          ),
+        );
   }
 
-  Widget _buildTabItem(String title, String selectedTab) {
-    final isSelected = selectedTab == title;
+  Widget _buildTabItem(String displayTitle, String value, String selectedTab) {
+    final isSelected = selectedTab == value;
     return OrderTab(
-      title: title,
+      title: displayTitle,
       isSelected: isSelected,
-      onTap: () => ref.read(selectedOrderTabProvider.notifier).state = title,
+      onTap: () => ref.read(selectedOrderTabProvider.notifier).state = value,
     );
   }
 

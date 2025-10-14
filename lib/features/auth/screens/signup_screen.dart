@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:ui';
+import '../../../core/l10n/app_localizations.dart';
 import 'package:now_shipping/core/utils/validators.dart';
-import 'package:now_shipping/core/utils/responsive_utils.dart';
 import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastType;
 import 'package:now_shipping/features/auth/services/auth_service.dart';
 import '../../common/widgets/shimmer_loading.dart';
@@ -162,9 +162,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ).createShader(bounds),
-                        child: const Text(
-                          'Create Account',
-                          style: TextStyle(
+                        child: Text(
+                          AppLocalizations.of(context).createAccount,
+                          style: const TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -175,7 +175,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
                       const SizedBox(height: 12),
                       
                       Text(
-                        'Fill in your details to get started',
+                        AppLocalizations.of(context).fillInDetails,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[600],
@@ -210,8 +210,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
                               // Form fields
                               _buildCustomTextField(
                                 controller: _nameController, 
-                                label: 'Full Name',
-                                hintText: 'Enter your full name',
+                                label: AppLocalizations.of(context).fullName,
+                                hintText: AppLocalizations.of(context).enterFullName,
                                 icon: Icons.person_outline,
                                 validator: Validators.name,
                               ),
@@ -224,8 +224,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
                               
                               _buildCustomTextField(
                                 controller: _emailController, 
-                                label: 'Email',
-                                hintText: 'Enter your email address',
+                                label: AppLocalizations.of(context).email,
+                                hintText: AppLocalizations.of(context).enterEmailAddress,
                                 icon: Icons.email_outlined,
                                 validator: Validators.email,
                               ),
@@ -234,8 +234,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
                               
                               _buildCustomTextField(
                                 controller: _passwordController, 
-                                label: 'Password',
-                                hintText: 'Create a password',
+                                label: AppLocalizations.of(context).password,
+                                hintText: AppLocalizations.of(context).createPassword,
                                 icon: Icons.lock_outline,
                                 obscureText: _obscurePassword,
                                 suffixIcon: IconButton(
@@ -276,7 +276,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
                                         ),
                                         const SizedBox(width: 12),
                                         Text(
-                        "I want storage",
+                        AppLocalizations.of(context).iWantStorage,
                                           style: TextStyle(
                                             color: Colors.grey[700],
                                             fontSize: 14,
@@ -302,7 +302,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
                                         const SizedBox(width: 12),
                                         Expanded(
                                           child: Text(
-                        "I agree to the terms and conditions",
+                        AppLocalizations.of(context).iAgreeToTerms,
                                             style: TextStyle(
                                               color: Colors.grey[700],
                                               fontSize: 14,
@@ -357,12 +357,12 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
                             ),
                           ),
                         )
-                                          : const Row(
+                                          : Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Text(
-                                                  'Create Account',
-                          style: TextStyle(
+                                                  AppLocalizations.of(context).createAccount,
+                          style: const TextStyle(
                             fontSize: 16,
                                                     color: Colors.white,
                                                     fontWeight: FontWeight.w600,
@@ -393,7 +393,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Already have an account?",
+                            AppLocalizations.of(context).alreadyHaveAccount,
                             style: TextStyle(
                               color: Colors.grey[600],
                               fontSize: 14,
@@ -408,9 +408,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
                               ),
                             );
                           },
-                            child: const Text(
-                            "Login",
-                            style: TextStyle(
+                            child: Text(
+                            AppLocalizations.of(context).login,
+                            style: const TextStyle(
                                 color: Color(0xFF3266A2),
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
@@ -688,7 +688,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
-            'Phone Number',
+            AppLocalizations.of(context).phoneNumber,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -708,14 +708,16 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
                     child: TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
+                      maxLength: 11,
                       enabled: !_isPhoneVerified,
                   style: const TextStyle(fontSize: 16),
                   decoration: InputDecoration(
-                        hintText: 'Enter your phone number',
+                        hintText: AppLocalizations.of(context).enterPhoneNumber,
                     hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                         border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                     prefixIcon: Icon(Icons.phone_outlined, color: Colors.grey[600], size: 20),
+                        counterText: '', // Hide the character counter
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -750,7 +752,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> with TickerProvider
                               ),
                             )
                       : Text(
-                          _isPhoneVerified ? 'Verified' : 'Verify',
+                          _isPhoneVerified ? AppLocalizations.of(context).verified : AppLocalizations.of(context).verify,
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,

@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:now_shipping/features/common/widgets/app_text_field.dart';
-import 'package:now_shipping/features/common/widgets/shimmer_loading.dart';
+import '../../../core/l10n/app_localizations.dart';
 import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastType;
 import 'package:now_shipping/features/business/home/screens/home_container.dart';
-import 'package:now_shipping/features/delivery/screens/test.dart';
 import '../providers/login_provider.dart';
 import '../services/auth_service.dart';
 import '../screens/signup_screen.dart';
-import '../../business/dashboard/screens/dashboard_screen.dart';
+import '../screens/forgot_password_screen.dart';
 import '../../../../core/layout/main_layout.dart'; // Add this import for the selectedTabIndexProvider
 
 class LoginForm extends HookConsumerWidget {
@@ -32,11 +30,11 @@ class LoginForm extends HookConsumerWidget {
           // Email field with icon
           _buildTextField(
             controller: emailController,
-            label: 'Email or Phone Number',
-            hintText: 'johndoe@email.com or 1234567890',
+            label: AppLocalizations.of(context).emailOrPhoneNumber,
+            hintText: AppLocalizations.of(context).emailOrPhonePlaceholder,
             icon: Icons.email_outlined,
             validator: (val) {
-              if (val == null || val.isEmpty) return 'Email or phone number is required';
+              if (val == null || val.isEmpty) return AppLocalizations.of(context).emailOrPhoneRequired;
               
               // Check if input is a valid email (contains @)
               bool isEmail = val.contains('@');
@@ -45,7 +43,7 @@ class LoginForm extends HookConsumerWidget {
               bool isPhone = RegExp(r'^\d{10,}$').hasMatch(val);
               
               if (!isEmail && !isPhone) {
-                return 'Enter a valid email or phone number';
+                return AppLocalizations.of(context).enterValidEmailOrPhone;
               }
               return null;
             },
@@ -56,8 +54,8 @@ class LoginForm extends HookConsumerWidget {
           // Password field with icon
           _buildTextField(
             controller: passwordController,
-            label: 'Password',
-            hintText: '********',
+            label: AppLocalizations.of(context).password,
+            hintText: AppLocalizations.of(context).passwordPlaceholder,
             icon: Icons.lock_outline,
             obscureText: !isPasswordVisible.value,
             suffixIcon: IconButton(
@@ -68,7 +66,7 @@ class LoginForm extends HookConsumerWidget {
               ),
               onPressed: () => isPasswordVisible.value = !isPasswordVisible.value,
             ),
-            validator: (val) => val == null || val.length < 6 ? 'Min 6 characters' : null,
+            validator: (val) => val == null || val.length < 6 ? AppLocalizations.of(context).minCharacters : null,
           ),
           
           const SizedBox(height: 16),
@@ -92,7 +90,7 @@ class LoginForm extends HookConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Remember me',
+                    AppLocalizations.of(context).rememberMe,
                     style: TextStyle(
                       color: Colors.grey[700],
                       fontSize: 14,
@@ -104,7 +102,12 @@ class LoginForm extends HookConsumerWidget {
               // Forgot password button
               TextButton(
                 onPressed: () {
-                  // Handle forgot password
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ForgotPasswordScreen(),
+                    ),
+                  );
                 },
                 style: TextButton.styleFrom(
                   minimumSize: Size.zero,
@@ -112,7 +115,7 @@ class LoginForm extends HookConsumerWidget {
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 child: Text(
-                  'Forgot Password?', 
+                  AppLocalizations.of(context).forgotPassword,
                   style: GoogleFonts.inter(
                     color: const Color(0xFF3266A2),
                     fontWeight: FontWeight.w600,
@@ -154,47 +157,38 @@ class LoginForm extends HookConsumerWidget {
                   child: Consumer(
                     builder: (_, ref, __) {
                       final isLoading = ref.watch(loginProvider);
-                      return AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: isLoading
-                            ? const ShimmerLoading(
-                                baseColor: Colors.white70,
-                                highlightColor: Colors.white,
-                                child: SizedBox(
-                                  width: 80,
-                                  height: 20,
-                                  child: Center(
-                                    child: Text(
-                                      'Logging in...',
-                                      style: TextStyle(
-                                        color: Colors.transparent,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              )
-                            : const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'Login',
-                                    key: ValueKey('login'),
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Icon(
-                                    Icons.arrow_forward,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                ],
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isLoading) ...[
+                            const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
+                          Text(
+                            AppLocalizations.of(context).loginButton,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          if (!isLoading) ...[
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.arrow_forward,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ],
+                        ],
                       );
                     },
                   ),
@@ -210,7 +204,7 @@ class LoginForm extends HookConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                "Don't have an account?",
+                AppLocalizations.of(context).dontHaveAccount,
                 style: TextStyle(
                   color: Colors.grey[600],
                   fontSize: 14,
@@ -226,9 +220,9 @@ class LoginForm extends HookConsumerWidget {
                     ),
                   );
                 },
-                child: const Text(
-                  "Sign Up", 
-                  style: TextStyle(
+                child: Text(
+                  AppLocalizations.of(context).signUp, 
+                  style: const TextStyle(
                     color: Color(0xFF3266A2),
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -341,10 +335,7 @@ class LoginForm extends HookConsumerWidget {
             type: ToastType.info,
           );
           
-          // For now, still navigate to HomeContainer
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const TestScreen()),
-          );
+          
         }
       } else {
         ToastService.show(

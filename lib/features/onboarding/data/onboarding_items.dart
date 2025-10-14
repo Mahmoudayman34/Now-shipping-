@@ -10,20 +10,21 @@ class OnboardingItem {
   });
 }
 
+// Note: These will be dynamically loaded from localization
 const onboardingItems = [
   OnboardingItem(
     imagePath: 'assets/images/onboarding1.png',
-    title: 'Effortless Shipping,\nAnytime',
-    description: 'Create and manage shipments with just a few taps. Simple, fast, and reliable.',
+    title: 'effortlessShipping',
+    description: 'effortlessShippingDesc',
   ),
   OnboardingItem(
     imagePath: 'assets/images/onboarding2.png',
-    title: 'Track Deliveries in Real Time',
-    description: 'Stay updated with live tracking, order statuses, and delivery progress.',
+    title: 'trackDeliveries',
+    description: 'trackDeliveriesDesc',
   ),
   OnboardingItem(
     imagePath: 'assets/images/onboarding3.png',
-    title: 'Secure & Seamless Payments',
-    description: 'Manage cash transactions with confidence. Collect, track, and confirm every payment.',
+    title: 'securePayments',
+    description: 'securePaymentsDesc',
   ),
 ];

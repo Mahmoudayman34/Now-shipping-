@@ -3,6 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../features/auth/services/auth_service.dart' hide UserModel;
 import '../../../../features/auth/screens/login_screen.dart';
 import '../../../../features/business/services/user_service.dart';
+import '../../../../core/providers/locale_provider.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/mixins/refreshable_screen_mixin.dart';
+import '../../../../core/widgets/app_dialog.dart';
+import '../../../../core/utils/responsive_utils.dart';
 import 'notifications_screen.dart';
 import 'personal_info_screen.dart';
 import 'language_screen.dart';
@@ -11,48 +16,91 @@ import 'about_screen.dart';
 import 'delete_account_screen.dart';
 
 
-class MoreScreen extends ConsumerWidget {
+class MoreScreen extends ConsumerStatefulWidget {
   const MoreScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MoreScreen> createState() => _MoreScreenState();
+}
+
+class _MoreScreenState extends ConsumerState<MoreScreen> with RefreshableScreenMixin {
+  
+  @override
+  void initState() {
+    super.initState();
+    // Register refresh callback for tab tap refresh
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      registerRefreshCallback(_refreshMore, 4);
+    });
+  }
+  
+  @override
+  void dispose() {
+    // Unregister refresh callback
+    unregisterRefreshCallback(4);
+    super.dispose();
+  }
+  
+  void _refreshMore() {
+    // Refresh more screen data
+    ref.invalidate(userDataProvider);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final authService = ref.read(authServiceProvider);
     final userData = ref.watch(userDataProvider);
+    final locale = ref.watch(localeProvider);
+    final l10n = AppLocalizations.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('More'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // Navigate to notifications screen
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const NotificationsScreen(),
-                ),
-              );
-            },
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            l10n.more,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 18, 
+                tablet: 20, 
+                desktop: 22,
+              ),
+            ),
           ),
-        ],
-      ),
-      body: userData.when(
-        data: (user) => SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+          actions: [
+            IconButton(
+              icon: Icon(
+                Icons.notifications_outlined,
+                size: ResponsiveUtils.getResponsiveIconSize(context),
+              ),
+              onPressed: () {
+                // Navigate to notifications screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationsScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        body: userData.when(
+          data: (user) => SingleChildScrollView(
+            padding: ResponsiveUtils.getResponsivePadding(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Profile section
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: ResponsiveUtils.getResponsivePadding(context),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context) * 1.5),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.grey.withOpacity(0.1),
-                      blurRadius: 8,
+                      blurRadius: ResponsiveUtils.getResponsiveSpacing(context) * 0.8,
                       offset: const Offset(0, 2),
                     ),
                   ],
@@ -60,23 +108,33 @@ class MoreScreen extends ConsumerWidget {
                 child: Row(
                   children: [
                     _buildProfileAvatar(user),
-                    const SizedBox(width: 16),
+                    SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context)),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             user?.name ?? 'User',
-                            style: const TextStyle(
-                              fontSize: 20,
+                            style: TextStyle(
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context, 
+                                mobile: 18, 
+                                tablet: 20, 
+                                desktop: 22,
+                              ),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 0.3),
                           Text(
                             user?.email ?? 'No email',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context, 
+                                mobile: 12, 
+                                tablet: 14, 
+                                desktop: 16,
+                              ),
                               color: Colors.grey[600],
                             ),
                           ),
@@ -84,7 +142,10 @@ class MoreScreen extends ConsumerWidget {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.edit_outlined),
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        size: ResponsiveUtils.getResponsiveIconSize(context),
+                      ),
                       onPressed: () {
                         // Navigate to profile edit
                         Navigator.push(
@@ -94,7 +155,7 @@ class MoreScreen extends ConsumerWidget {
                           ),
                         ).then((_) {
                           // Refresh user data when returning from edit screen
-                          ref.refresh(userDataProvider);
+                          ref.invalidate(userDataProvider);
                         });
                       },
                     ),
@@ -102,13 +163,13 @@ class MoreScreen extends ConsumerWidget {
                 ),
               ),
               
-              const SizedBox(height: 24),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 1.5),
               
               // Account settings section
-              _buildSectionTitle('Account Settings'),
+              _buildSectionTitle(l10n.accountSettings),
               _buildSettingItem(
                 icon: Icons.account_circle_outlined,
-                title: 'Personal Information',
+                title: l10n.personalInfo,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -117,7 +178,7 @@ class MoreScreen extends ConsumerWidget {
                     ),
                   ).then((_) {
                     // Refresh user data when returning from info screen
-                    ref.refresh(userDataProvider);
+                    ref.invalidate(userDataProvider);
                   });
                 },
               ),
@@ -138,14 +199,14 @@ class MoreScreen extends ConsumerWidget {
               ),
               */
               
-              const SizedBox(height: 24),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 1.5),
               
               // Application settings section
-              _buildSectionTitle('Application Settings'),
+              _buildSectionTitle(l10n.applicationSettings),
               _buildSettingItem(
                 icon: Icons.language_outlined,
-                title: 'Language',
-                value: 'English',
+                title: l10n.languageTitle,
+                value: locale.languageCode == 'ar' ? 'العربية' : 'English',
                 onTap: () {
                   Navigator.push(
                     context,
@@ -156,10 +217,10 @@ class MoreScreen extends ConsumerWidget {
                 },
               ),
               
-              const SizedBox(height: 24),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 1.5),
               
               // Support section
-              _buildSectionTitle('Support'),
+              _buildSectionTitle(l10n.support),
               // Commenting out Help Center option
               /*
               _buildSettingItem(
@@ -177,7 +238,7 @@ class MoreScreen extends ConsumerWidget {
               */
               _buildSettingItem(
                 icon: Icons.chat_outlined,
-                title: 'Contact Us',
+                title: l10n.contactUs,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -189,7 +250,7 @@ class MoreScreen extends ConsumerWidget {
               ),
               _buildSettingItem(
                 icon: Icons.info_outline,
-                title: 'About',
+                title: l10n.about,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -200,13 +261,13 @@ class MoreScreen extends ConsumerWidget {
                 },
               ),
               
-              const SizedBox(height: 24),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 1.5),
               
               // Account Actions section
-              _buildSectionTitle('Account Actions'),
+              _buildSectionTitle(l10n.accountActions),
               _buildSettingItem(
                 icon: Icons.delete_outline,
-                title: 'Delete Account',
+                title: l10n.deleteAccount,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -217,16 +278,15 @@ class MoreScreen extends ConsumerWidget {
                 },
               ),
               
-              const SizedBox(height: 8),
+              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 0.5),
               
               // Logout button
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                padding: ResponsiveUtils.getResponsivePadding(context),
                 child: SizedBox(
                   
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    
                     onPressed: () async {
                       // Show confirmation dialog
                       final shouldLogout = await _showLogoutConfirmationDialog(context);
@@ -242,15 +302,30 @@ class MoreScreen extends ConsumerWidget {
                         }
                       }
                     },
-                    icon: const Icon(Icons.exit_to_app),
-                    label: const Text('Logout'),
+                    icon: Icon(
+                      Icons.exit_to_app,
+                      size: ResponsiveUtils.getResponsiveIconSize(context),
+                    ),
+                    label: Text(
+                      l10n.logout,
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context, 
+                          mobile: 14, 
+                          tablet: 16, 
+                          desktop: 18,
+                        ),
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xfff29620),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: EdgeInsets.symmetric(
+                        vertical: ResponsiveUtils.getResponsiveSpacing(context),
+                      ),
                       elevation: 2,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context) * 1.5),
                       ),
                     ),
                   ),
@@ -281,7 +356,7 @@ class MoreScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => ref.refresh(userDataProvider),
+                onPressed: () => ref.invalidate(userDataProvider),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xfff29620),
                   foregroundColor: Colors.white,
@@ -292,17 +367,20 @@ class MoreScreen extends ConsumerWidget {
           ),
         ),
       ),
+    ),
     );
   }
   
   Widget _buildProfileAvatar(UserModel? user) {
+    final avatarSize = ResponsiveUtils.getResponsiveImageSize(context) * 1.5;
+    
     if (user == null) {
       return CircleAvatar(
-        radius: 32,
+        radius: avatarSize,
         backgroundColor: Colors.grey[200],
-        child: const Icon(
+        child: Icon(
           Icons.person,
-          size: 32,
+          size: avatarSize,
           color: Colors.grey,
         ),
       );
@@ -314,11 +392,11 @@ class MoreScreen extends ConsumerWidget {
     if (!hasValidImage) {
       // Default avatar when no valid image is available
       return CircleAvatar(
-        radius: 32,
+        radius: avatarSize,
         backgroundColor: Colors.grey[200],
-        child: const Icon(
+        child: Icon(
           Icons.person,
-          size: 32,
+          size: avatarSize,
           color: Colors.grey,
         ),
       );
@@ -326,7 +404,7 @@ class MoreScreen extends ConsumerWidget {
     
     // Use image with error handler
     return CircleAvatar(
-      radius: 32,
+      radius: avatarSize,
       backgroundColor: Colors.grey[200],
       backgroundImage: NetworkImage(user.profileImage),
       onBackgroundImageError: (exception, stackTrace) {
@@ -339,65 +417,31 @@ class MoreScreen extends ConsumerWidget {
   
   // Helper method to show logout confirmation dialog
   Future<bool?> _showLogoutConfirmationDialog(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Text(
-          'Logout',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xfff29620),
-          ),
-        ),
-        content: const Text(
-          'Are you sure you want to logout?',
-          style: TextStyle(fontSize: 16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.grey[700],
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            ),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xfff29620),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              'Logout',
-              style: TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ),
-        ],
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      ),
+    final l10n = AppLocalizations.of(context);
+    return AppDialog.show(
+      context,
+      title: l10n.logout,
+      message: l10n.areYouSureLogout,
+      confirmText: l10n.logout,
+      cancelText: l10n.cancel,
+      confirmColor: const Color(0xfff29620),
     );
   }
   
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: EdgeInsets.only(bottom: ResponsiveUtils.getResponsiveSpacing(context) * 0.8),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 16,
+        style: TextStyle(
+          fontSize: ResponsiveUtils.getResponsiveFontSize(
+            context, 
+            mobile: 14, 
+            tablet: 16, 
+            desktop: 18,
+          ),
           fontWeight: FontWeight.bold,
-          color: Color(0xfff29620),
+          color: const Color(0xfff29620),
         ),
       ),
     );
@@ -412,11 +456,11 @@ class MoreScreen extends ConsumerWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0),
+        padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context) * 0.8),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: EdgeInsets.all(ResponsiveUtils.getResponsiveSpacing(context) * 0.6),
               decoration: BoxDecoration(
                 color: const Color(0xfff29620).withOpacity(0.1),
                 shape: BoxShape.circle,
@@ -424,15 +468,20 @@ class MoreScreen extends ConsumerWidget {
               child: Icon(
                 icon,
                 color: const Color(0xfff29620),
-                size: 20,
+                size: ResponsiveUtils.getResponsiveIconSize(context),
               ),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context)),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 16,
+                style: TextStyle(
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context, 
+                    mobile: 14, 
+                    tablet: 16, 
+                    desktop: 18,
+                  ),
                 ),
               ),
             ),
@@ -441,13 +490,18 @@ class MoreScreen extends ConsumerWidget {
                 value,
                 style: TextStyle(
                   color: Colors.grey[600],
-                  fontSize: 14,
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context, 
+                    mobile: 12, 
+                    tablet: 14, 
+                    desktop: 16,
+                  ),
                 ),
               ),
-            const SizedBox(width: 8),
-            const Icon(
+            SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context) * 0.5),
+            Icon(
               Icons.arrow_forward_ios,
-              size: 16,
+              size: ResponsiveUtils.getResponsiveIconSize(context) * 0.7,
               color: Colors.grey,
             ),
           ],

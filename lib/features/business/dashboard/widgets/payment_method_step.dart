@@ -477,6 +477,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
         const SizedBox(height: 8),
         TextFormField(
           controller: _mobileNumberController,
+          maxLength: 11,
           decoration: InputDecoration(
             hintText: 'Example: +201234567890',
             border: OutlineInputBorder(
@@ -496,6 +497,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             prefixIcon: Icon(Icons.phone_android, color: Colors.grey.shade500),
             focusColor: orangeColor,
+            counterText: '', // Hide the character counter
           ),
           cursorColor: orangeColor,
           keyboardType: TextInputType.phone,

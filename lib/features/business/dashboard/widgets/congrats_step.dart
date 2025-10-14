@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 import 'package:now_shipping/features/business/dashboard/providers/profile_form_provider.dart';
-import 'profile_completion_form.dart';
 
 class DashboardCongratsStep extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
@@ -77,7 +77,7 @@ class _DashboardCongratsStepState extends ConsumerState<DashboardCongratsStep> {
             child: Column(
               children: [
                 Text(
-                  "You're all set!",
+                  AppLocalizations.of(context).youreAllSet,
                   style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: widget.themeColor,
@@ -88,7 +88,7 @@ class _DashboardCongratsStepState extends ConsumerState<DashboardCongratsStep> {
                 const SizedBox(height: 16),
                 
                 Text(
-                  "Your profile has been completed successfully. You can now fully use all features of the app.",
+                  AppLocalizations.of(context).profileCompletedSuccess,
                   style: theme.textTheme.bodyLarge?.copyWith(
                     color: theme.colorScheme.onSurface.withOpacity(0.7),
                   ),
@@ -124,7 +124,7 @@ class _DashboardCongratsStepState extends ConsumerState<DashboardCongratsStep> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Profile Summary",
+                    AppLocalizations.of(context).profileSummary,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -134,31 +134,31 @@ class _DashboardCongratsStepState extends ConsumerState<DashboardCongratsStep> {
                   // Display summary info
                   _buildSummaryRow(
                     icon: Icons.business,
-                    label: "Brand",
-                    value: profileData['brandName'] as String? ?? 'Not provided',
+                    label: AppLocalizations.of(context).brand,
+                    value: profileData['brandName'] as String? ?? AppLocalizations.of(context).notProvided,
                   ),
                   
                   const SizedBox(height: 8),
                   
                   _buildSummaryRow(
                     icon: Icons.category,
-                    label: "Industry",
-                    value: profileData['industry'] as String? ?? 'Not provided',
+                    label: AppLocalizations.of(context).industry,
+                    value: profileData['industry'] as String? ?? AppLocalizations.of(context).notProvided,
                   ),
                   
                   const SizedBox(height: 8),
                   
                   _buildSummaryRow(
                     icon: Icons.location_on,
-                    label: "Location",
-                    value: "${profileData['city'] ?? 'City'}, ${profileData['country'] ?? 'Country'}",
+                    label: AppLocalizations.of(context).location,
+                    value: "${profileData['city'] ?? AppLocalizations.of(context).city}, ${profileData['country'] ?? AppLocalizations.of(context).country}",
                   ),
                   
                   const SizedBox(height: 8),
                   
                   _buildSummaryRow(
                     icon: Icons.payments,
-                    label: "Payment",
+                    label: AppLocalizations.of(context).payment,
                     value: _getPaymentMethodName(profileData['paymentMethod'] as String? ?? ''),
                   ),
                 ],
@@ -181,9 +181,9 @@ class _DashboardCongratsStepState extends ConsumerState<DashboardCongratsStep> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: const Text(
-                "Finish Setup",
-                style: TextStyle(
+              child: Text(
+                AppLocalizations.of(context).finishSetup,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -200,13 +200,13 @@ class _DashboardCongratsStepState extends ConsumerState<DashboardCongratsStep> {
   String _getPaymentMethodName(String id) {
     switch (id) {
       case 'cash':
-        return 'Cash on Delivery';
+        return AppLocalizations.of(context).cashOnDelivery;
       case 'bank':
-        return 'Bank Transfer';
+        return AppLocalizations.of(context).bankTransfer;
       case 'wallet':
-        return 'Digital Wallet';
+        return AppLocalizations.of(context).digitalWallet;
       default:
-        return 'Not selected';
+        return AppLocalizations.of(context).notSelected;
     }
   }
   

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/l10n/app_localizations.dart';
 
 /// Button to scan smart sticker QR code
 class ScanStickerButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const ScanStickerButton({
-    Key? key,
+    super.key,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,18 +28,18 @@ class ScanStickerButton extends StatelessWidget {
             ),
           ],
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.qr_code_scanner,
               color: Colors.white,
               size: 24,
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Text(
-              'Scan Smart Sticker',
-              style: TextStyle(
+              AppLocalizations.of(context).scanSmartSticker,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: Colors.white,

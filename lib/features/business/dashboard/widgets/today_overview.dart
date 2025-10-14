@@ -1,70 +1,108 @@
 import 'package:flutter/material.dart';
-import '../models/dashboard_model.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class TodayOverview extends StatelessWidget {
   final int inHubPackages;
   
   const TodayOverview({
-    Key? key,
+    super.key,
     required this.inHubPackages,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children:  [
-              Image.asset('assets/icons/calendar.png', width: 20, height: 20, color: Colors.teal),
-              const SizedBox(width: 8),
-              const Text(
-                "Today's Overview",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final padding = ResponsiveUtils.getResponsiveHorizontalPadding(context);
+        final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+        final iconSize = ResponsiveUtils.getResponsiveIconSize(context);
+        final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+        
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: padding.horizontal / 2),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Image.asset(
+                    'assets/icons/calendar.png', 
+                    width: iconSize, 
+                    height: iconSize, 
+                    color: Colors.teal,
+                  ),
+                  SizedBox(width: spacing / 2),
+                  Text(
+                    AppLocalizations.of(context).todaysOverview,
+                    style: TextStyle(
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context,
+                        mobile: 16,
+                        tablet: 18,
+                        desktop: 20,
+                      ),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: spacing),
+              Container(
+                padding: EdgeInsets.all(spacing),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  borderRadius: BorderRadius.circular(borderRadius),
+                ),
+                child: Column(
+                  children: [
+                    _buildOverviewItem(
+                      context,
+                      AppLocalizations.of(context).youHaveInOurHubs, 
+                      "$inHubPackages ${AppLocalizations.of(context).packages}",
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                _buildOverviewItem("You have in our hubs", "$inHubPackages Packages"),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildOverviewItem(String label, String value) {
+  Widget _buildOverviewItem(BuildContext context, String label, String value) {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context) / 4;
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: EdgeInsets.symmetric(vertical: spacing),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 16,
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
+              ),
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 14,
+                tablet: 16,
+                desktop: 18,
+              ),
             ),
           ),
         ],

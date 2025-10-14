@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class DeliveryDetailsWidget extends ConsumerStatefulWidget {
   const DeliveryDetailsWidget({super.key});
@@ -63,9 +64,9 @@ class _DeliveryDetailsWidgetState extends ConsumerState<DeliveryDetailsWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Delivery Details
-          const Text(
-            'Delivery Details',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).deliveryDetails,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Color(0xff2F2F2F),
@@ -75,9 +76,9 @@ class _DeliveryDetailsWidgetState extends ConsumerState<DeliveryDetailsWidget> {
           const SizedBox(height: 16),
           
           // Product Description
-          const Text(
-            'Product Description',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).productDescription,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Color(0xff2F2F2F),
@@ -96,7 +97,7 @@ class _DeliveryDetailsWidgetState extends ConsumerState<DeliveryDetailsWidget> {
               );
             },
             decoration: InputDecoration(
-              hintText: 'Describe the products being delivered',
+              hintText: AppLocalizations.of(context).describeProductsPlaceholder,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -114,9 +115,9 @@ class _DeliveryDetailsWidgetState extends ConsumerState<DeliveryDetailsWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Number of Items',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).numberOfItems,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Color(0xff2F2F2F),
@@ -197,9 +198,9 @@ class _DeliveryDetailsWidgetState extends ConsumerState<DeliveryDetailsWidget> {
                 ),
               ),
               
-              const Text(
-                'Cash on Delivery',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).cashOnDelivery,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Color(0xff2F2F2F),
@@ -211,9 +212,9 @@ class _DeliveryDetailsWidgetState extends ConsumerState<DeliveryDetailsWidget> {
           // Cash on Delivery Amount Field - only visible when cashOnDelivery is true
           if (cashOnDelivery) ...[
             const SizedBox(height: 12),
-            const Text(
-              'Cash on Delivery Amount',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context).cashOnDeliveryAmount,
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
                 color: Color(0xff2F2F2F),
@@ -232,7 +233,7 @@ class _DeliveryDetailsWidgetState extends ConsumerState<DeliveryDetailsWidget> {
                 );
               },
               decoration: InputDecoration(
-                hintText: 'Enter amount',
+                hintText: AppLocalizations.of(context).enterAmount,
                 prefixText: 'EGP ',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -266,9 +267,9 @@ class _DeliveryDetailsWidgetState extends ConsumerState<DeliveryDetailsWidget> {
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              const Text(
-                'Express Shipping',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).expressShipping,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Color(0xff2F2F2F),

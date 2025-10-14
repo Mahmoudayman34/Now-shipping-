@@ -1,85 +1,190 @@
 import 'package:flutter/material.dart';
 import 'delete_account_confirm_screen.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class DeleteAccountScreen extends StatelessWidget {
   const DeleteAccountScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
       appBar: AppBar(
-        title: const Text('Delete Account'),
+          title: Text(
+            AppLocalizations.of(context).deleteAccount,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 18, 
+                tablet: 20, 
+                desktop: 22,
+              ),
+            ),
+          ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+          padding: ResponsiveUtils.getResponsivePadding(context),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: ResponsiveUtils.isTablet(context) 
+                    ? MediaQuery.of(context).size.width * 0.7
+                    : double.infinity,
+              ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 24),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 1.5),
             
             // Warning icon
-            Center(
-              child: Container(
-                padding: const EdgeInsets.all(16),
+            Container(
+              padding: ResponsiveUtils.getResponsivePadding(context),
                 decoration: BoxDecoration(
                   color: Colors.red[50],
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+              child: Icon(
                   Icons.warning_amber_rounded,
                   color: Colors.red,
-                  size: 64,
-                ),
+                size: ResponsiveUtils.getResponsiveIconSize(context) * 2.5,
               ),
             ),
             
-            const SizedBox(height: 32),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 2),
             
             // Warning title
-            const Center(
-              child: Text(
-                'Delete Your Account?',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+            Text(
+                AppLocalizations.of(context).deleteYourAccount,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context, 
+                  mobile: 20, 
+                  tablet: 24, 
+                  desktop: 28,
                 ),
+                fontWeight: FontWeight.bold,
               ),
+              textAlign: TextAlign.center,
             ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
             
             // Warning message
-            const Text(
-              'This action cannot be undone. Once you delete your account:',
+            Text(
+              AppLocalizations.of(context).deleteAccountWarning,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context, 
+                  mobile: 14, 
+                  tablet: 16, 
+                  desktop: 18,
+                ),
               ),
+              textAlign: TextAlign.center,
             ),
             
-            const SizedBox(height: 16),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
             
             // Bullet points
-            _buildBulletPoint('All your personal information will be permanently deleted'),
-            _buildBulletPoint('You will lose access to all your data and activity history'),
-            _buildBulletPoint('Any active subscriptions will be canceled'),
-            _buildBulletPoint('You will need to create a new account if you want to use the app again'),
+            _buildBulletPoint(context, AppLocalizations.of(context).deletePersonalInfo),
+            _buildBulletPoint(context, AppLocalizations.of(context).loseDataAccess),
+            _buildBulletPoint(context, AppLocalizations.of(context).cancelSubscriptions),
+            _buildBulletPoint(context, AppLocalizations.of(context).needNewAccount),
             
-            const SizedBox(height: 32),
+            SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 2),
             
             // Buttons
-            Row(
+            ResponsiveUtils.isTablet(context) 
+                ? Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context)),
+                            side: const BorderSide(color: Color(0xfff29620)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context)),
+                            ),
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context).cancel, 
+                            style: TextStyle(
+                              color: const Color(0xfff29620),
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context, 
+                                mobile: 14, 
+                                tablet: 16, 
+                                desktop: 18,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const DeleteAccountConfirmScreen(),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context)),
+                            ),
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context).continueAction,
+                            style: TextStyle(
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context, 
+                                mobile: 14, 
+                                tablet: 16, 
+                                desktop: 18,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context)),
                       side: const BorderSide(color: Color(0xfff29620)),
-                    ),
-                    child: const Text('Cancel', style: TextStyle(color: Color(0xfff29620))),
-                  ),
-                ),
-                const SizedBox(width: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context)),
+                            ),
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context).cancel, 
+                            style: TextStyle(
+                              color: const Color(0xfff29620),
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context, 
+                                mobile: 14, 
+                                tablet: 16, 
+                                desktop: 18,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context)),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
@@ -93,30 +198,64 @@ class DeleteAccountScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('Continue'),
+                            padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context)),
+                            ),
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context).continueAction,
+                            style: TextStyle(
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context, 
+                                mobile: 14, 
+                                tablet: 16, 
+                                desktop: 18,
+                              ),
+                            ),
+                          ),
                   ),
                 ),
               ],
             ),
           ],
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
   
-  Widget _buildBulletPoint(String text) {
+  Widget _buildBulletPoint(BuildContext context, String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: ResponsiveUtils.getResponsiveSpacing(context) * 0.8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('• ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            '• ', 
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 14, 
+                tablet: 16, 
+                desktop: 18,
+              ), 
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context, 
+                  mobile: 14, 
+                  tablet: 16, 
+                  desktop: 18,
+                ),
+              ),
             ),
           ),
         ],

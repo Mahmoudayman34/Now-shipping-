@@ -7,7 +7,6 @@ import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastT
 import 'package:now_shipping/features/business/dashboard/providers/profile_form_provider.dart';
 import 'package:now_shipping/features/business/dashboard/providers/dashboard_provider.dart';
 import '../../../auth/services/auth_service.dart';
-import 'profile_completion_form.dart';
 
 class DashboardEmailVerification extends ConsumerStatefulWidget {
   final VoidCallback onComplete;

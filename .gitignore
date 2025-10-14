@@ -43,17 +43,3 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-
-# Environment files - DO NOT COMMIT
-.env
-.env.local
-.env.development
-.env.staging
-.env.production
-lib/config/secrets.dart
-
-# Android local properties - contains API keys
-android/local.properties
-
-# iOS configuration files - contains API keys
-ios/Runner/Config.xcconfig

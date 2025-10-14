@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/data/services/api_service.dart';
 import 'package:now_shipping/features/auth/services/auth_service.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 // Provider for delivery fee calculation service
 final deliveryFeeServiceProvider = Provider<DeliveryFeeService>((ref) {
@@ -125,9 +126,9 @@ class DeliveryFeeSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Title
-        const Text(
-          'Delivery Fee Summary',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context).deliveryFeeSummary,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Color(0xff2F2F2F),
@@ -145,7 +146,7 @@ class DeliveryFeeSummaryWidget extends ConsumerWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: deliveryFeeAsync.when(
-            data: (deliveryFee) => _buildFeeDisplay(deliveryFee),
+            data: (deliveryFee) => _buildFeeDisplay(context, deliveryFee),
             loading: () => const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
@@ -158,7 +159,7 @@ class DeliveryFeeSummaryWidget extends ConsumerWidget {
     );
   }
   
-  Widget _buildFeeDisplay(double deliveryFee) {
+  Widget _buildFeeDisplay(BuildContext context, double deliveryFee) {
     return Column(
       children: [
         // Fee amount
@@ -191,7 +192,7 @@ class DeliveryFeeSummaryWidget extends ConsumerWidget {
         
         // Total delivery fee text
         Text(
-          'Total Delivery Fee',
+          AppLocalizations.of(context).totalDeliveryFee,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
-import 'package:now_shipping/features/business/pickups/screens/pickup_details_screen.dart';
 import 'package:now_shipping/features/business/pickups/providers/pickup_provider.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class PickupDetailsTabbedScreen extends ConsumerStatefulWidget {
   final PickupModel pickup;
@@ -40,31 +40,50 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Pickup #${widget.pickup.pickupNumber}',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xff2F2F2F),
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Pickup #${widget.pickup.pickupNumber}',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: const Color(0xff2F2F2F),
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 18,
+                tablet: 20,
+                desktop: 22,
+              ),
+            ),
+          ),
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: const Color(0xff2F2F2F),
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
+            onPressed: () => Navigator.pop(context),
+          ),
+          bottom: TabBar(
+            controller: _tabController,
+            labelColor: const Color(0xFF26A2B9),
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: const Color(0xFF26A2B9),
+            labelStyle: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 14,
+                tablet: 16,
+                desktop: 18,
+              ),
+            ),
+            tabs: const [
+              Tab(text: 'Tracking'),
+              Tab(text: 'Pickup Details'),
+              Tab(text: 'Orders Picked'),
+            ],
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Color(0xff2F2F2F)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: const Color(0xFF26A2B9),
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: const Color(0xFF26A2B9),
-          tabs: const [
-            Tab(text: 'Tracking'),
-            Tab(text: 'Pickup Details'),
-            Tab(text: 'Orders Picked'),
-          ],
-        ),
-      ),
       body: TabBarView(
         controller: _tabController,
         children: [
@@ -78,38 +97,51 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
           _buildOrdersPickedTab(),
         ],
       ),
+      ),
     );
   }
 
   Widget _buildTrackingTab() {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+    
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(spacing),
             decoration: BoxDecoration(
               color: const Color(0xFF82D0E9).withOpacity(0.2),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(borderRadius),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.local_shipping_outlined, color: Color(0xFF26A2B9)),
-                SizedBox(width: 12),
+                Icon(
+                  Icons.local_shipping_outlined,
+                  color: const Color(0xFF26A2B9),
+                  size: ResponsiveUtils.getResponsiveIconSize(context),
+                ),
+                SizedBox(width: spacing),
                 Text(
                   'Pickup Status',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 16,
+                      tablet: 18,
+                      desktop: 20,
+                    ),
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF26A2B9),
+                    color: const Color(0xFF26A2B9),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: spacing * 2),
           _buildTrackingTimeline(),
         ],
       ),
@@ -334,24 +366,46 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
   Widget _buildOrdersPickedTab() {
     // Watch the picked up orders from the API
     final pickedUpOrdersAsync = ref.watch(pickedUpOrdersProvider(widget.pickup.pickupNumber));
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
     
     return Column(
       children: [
         // Search bar
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(spacing),
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'Search by order ID, customer or location',
-              prefixIcon: const Icon(Icons.search, color: Color(0xFF26A2B9)),
+              hintStyle: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
+              ),
+              prefixIcon: Icon(
+                Icons.search,
+                color: const Color(0xFF26A2B9),
+                size: ResponsiveUtils.getResponsiveIconSize(context),
+              ),
               filled: true,
               fillColor: Colors.grey.shade100,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(borderRadius),
                 borderSide: BorderSide.none,
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              contentPadding: EdgeInsets.symmetric(vertical: spacing),
+            ),
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 14,
+                tablet: 16,
+                desktop: 18,
+              ),
             ),
             onChanged: (value) {
               setState(() {

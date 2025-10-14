@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class SuggestionBox extends StatelessWidget {
-  const SuggestionBox({Key? key}) : super(key: key);
+  const SuggestionBox({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +21,9 @@ class SuggestionBox extends StatelessWidget {
               children: [
                 const Icon(Icons.lightbulb_outline, color: Colors.orange),
                 const SizedBox(width: 8),
-                const Text(
-                  'SUGGESTION BOX',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context).suggestionBox,
+                  style: const TextStyle(
                     color: Colors.orange,
                     fontWeight: FontWeight.bold,
                   ),
@@ -34,9 +35,9 @@ class SuggestionBox extends StatelessWidget {
                     color: Colors.orange.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: const Text(
-                    'NEW!',
-                    style: TextStyle(
+                  child: Text(
+                    AppLocalizations.of(context).newLabel,
+                    style: const TextStyle(
                       color: Colors.orange,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
@@ -46,17 +47,17 @@ class SuggestionBox extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Help us serve you better!',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context).helpUsServeBetter,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Share your suggestions to enhance the shipping process overall experience.',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context).shareSuggestions,
+              style: const TextStyle(
                 color: Colors.grey,
               ),
             ),
@@ -67,7 +68,7 @@ class SuggestionBox extends StatelessWidget {
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
               ),
-              label: const Text('Suggest now'),
+              label: Text(AppLocalizations.of(context).suggestNow),
               icon: Image.asset('assets/icons/lamp.png', width: 26, height: 26),
             ),
           ],

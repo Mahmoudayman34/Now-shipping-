@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../config/env.dart';
-import '../../../data/models/auth_model.dart';
-import '../../../data/models/user_model.dart' as api_model;
 import '../../../data/services/api_service.dart';
 
 class UserModel {
@@ -323,6 +321,105 @@ class AuthService {
       };
     } catch (e) {
       print('Signup error: $e');
+      return {
+        'status': 'error',
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  // Forgot password - send reset email
+  Future<Map<String, dynamic>> forgotPassword({required String email}) async {
+    try {
+      final uri = Uri.parse('$_baseUrl/auth/forgot-password');
+      
+      final response = await _client.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+        }),
+      );
+      
+      final jsonData = jsonDecode(response.body);
+      return {
+        'status': jsonData['status'] ?? (response.statusCode == 200 ? 'success' : 'error'),
+        'message': jsonData['message'] ?? (response.statusCode == 200 ? 'Password reset email sent successfully' : 'Failed to send reset email'),
+      };
+    } catch (e) {
+      print('Forgot password error: $e');
+      return {
+        'status': 'error',
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  // Verify OTP for forgot password
+  Future<Map<String, dynamic>> verifyForgotPasswordOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final uri = Uri.parse('$_baseUrl/auth/verify-forgot-password-otp');
+      
+      final response = await _client.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'email': email,
+          'otp': otp,
+        }),
+      );
+      
+      final jsonData = jsonDecode(response.body);
+      return {
+        'status': jsonData['status'] ?? (response.statusCode == 200 ? 'success' : 'error'),
+        'message': jsonData['message'] ?? (response.statusCode == 200 ? 'OTP verified successfully' : 'Invalid OTP'),
+        'token': jsonData['token'], // Reset token for password reset
+      };
+    } catch (e) {
+      print('Verify forgot password OTP error: $e');
+      return {
+        'status': 'error',
+        'message': 'Network error: ${e.toString()}',
+      };
+    }
+  }
+
+  // Reset password with token
+  Future<Map<String, dynamic>> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    try {
+      final uri = Uri.parse('$_baseUrl/auth/reset-password');
+      
+      final response = await _client.post(
+        uri,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'token': token,
+          'password': newPassword,
+        }),
+      );
+      
+      final jsonData = jsonDecode(response.body);
+      return {
+        'status': jsonData['status'] ?? (response.statusCode == 200 ? 'success' : 'error'),
+        'message': jsonData['message'] ?? (response.statusCode == 200 ? 'Password reset successfully' : 'Failed to reset password'),
+      };
+    } catch (e) {
+      print('Reset password error: $e');
       return {
         'status': 'error',
         'message': 'Network error: ${e.toString()}',

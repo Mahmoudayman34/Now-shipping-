@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'package:now_shipping/config/env.dart';
 import 'package:now_shipping/features/auth/services/auth_service.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class PrintSelectionDialog extends ConsumerStatefulWidget {
   final String orderId;
@@ -101,12 +102,12 @@ class _PrintSelectionDialogState extends ConsumerState<PrintSelectionDialog> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Error'),
+        title: Text(AppLocalizations.of(context).error),
         content: Text(message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(AppLocalizations.of(context).ok),
           ),
         ],
       ),
@@ -156,10 +157,10 @@ class _PrintSelectionDialogState extends ConsumerState<PrintSelectionDialog> {
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Print Airwaybill',
-                  style: TextStyle(
+                  AppLocalizations.of(context).printAirwaybill,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF2F2F2F),
@@ -181,9 +182,9 @@ class _PrintSelectionDialogState extends ConsumerState<PrintSelectionDialog> {
           const SizedBox(height: 16),
           
           // Instruction text
-          const Text(
-            'Select paper size for printing',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).selectPaperSize,
+            style: const TextStyle(
               fontSize: 16,
               color: Color(0xFF757575),
             ),
@@ -248,7 +249,7 @@ class _PrintSelectionDialogState extends ConsumerState<PrintSelectionDialog> {
                     ),
                   )
                 : Text(
-                    'Print $_selectedSize',
+                    _getPrintButtonText(context),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -421,5 +422,16 @@ class _PrintSelectionDialogState extends ConsumerState<PrintSelectionDialog> {
         ),
       ),
     );
+  }
+
+  String _getPrintButtonText(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    if (_selectedSize == 'A4') {
+      return l10n.printA4;
+    } else if (_selectedSize == 'A5') {
+      return l10n.printA5;
+    } else {
+      return 'Print $_selectedSize'; // Fallback for other sizes
+    }
   }
 } 

@@ -1,8 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'cash_cycle_screen.dart';
+import '../../../../core/mixins/refreshable_screen_mixin.dart';
 
-class WalletScreen extends StatelessWidget {
+class WalletScreen extends ConsumerStatefulWidget {
   const WalletScreen({super.key});
+
+  @override
+  ConsumerState<WalletScreen> createState() => _WalletScreenState();
+}
+
+class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScreenMixin {
+  
+  @override
+  void initState() {
+    super.initState();
+    // Register refresh callback for tab tap refresh
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      registerRefreshCallback(_refreshWallet, 3);
+    });
+  }
+  
+  @override
+  void dispose() {
+    // Unregister refresh callback
+    unregisterRefreshCallback(3);
+    super.dispose();
+  }
+  
+  void _refreshWallet() {
+    // Refresh wallet data - you can add actual refresh logic here
+    setState(() {
+      // Trigger a rebuild to refresh the wallet data
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

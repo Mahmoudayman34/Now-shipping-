@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/core/widgets/toast_.dart';
 import 'package:now_shipping/features/auth/services/auth_service.dart';
 import 'package:now_shipping/features/business/orders/screens/create_order/create_order_screen.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class EmptyOrdersState extends ConsumerWidget {
-  const EmptyOrdersState({Key? key}) : super(key: key);
+  const EmptyOrdersState({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -58,14 +59,14 @@ class EmptyOrdersState extends ConsumerWidget {
                   ),
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.add, size: 20, color: Colors.white),
-                        SizedBox(width: 8),
+                        const Icon(Icons.add, size: 20, color: Colors.white),
+                        const SizedBox(width: 8),
                         Text(
-                          'Create Order',
-                          style: TextStyle(
+                          AppLocalizations.of(context).createNewOrder,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 0.5,

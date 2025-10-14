@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/screens/edit_order_screen.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class EditOrderFeeSummaryWidget extends ConsumerWidget {
   const EditOrderFeeSummaryWidget({super.key});
@@ -21,9 +22,9 @@ class EditOrderFeeSummaryWidget extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Title
-        const Text(
-          'Delivery Fee Summary',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context).deliveryFeeSummary,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: Color(0xff2F2F2F),
@@ -40,13 +41,13 @@ class EditOrderFeeSummaryWidget extends ConsumerWidget {
             color: const Color(0xFFFFF5E6), // Light orange background color
             borderRadius: BorderRadius.circular(12),
           ),
-          child: _buildFeeDisplay(deliveryFee),
+          child: _buildFeeDisplay(context, deliveryFee),
         ),
       ],
     );
   }
   
-  Widget _buildFeeDisplay(double deliveryFee) {
+  Widget _buildFeeDisplay(BuildContext context, double deliveryFee) {
     return Column(
       children: [
         // Fee amount
@@ -90,7 +91,7 @@ class EditOrderFeeSummaryWidget extends ConsumerWidget {
         
         // Total delivery fee text
         Text(
-          'Total Delivery Fee',
+          AppLocalizations.of(context).totalDeliveryFee,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,

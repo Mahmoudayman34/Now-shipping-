@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:now_shipping/features/business/orders/providers/order_details_provider.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/section_utilities.dart';
+import '../../../../../core/l10n/app_localizations.dart';
 
 class CustomerSection extends StatelessWidget {
   final OrderDetailsModel orderDetails;
 
   const CustomerSection({
-    Key? key,
+    super.key,
     required this.orderDetails,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +17,7 @@ class CustomerSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Customer', icon: Icons.person_outline),
+          SectionHeader(title: AppLocalizations.of(context).customer, icon: Icons.person_outline),
           const SizedBox(height: 16),
           
           // Customer name

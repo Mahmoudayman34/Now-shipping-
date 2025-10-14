@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:now_shipping/features/business/orders/screens/create_order/create_order_screen.dart';
 import 'package:now_shipping/features/business/orders/screens/edit_order_screen.dart';
 import 'package:now_shipping/features/business/orders/screens/order_details_screen_refactored.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/action_item.dart';
 import 'package:now_shipping/features/business/orders/widgets/print_selection_dialog.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 /// Shows a bottom sheet with actions for an order
 void showOrderActionsBottomSheet(BuildContext context, Map<String, dynamic> order) {
@@ -42,11 +42,11 @@ class OrderActionsBottomSheet extends StatelessWidget {
             child: Row(
               children: [
                 const SizedBox(width: 48),
-                const Expanded(
+                Expanded(
                   child: Center(
                     child: Text(
-                      'Order Actions',
-                      style: TextStyle(
+                      AppLocalizations.of(context).orderActions,
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Color(0xff2F2F2F),
@@ -63,7 +63,7 @@ class OrderActionsBottomSheet extends StatelessWidget {
           ),
           ActionItem(
             icon: Icons.description_outlined,
-            title: 'View Details',
+            title: AppLocalizations.of(context).viewDetails,
             onTap: () {
               Navigator.pop(context);
               _handleViewDetails(context, order);
@@ -71,7 +71,7 @@ class OrderActionsBottomSheet extends StatelessWidget {
           ),
           ActionItem(
             icon: Icons.qr_code_scanner_outlined,
-            title: 'Scan Smart Sticker',
+            title: AppLocalizations.of(context).scanSmartSticker,
             onTap: () {
               Navigator.pop(context);
               _handleScanSmartSticker(context, order);
@@ -79,7 +79,7 @@ class OrderActionsBottomSheet extends StatelessWidget {
           ),
           ActionItem(
             icon: Icons.print_outlined,
-            title: 'Print Airwaybill',
+            title: AppLocalizations.of(context).printAirwaybill,
             onTap: () {
               Navigator.pop(context);
               _handlePrintAirwaybill(context, order);
@@ -87,7 +87,7 @@ class OrderActionsBottomSheet extends StatelessWidget {
           ),
           ActionItem(
             icon: Icons.edit_outlined,
-            title: 'Edit order',
+            title: AppLocalizations.of(context).editOrder,
             onTap: () {
               Navigator.pop(context);
               _handleEditOrder(context, order);
@@ -95,7 +95,7 @@ class OrderActionsBottomSheet extends StatelessWidget {
           ),
           ActionItem(
             icon: Icons.location_searching_outlined,
-            title: 'Track Order',
+            title: AppLocalizations.of(context).trackOrder,
             onTap: () {
               Navigator.pop(context);
               _handleTrackOrder(context, order);
@@ -103,7 +103,7 @@ class OrderActionsBottomSheet extends StatelessWidget {
           ),
           ActionItem(
             icon: Icons.delete_outline,
-            title: 'Delete order',
+            title: AppLocalizations.of(context).deleteOrder,
             titleColor: Colors.red,
             backgroundColor: const Color(0xFFFEE8E8),
             onTap: () {

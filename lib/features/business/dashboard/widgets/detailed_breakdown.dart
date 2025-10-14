@@ -4,7 +4,7 @@ import '../models/dashboard_model.dart';
 import '../providers/dashboard_provider.dart';
 
 class DetailedBreakdown extends ConsumerWidget {
-  const DetailedBreakdown({Key? key}) : super(key: key);
+  const DetailedBreakdown({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -134,8 +134,6 @@ class DetailedBreakdown extends ConsumerWidget {
         return const Center(
           child: Text('No pickup orders'),
         );
-      default:
-        return const SizedBox();
     }
   }
 }

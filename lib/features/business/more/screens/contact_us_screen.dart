@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class ContactUsScreen extends StatefulWidget {
   const ContactUsScreen({super.key});
@@ -64,19 +66,30 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Contact Us'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            AppLocalizations.of(context).contactUs,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 18, 
+                tablet: 20, 
+                desktop: 22,
+              ),
+            ),
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: ResponsiveUtils.getResponsivePadding(context),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Contact methods
             _buildContactCard(
               icon: Icons.location_on_outlined,
-              title: 'Our Office',
+              title: AppLocalizations.of(context).ourOffice,
               details: [
                 'New Cairo Business Park',
                 '5th Settlement, Cairo, Egypt',
@@ -85,7 +98,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
             
             _buildContactCard(
               icon: Icons.schedule_outlined,
-              title: 'Business Hours',
+              title: AppLocalizations.of(context).businessHours,
               details: [
                 'Sunday - Thursday: 9:00 AM - 5:00 PM',
                 'Friday - Saturday: Closed',
@@ -94,7 +107,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
             
             _buildContactCard(
               icon: Icons.phone_outlined,
-              title: 'Phone & Email',
+              title: AppLocalizations.of(context).phoneAndEmail,
               details: [
                 '+20 123 456 7890',
                 'support@nowshipping.com',
@@ -104,9 +117,9 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
             const SizedBox(height: 24),
             
             // Contact form
-            const Text(
-              'Send us a message',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context).sendUsMessage,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Color(0xfff29620),
@@ -123,7 +136,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                   TextFormField(
                     controller: _nameController,
                     decoration: InputDecoration(
-                      labelText: 'Your Name',
+                      labelText: AppLocalizations.of(context).yourName,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -143,7 +156,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
-                      labelText: 'Your Email',
+                      labelText: AppLocalizations.of(context).yourEmail,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -165,7 +178,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                   DropdownButtonFormField<String>(
                     value: _selectedIssueType,
                     decoration: InputDecoration(
-                      labelText: 'Issue Type',
+                      labelText: AppLocalizations.of(context).issueType,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -192,7 +205,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                     controller: _messageController,
                     maxLines: 5,
                     decoration: InputDecoration(
-                      labelText: 'Your Message',
+                      labelText: AppLocalizations.of(context).yourMessage,
                       alignLabelWithHint: true,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -232,7 +245,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
                                 strokeWidth: 3,
                               ),
                             )
-                          : const Text('Send Message'),
+                          : Text(AppLocalizations.of(context).sendMessage),
                     ),
                   ),
                 ],
@@ -241,6 +254,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
           ],
         ),
       ),
+    ),
     );
   }
   
@@ -250,15 +264,15 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
     required List<String> details,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: ResponsiveUtils.getResponsiveSpacing(context)),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context) * 1.5),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
-            blurRadius: 8,
+            blurRadius: ResponsiveUtils.getResponsiveSpacing(context) * 0.5,
             offset: const Offset(0, 2),
           ),
         ],
@@ -267,7 +281,7 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: EdgeInsets.all(ResponsiveUtils.getResponsiveSpacing(context) * 0.6),
             decoration: BoxDecoration(
               color: const Color(0xfff29620).withOpacity(0.1),
               shape: BoxShape.circle,
@@ -275,29 +289,39 @@ class _ContactUsScreenState extends State<ContactUsScreen> {
             child: Icon(
               icon,
               color: const Color(0xfff29620),
-              size: 24,
+              size: ResponsiveUtils.getResponsiveIconSize(context),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context)),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 16,
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context, 
+                      mobile: 14, 
+                      tablet: 16, 
+                      desktop: 18,
+                    ),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 0.3),
                 ...details.map((detail) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
+                  padding: EdgeInsets.only(bottom: ResponsiveUtils.getResponsiveSpacing(context) * 0.3),
                   child: Text(
                     detail,
                     style: TextStyle(
                       color: Colors.grey[600],
-                      fontSize: 14,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context, 
+                        mobile: 12, 
+                        tablet: 14, 
+                        desktop: 16,
+                      ),
                     ),
                   ),
                 )),

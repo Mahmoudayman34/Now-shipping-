@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class AdditionalOptionsWidget extends ConsumerStatefulWidget {
-  const AdditionalOptionsWidget({Key? key}) : super(key: key);
+  const AdditionalOptionsWidget({super.key});
 
   @override
   ConsumerState<AdditionalOptionsWidget> createState() => _AdditionalOptionsWidgetState();
@@ -64,9 +65,9 @@ class _AdditionalOptionsWidgetState extends ConsumerState<AdditionalOptionsWidge
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Additional Options Header
-          const Text(
-            'Additional Options',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).additionalOptions,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Color(0xff2F2F2F),
@@ -76,9 +77,9 @@ class _AdditionalOptionsWidgetState extends ConsumerState<AdditionalOptionsWidge
           const SizedBox(height: 8),
           
           // Subtitle
-          const Text(
-            'Specify any special requirements for this order',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).specialRequirementsDescription,
+            style: const TextStyle(
               fontSize: 14,
               color: Colors.grey,
             ),
@@ -101,9 +102,9 @@ class _AdditionalOptionsWidgetState extends ConsumerState<AdditionalOptionsWidge
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              const Text(
-                'Allow opening package',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).allowOpeningPackage,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Color(0xff2F2F2F),
@@ -115,9 +116,9 @@ class _AdditionalOptionsWidgetState extends ConsumerState<AdditionalOptionsWidge
           const SizedBox(height: 16),
           
           // Special Instructions
-          const Text(
-            'Special Instructions',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).specialInstructions,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Color(0xff2F2F2F),
@@ -136,7 +137,7 @@ class _AdditionalOptionsWidgetState extends ConsumerState<AdditionalOptionsWidge
               );
             },
             decoration: InputDecoration(
-              hintText: 'Add any special delivery instructions or notes',
+              hintText: AppLocalizations.of(context).specialInstructionsPlaceholder,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -151,9 +152,9 @@ class _AdditionalOptionsWidgetState extends ConsumerState<AdditionalOptionsWidge
           const SizedBox(height: 16),
           
           // Referral Number
-          const Text(
-            'Referral Number (Optional)',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).referralNumberOptional,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Color(0xff2F2F2F),
@@ -171,7 +172,7 @@ class _AdditionalOptionsWidgetState extends ConsumerState<AdditionalOptionsWidge
               );
             },
             decoration: InputDecoration(
-              hintText: 'Enter referral code if available',
+              hintText: AppLocalizations.of(context).referralCodePlaceholder,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.grey.shade300),

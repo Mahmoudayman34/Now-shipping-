@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
 import 'package:now_shipping/features/business/pickups/screens/create_pickup_screen.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class PickupDetailsScreen extends StatefulWidget {
   final PickupModel pickup;
 
   const PickupDetailsScreen({
-    Key? key,
+    super.key,
     required this.pickup,
-  }) : super(key: key);
+  });
 
   @override
   State<PickupDetailsScreen> createState() => _PickupDetailsScreenState();
@@ -31,39 +32,56 @@ class _PickupDetailsScreenState extends State<PickupDetailsScreen> {
     final Color statusColor = isPickedUp ? Colors.green : const Color(0xFFF89C29);
     final String formattedDate = DateFormat('EEEE, MMMM d, y').format(_pickup.pickupDate);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Pickup Details',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xff2F2F2F),
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Pickup Details',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: const Color(0xff2F2F2F),
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 18,
+                tablet: 20,
+                desktop: 22,
+              ),
+            ),
           ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Color(0xff2F2F2F)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          // Edit button
-          IconButton(
-            icon: const Icon(Icons.edit, color: Color(0xFF26A2B9)),
-            onPressed: () => _navigateToEditScreen(),
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios,
+              color: const Color(0xff2F2F2F),
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
+            onPressed: () => Navigator.pop(context),
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
+          actions: [
+            // Edit button
+            IconButton(
+              icon: Icon(
+                Icons.edit,
+                color: const Color(0xFF26A2B9),
+                size: ResponsiveUtils.getResponsiveIconSize(context),
+              ),
+              onPressed: () => _navigateToEditScreen(),
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Status Card
             Container(
               width: double.infinity,
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
+              margin: ResponsiveUtils.getResponsivePadding(context),
+              padding: ResponsiveUtils.getResponsivePadding(context),
               decoration: BoxDecoration(
                 color: statusColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(
+                  ResponsiveUtils.getResponsiveBorderRadius(context),
+                ),
                 border: Border.all(color: statusColor.withOpacity(0.3)),
               ),
               child: Row(
@@ -71,9 +89,9 @@ class _PickupDetailsScreenState extends State<PickupDetailsScreen> {
                   Icon(
                     isPickedUp ? Icons.check_circle : Icons.local_shipping_outlined,
                     color: statusColor,
-                    size: 24,
+                    size: ResponsiveUtils.getResponsiveIconSize(context) * 1.2,
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context)),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -82,13 +100,24 @@ class _PickupDetailsScreenState extends State<PickupDetailsScreen> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: statusColor,
-                          fontSize: 16,
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(
+                            context,
+                            mobile: 16,
+                            tablet: 18,
+                            desktop: 20,
+                          ),
                         ),
                       ),
                       Text(
                         isPickedUp ? 'Your pickup has been completed' : 'Your pickup is scheduled',
                         style: TextStyle(
                           color: statusColor.withOpacity(0.8),
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(
+                            context,
+                            mobile: 14,
+                            tablet: 16,
+                            desktop: 18,
+                          ),
                         ),
                       ),
                     ],
@@ -149,19 +178,27 @@ class _PickupDetailsScreenState extends State<PickupDetailsScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: _pickup.status == 'Upcoming'
-          ? _buildBottomActionBar()
-          : null,
+        bottomNavigationBar: _pickup.status == 'Upcoming'
+            ? _buildBottomActionBar()
+            : null,
+      ),
     );
   }
 
   Widget _buildDetailSection(String title, List<Widget> items) {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+    
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      margin: EdgeInsets.only(
+        left: spacing,
+        right: spacing,
+        bottom: spacing,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(color: Colors.grey.shade200),
         boxShadow: [
           BoxShadow(
@@ -175,13 +212,18 @@ class _PickupDetailsScreenState extends State<PickupDetailsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(spacing),
             child: Text(
               title,
-              style: const TextStyle(
-                fontSize: 18,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 18,
+                  tablet: 20,
+                  desktop: 22,
+                ),
                 fontWeight: FontWeight.w600,
-                color: Color(0xff2F2F2F),
+                color: const Color(0xff2F2F2F),
               ),
             ),
           ),
@@ -193,33 +235,46 @@ class _PickupDetailsScreenState extends State<PickupDetailsScreen> {
   }
 
   Widget _buildDetailItem(String label, String value, {IconData? icon, Color? iconColor}) {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final iconSize = ResponsiveUtils.getResponsiveIconSize(context);
+    
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(spacing),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (icon != null) ...[
-            Icon(icon, color: iconColor, size: 20),
-            const SizedBox(width: 8),
+            Icon(icon, color: iconColor, size: iconSize),
+            SizedBox(width: spacing * 0.67),
           ],
           Expanded(
             flex: 2,
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
                 color: Colors.grey.shade600,
               ),
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: spacing),
           Expanded(
             flex: 3,
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xff2F2F2F),
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
+                color: const Color(0xff2F2F2F),
               ),
             ),
           ),
@@ -229,8 +284,11 @@ class _PickupDetailsScreenState extends State<PickupDetailsScreen> {
   }
 
   Widget _buildBottomActionBar() {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+    
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(spacing),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -249,15 +307,20 @@ class _PickupDetailsScreenState extends State<PickupDetailsScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF89C29),
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(vertical: spacing),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(borderRadius),
                 ),
               ),
-              child: const Text(
+              child: Text(
                 'Edit Pickup',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 16,
+                    tablet: 18,
+                    desktop: 20,
+                  ),
                   fontWeight: FontWeight.w600,
                 ),
               ),

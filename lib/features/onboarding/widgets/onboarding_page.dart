@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/onboarding_items.dart';
+import '../../../core/l10n/app_localizations.dart';
 
 class OnboardingPage extends StatelessWidget {
   final OnboardingItem item;
@@ -14,8 +15,8 @@ class OnboardingPage extends StatelessWidget {
         const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.only(left: 16.0),
-          child: Text(
-        item.title,
+          child:           Text(
+        AppLocalizations.of(context).get(item.title),
         style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
         textAlign: TextAlign.left,
           ),
@@ -24,8 +25,8 @@ class OnboardingPage extends StatelessWidget {
         
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-        item.description,
+          child:           Text(
+        AppLocalizations.of(context).get(item.description),
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
           color: Theme.of(context).hintColor,
           fontSize: 14,

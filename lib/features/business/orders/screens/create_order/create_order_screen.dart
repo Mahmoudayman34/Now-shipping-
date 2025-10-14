@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/l10n/app_localizations.dart';
 import 'package:now_shipping/features/business/orders/models/order_model.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
-import 'package:now_shipping/features/business/orders/providers/orders_provider.dart';
 import 'package:now_shipping/features/business/orders/widgets/additional_options_widget.dart';
 import 'package:now_shipping/features/business/orders/widgets/cash_collection_details_widget.dart';
 import 'package:now_shipping/features/business/orders/widgets/customer_section_widget.dart';
@@ -11,6 +11,8 @@ import 'package:now_shipping/features/business/orders/widgets/delivery_fee_summa
 import 'package:now_shipping/features/business/orders/widgets/exchange_details_widget.dart';
 import 'package:now_shipping/features/business/orders/widgets/return_details_widget.dart';
 import 'package:now_shipping/features/business/orders/widgets/shipping_information_widget.dart';
+import '../../../../../core/utils/responsive_utils.dart';
+import '../../../../../core/widgets/app_dialog.dart';
 
 class CreateOrderScreen extends ConsumerStatefulWidget {
   final bool isEditing;
@@ -83,103 +85,49 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     final selectedDeliveryType = order.deliveryType ?? 'Deliver';
     
     // Set appropriate title based on editing mode
-    final String appBarTitle = widget.isEditing ? 'Edit Order' : 'Create New Order';
+    final String appBarTitle = widget.isEditing ? AppLocalizations.of(context).editOrder : AppLocalizations.of(context).createNewOrder;
     
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: Text(
-          appBarTitle,
-          style: const TextStyle(
-            color: Color(0xff2F2F2F),
-            fontSize: 18,
-            fontWeight: FontWeight.bold
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        appBar: AppBar(
+          title: Text(
+            appBarTitle,
+            style: TextStyle(
+              color: const Color(0xff2F2F2F),
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 16, 
+                tablet: 18, 
+                desktop: 20,
+              ),
+              fontWeight: FontWeight.bold
+            ),
           ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Color(0xff2F2F2F)),
+          centerTitle: true,
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(
+              Icons.close, 
+              color: const Color(0xff2F2F2F),
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
           onPressed: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  backgroundColor: Colors.white,
-                    title: const Text(
-                    "Are you sure you want to exit?",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xff2F2F2F),
-                    ),
-                    ),
-                    titlePadding: const EdgeInsets.fromLTRB(16, 16, 16, 5), // Reduced bottom padding
-                    content: Text(
-                    widget.isEditing 
-                      ? "Changes to the order won't be saved if you exit"
-                      : "Order data and updates won't be saved if you decided to exit",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(0xff2F2F2F),
-                      fontSize: 14,
-                      fontFamily: 'Inter',
-                    ),
-                    ),
-                    contentPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16), // Reduced top padding
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  actions: <Widget>[
-                    Container(
-                      height: 1,
-                      color: Colors.white54,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        TextButton(
-                          child: const Text(
-                            "Cancel",
-                            style: TextStyle(
-                              color: Colors.blue,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                          },
-                        ),
-                        Container(
-                          width: 1,
-                          height: 47,
-                          color: Colors.white54,
-                        ),
-                        TextButton(
-                          child: const Text(
-                            "Exit",
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                            Navigator.of(context).pop(); // Close the screen
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                  actionsPadding: EdgeInsets.zero,
-                );
-              },
-            );
+            AppDialog.show(
+              context,
+              title: AppLocalizations.of(context).areYouSureExit,
+              message: widget.isEditing 
+                ? AppLocalizations.of(context).changesWontBeSaved
+                : AppLocalizations.of(context).orderDataWontBeSaved,
+              confirmText: AppLocalizations.of(context).exit,
+              cancelText: AppLocalizations.of(context).cancel,
+              confirmColor: Colors.red,
+            ).then((confirmed) {
+              if (confirmed == true) {
+                Navigator.of(context).pop();
+              }
+            });
           },
         ),
       ),
@@ -229,7 +177,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         ),
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16.0),
+        padding: ResponsiveUtils.getResponsivePadding(context),
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
@@ -245,19 +193,29 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFFF89C29),
             foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: EdgeInsets.symmetric(
+              vertical: ResponsiveUtils.getResponsiveSpacing(context),
+            ),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(
+                ResponsiveUtils.getResponsiveBorderRadius(context),
+              ),
             ),
           ),
           child: Text(
-            widget.isEditing ? 'Save Changes' : 'Confirm Order',
-            style: const TextStyle(
-              fontSize: 16,
+            widget.isEditing ? AppLocalizations.of(context).saveChanges : AppLocalizations.of(context).confirmOrder,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 16,
+                tablet: 18,
+                desktop: 20,
+              ),
               fontWeight: FontWeight.w500,
             ),
           ),
         ),
+      ),
       ),
     );
   }
@@ -404,3 +362,4 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
     }
   }
 }
+

@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/data/services/api_service.dart';
 import 'package:now_shipping/features/auth/services/auth_service.dart';
 import '../models/dashboard_model.dart';
-
+import 'package:flutter_riverpod/legacy.dart';
 class DashboardService {
   final ApiService _apiService;
   final AuthService _authService;

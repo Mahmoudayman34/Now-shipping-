@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:now_shipping/core/widgets/toast_.dart';
 import 'package:now_shipping/features/auth/services/auth_service.dart';
 import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
@@ -9,6 +10,10 @@ import 'package:now_shipping/features/business/pickups/screens/create_pickup_scr
 import 'package:now_shipping/features/business/pickups/screens/pickup_details_screen.dart';
 import 'package:now_shipping/features/business/pickups/widgets/pickup_card.dart';
 import 'package:now_shipping/features/common/widgets/shimmer_loading.dart';
+import '../../../../core/mixins/refreshable_screen_mixin.dart';
+import '../../../../core/widgets/app_dialog.dart';
+import '../../../../core/utils/responsive_utils.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 // Provider to store cached user data for this screen
 final pickupsScreenUserProvider = StateProvider<UserModel?>((ref) => null);
@@ -20,7 +25,7 @@ class PickupsScreen extends ConsumerStatefulWidget {
   ConsumerState<PickupsScreen> createState() => _PickupsScreenState();
 }
 
-class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTickerProviderStateMixin {
+class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTickerProviderStateMixin, RefreshableScreenMixin {
   String _selectedTab = 'Upcoming';
   final RefreshController _refreshController = RefreshController(initialRefresh: false);
   late AnimationController _rotationController;
@@ -38,6 +43,8 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
     // Preload user data when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _preloadUserData();
+      // Register refresh callback for tab tap refresh
+      registerRefreshCallback(_onRefresh, 2);
     });
   }
 
@@ -45,6 +52,8 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
   void dispose() {
     _refreshController.dispose();
     _rotationController.dispose();
+    // Unregister refresh callback
+    unregisterRefreshCallback(2);
     super.dispose();
   }
   
@@ -87,129 +96,218 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
         ? ref.watch(upcomingPickupsProvider)
         : ref.watch(completedPickupsProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pickups'),
-      ),
-      body: Column(
-        children: [
-          // Tab bar for Pickups categories
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildPickupTab(
-                    'Upcoming',
-                    _selectedTab == 'Upcoming',
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildPickupTab(
-                    'History', 
-                    _selectedTab == 'History',
-                  ),
-                ),
-              ],
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            AppLocalizations.of(context).pickups,
+            style: TextStyle(
+              color: const Color(0xff2F2F2F),
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 18,
+                tablet: 20,
+                desktop: 22,
+              ),
             ),
           ),
-          
-          Expanded(
-            child: SmartRefresher(
-              controller: _refreshController,
-              onRefresh: _onRefresh,
-              header: ClassicHeader(
-                refreshStyle: RefreshStyle.Follow,
-                idleIcon: const Icon(Icons.arrow_downward, color: Color(0xFFFF9800)),
-                releaseIcon: const Icon(Icons.refresh, color: Color(0xFFFF9800)),
-                refreshingIcon: RotationTransition(
-                  turns: _rotationController,
-                  child: SizedBox(
-                    width: 30.0,
-                    height: 30.0,
-                    child: Image.asset(
-                      'assets/icons/icon_only.png',
-                      color: const Color(0xFFFF9800),
-                      errorBuilder: (context, error, stackTrace) => 
-                          const Icon(Icons.refresh, color: Color(0xFFFF9800), size: 24),
+          backgroundColor: Colors.white,
+        ),
+        body: Column(
+          children: [
+            // Tab bar for Pickups categories
+            _buildTabBar(),
+            
+            Expanded(
+              child: SmartRefresher(
+                controller: _refreshController,
+                onRefresh: _onRefresh,
+                physics: const AlwaysScrollableScrollPhysics(),
+                header: ClassicHeader(
+                  refreshStyle: RefreshStyle.Follow,
+                  idleIcon: Icon(
+                    Icons.arrow_downward,
+                    color: const Color(0xFFFF9800),
+                    size: ResponsiveUtils.getResponsiveIconSize(context),
+                  ),
+                  releaseIcon: Icon(
+                    Icons.refresh,
+                    color: const Color(0xFFFF9800),
+                    size: ResponsiveUtils.getResponsiveIconSize(context),
+                  ),
+                  refreshingIcon: RotationTransition(
+                    turns: _rotationController,
+                    child: SizedBox(
+                      width: ResponsiveUtils.getResponsiveSpacing(context) * 2.5,
+                      height: ResponsiveUtils.getResponsiveSpacing(context) * 2.5,
+                      child: Image.asset(
+                        'assets/icons/icon_only.png',
+                        color: const Color(0xFFFF9800),
+                        errorBuilder: (context, error, stackTrace) => 
+                            Icon(
+                              Icons.refresh,
+                              color: const Color(0xFFFF9800),
+                              size: ResponsiveUtils.getResponsiveIconSize(context),
+                            ),
+                      ),
+                    ),
+                  ),
+                  completeIcon: Icon(
+                    Icons.check,
+                    color: Colors.green,
+                    size: ResponsiveUtils.getResponsiveIconSize(context),
+                  ),
+                  failedIcon: Icon(
+                    Icons.error,
+                    color: Colors.red,
+                    size: ResponsiveUtils.getResponsiveIconSize(context),
+                  ),
+                  textStyle: TextStyle(
+                    color: const Color(0xFF757575),
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 12,
+                      tablet: 14,
+                      desktop: 16,
+                    ),
+                  ),
+                  idleText: AppLocalizations.of(context).pullDownToRefresh,
+                  releaseText: AppLocalizations.of(context).releaseToRefresh,
+                  refreshingText: AppLocalizations.of(context).refreshingText,
+                  completeText: AppLocalizations.of(context).refreshCompleted,
+                  failedText: AppLocalizations.of(context).refreshFailedText,
+                ),
+                child: pickupsAsync.when(
+                  data: (pickups) {
+                    // Show shimmer if we're refreshing
+                    if (_isRefreshing) {
+                      return _buildLoadingState();
+                    }
+                    
+                    if (pickups.isNotEmpty) {
+                      return ListView.builder(
+                        itemCount: pickups.length,
+                        itemBuilder: (context, index) {
+                          final pickup = pickups[index];
+                          return PickupCard(
+                            pickup: pickup,
+                            onTap: () {
+                              _showPickupActions(context, pickup);
+                            },
+                          );
+                        },
+                      );
+                    } else {
+                      return _buildEmptyState();
+                    }
+                  },
+                  loading: () => _buildLoadingState(),
+                  error: (error, stack) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: ResponsiveUtils.getResponsiveIconSize(context) * 3,
+                          color: Colors.grey[400],
+                        ),
+                        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                        Text(
+                          'Failed to load pickups',
+                          style: TextStyle(
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 18,
+                              tablet: 20,
+                              desktop: 22,
+                            ),
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 0.5),
+                        Padding(
+                          padding: ResponsiveUtils.getResponsiveHorizontalPadding(context),
+                          child: Text(
+                            error.toString(),
+                            style: TextStyle(
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context,
+                                mobile: 14,
+                                tablet: 16,
+                                desktop: 18,
+                              ),
+                              color: Colors.grey[500],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                        ElevatedButton(
+                          onPressed: () => refreshPickups(ref),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFF9800),
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: ResponsiveUtils.getResponsiveSpacing(context) * 2,
+                              vertical: ResponsiveUtils.getResponsiveSpacing(context),
+                            ),
+                          ),
+                          child: Text(
+                            'Retry',
+                            style: TextStyle(
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context,
+                                mobile: 14,
+                                tablet: 16,
+                                desktop: 18,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                completeIcon: const Icon(Icons.check, color: Colors.green),
-                failedIcon: const Icon(Icons.error, color: Colors.red),
-                textStyle: const TextStyle(color: Color(0xFF757575)),
-                idleText: "Pull down to refresh",
-                releaseText: "Release to refresh",
-                refreshingText: "Refreshing...",
-                completeText: "Refresh completed",
-                failedText: "Refresh failed",
               ),
-              child: pickupsAsync.when(
-                data: (pickups) {
-                  // Show shimmer if we're refreshing
-                  if (_isRefreshing) {
-                    return _buildLoadingState();
-                  }
-                  
-                  if (pickups.isNotEmpty) {
-                    return ListView.builder(
-                      itemCount: pickups.length,
-                      itemBuilder: (context, index) {
-                        final pickup = pickups[index];
-                        return PickupCard(
-                          pickup: pickup,
-                          onTap: () {
-                            _showPickupActions(context, pickup);
-                          },
-                        );
-                      },
-                    );
-                  } else {
-                    return _buildEmptyState();
-                  }
-                },
-                loading: () => _buildLoadingState(),
-                error: (error, stack) => Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Colors.grey[400],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Failed to load pickups',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        error.toString(),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[500],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () => refreshPickups(ref),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF9800),
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabBar() {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final horizontalPadding = ResponsiveUtils.getResponsiveHorizontalPadding(context);
+    
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding.horizontal / 2,
+        vertical: spacing,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          bottom: BorderSide(
+            color: Colors.grey.shade200,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildPickupTab(
+              'Upcoming',
+              _selectedTab == 'Upcoming',
+            ),
+          ),
+          SizedBox(width: spacing * 0.67),
+          Expanded(
+            child: _buildPickupTab(
+              'History',
+              _selectedTab == 'History',
             ),
           ),
         ],
@@ -218,6 +316,9 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
   }
 
   Widget _buildPickupTab(String title, bool isSelected) {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+    
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -225,11 +326,13 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: EdgeInsets.symmetric(vertical: spacing),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFE5F8F9) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: isSelected ? Border.all(color: const Color(0xFFFF9800)) : Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(borderRadius),
+          border: isSelected
+              ? Border.all(color: const Color(0xFFFF9800))
+              : Border.all(color: Colors.grey.shade300),
         ),
         child: Center(
           child: Text(
@@ -237,6 +340,12 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
             style: TextStyle(
               color: isSelected ? const Color(0xFFFF9800) : Colors.grey,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 14,
+                tablet: 16,
+                desktop: 18,
+              ),
             ),
           ),
         ),
@@ -260,153 +369,195 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
   }
   
   Widget _buildEmptyState() {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final imageSize = ResponsiveUtils.getResponsiveImageSize(context) * 2;
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+    
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(
-            'assets/icons/icon_only.png', 
-            width: 100,
-            height: 100,
-            color: Colors.grey[300],
-            errorBuilder: (context, error, stackTrace) => 
-                Icon(Icons.inventory_2_outlined, size: 100, color: Colors.grey.shade300),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            _selectedTab == 'Upcoming' 
-                ? 'No upcoming pickups'
-                : 'No pickup history',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _selectedTab == 'Upcoming'
-                ? 'Create your first pickup to get started'
-                : 'Completed pickups will appear here',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 32),
-          if (_selectedTab == 'Upcoming')
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFF9800).withOpacity(0.4),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                  spreadRadius: 0,
-                ),
-              ],
-            ),
-            child: ElevatedButton(
-                onPressed: () {
-                  // Use the preloaded user data
-                  final user = ref.read(pickupsScreenUserProvider);
-                  
-                  if (user != null && user.isProfileComplete) {
-                    // Profile is complete, proceed with navigation
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CreatePickupScreen(),
-                      ),
-                    ).then((_) {
-                      // Refresh pickups after creating a new one
-                      refreshPickups(ref);
-                    });
-                  } else {
-                    // Profile is not complete, show toast message
-                    ToastService.show(
-                      context,
-                      'Please complete and activate your account first',
-                      type: ToastType.warning,
-                    );
-                  }
-                },
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                padding: EdgeInsets.zero,
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
+      child: Padding(
+        padding: ResponsiveUtils.getResponsiveHorizontalPadding(context),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/icons/icon_only.png',
+              width: imageSize,
+              height: imageSize,
+              color: Colors.grey[300],
+              errorBuilder: (context, error, stackTrace) => Icon(
+                Icons.inventory_2_outlined,
+                size: imageSize,
+                color: Colors.grey.shade300,
               ),
-              child: Ink(
+            ),
+            SizedBox(height: spacing * 2),
+            Text(
+              _selectedTab == 'Upcoming'
+                  ? AppLocalizations.of(context).noUpcomingPickups
+                  : AppLocalizations.of(context).noPickupHistory,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 18,
+                  tablet: 20,
+                  desktop: 22,
+                ),
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: spacing * 0.67),
+            Text(
+              _selectedTab == 'Upcoming'
+                  ? AppLocalizations.of(context).createFirstPickup
+                  : AppLocalizations.of(context).completedPickupsHere,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
+                color: Colors.grey[500],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: spacing * 2.67),
+            if (_selectedTab == 'Upcoming')
+              Container(
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF9800), Color(0xFFFF6D00)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(borderRadius * 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF9800).withOpacity(0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                      spreadRadius: 0,
+                    ),
+                  ],
                 ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.add, size: 22),
-                      SizedBox(width: 8),
-                      Text(
-                        'Create Pickup',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Use the preloaded user data
+                    final user = ref.read(pickupsScreenUserProvider);
+                    
+                    if (user != null && user.isProfileComplete) {
+                      // Profile is complete, proceed with navigation
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CreatePickupScreen(),
                         ),
+                      ).then((_) {
+                        // Refresh pickups after creating a new one
+                        refreshPickups(ref);
+                      });
+                    } else {
+                      // Profile is not complete, show toast message
+                      ToastService.show(
+                        context,
+                        'Please complete and activate your account first',
+                        type: ToastType.warning,
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.zero,
+                    elevation: 0,
+                    backgroundColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(borderRadius * 2),
+                    ),
+                  ),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFF9800), Color(0xFFFF6D00)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                    ],
+                      borderRadius: BorderRadius.circular(borderRadius * 2),
+                    ),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: spacing * 2.33,
+                        vertical: spacing * 1.17,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.add,
+                            size: ResponsiveUtils.getResponsiveIconSize(context) * 1.1,
+                          ),
+                          SizedBox(width: spacing * 0.67),
+                          Text(
+                            'Create Pickup',
+                            style: TextStyle(
+                              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                context,
+                                mobile: 16,
+                                tablet: 18,
+                                desktop: 20,
+                              ),
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   void _showPickupActions(BuildContext context, PickupModel pickup) {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+    
     // Show bottom sheet with pickup actions
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(borderRadius * 2)),
       ),
       builder: (context) {
         return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          padding: EdgeInsets.symmetric(vertical: spacing),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Bottom sheet header
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: EdgeInsets.symmetric(horizontal: spacing),
                 child: Row(
                   children: [
                     Text(
                       'Pickup #${pickup.pickupNumber}',
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 18,
+                          tablet: 20,
+                          desktop: 22,
+                        ),
                         fontWeight: FontWeight.w600,
-                        color: Color(0xff2F2F2F),
+                        color: const Color(0xff2F2F2F),
                       ),
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.close),
+                      icon: Icon(
+                        Icons.close,
+                        size: ResponsiveUtils.getResponsiveIconSize(context),
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -471,34 +622,22 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
   }
 
   void _showCancelConfirmation(BuildContext context, PickupModel pickup) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Pickup'),
-        content: Text(
-          'Are you sure you want to cancel pickup #${pickup.pickupNumber}? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('No'),
+    AppDialog.show(
+      context,
+      title: 'Cancel Pickup',
+      message: 'Are you sure you want to cancel pickup #${pickup.pickupNumber}? This action cannot be undone.',
+      confirmText: 'Yes, Cancel',
+      cancelText: 'No',
+      confirmColor: Colors.red,
+    ).then((confirmed) {
+      if (confirmed == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Pickup cancellation feature coming soon'),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Implement cancel pickup API call
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Pickup cancellation feature coming soon'),
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Yes, Cancel'),
-          ),
-        ],
-      ),
-    );
+        );
+      }
+    });
   }
   
   Widget _buildActionItem({
@@ -508,19 +647,33 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
     Color? backgroundColor,
     required VoidCallback onTap,
   }) {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        padding: EdgeInsets.symmetric(
+          vertical: spacing,
+          horizontal: spacing,
+        ),
         color: backgroundColor ?? Colors.transparent,
         child: Row(
           children: [
-            Icon(icon, color: titleColor ?? const Color(0xFF26A2B9)),
-            const SizedBox(width: 16),
+            Icon(
+              icon,
+              color: titleColor ?? const Color(0xFF26A2B9),
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
+            SizedBox(width: spacing),
             Text(
               title,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
                 color: titleColor ?? const Color(0xff2F2F2F),
               ),
             ),

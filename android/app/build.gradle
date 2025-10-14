@@ -28,13 +28,10 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
-// Load Google Maps API Key from local.properties
-def googleMapsApiKey = localProperties.getProperty('google.maps.api.key') ?: 'YOUR_API_KEY_HERE'
-
 android {
     namespace "co.nowshipping.nowshipping"
-    compileSdk 35 // Updated from 34 to 35 for plugin compatibility
-    ndkVersion flutter.ndkVersion
+    compileSdk 36 // Updated from 34 to 35 for plugin compatibility
+    ndkVersion "27.0.12077973"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -51,16 +48,16 @@ android {
  
     defaultConfig {
         applicationId "co.nowshipping.nowshipping"
-        minSdkVersion 21 // Explicit minimum SDK version
+        minSdkVersion 23 // Raised to meet androidx.camera requirements
         targetSdkVersion 35 // Updated to match compileSdk
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         multiDexEnabled true
         
-        // Provide Google Maps API key as manifest placeholder
-        manifestPlaceholders = [
-            googleMapsApiKey: googleMapsApiKey
-        ]
+        // OpenGL ES configuration
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a', 'x86_64'
+        }
     }
 
 
@@ -73,12 +70,19 @@ android {
         }
     }
     buildTypes {
+        debug {
+            debuggable true
+            minifyEnabled false
+            // Force software rendering for debug builds to avoid OpenGL ES issues
+            manifestPlaceholders = [enableHardwareAcceleration: "false"]
+        }
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now,
             // so `flutter run --release` works.
             // signingConfig signingConfigs.debug
             signingConfig signingConfigs.release
+            manifestPlaceholders = [enableHardwareAcceleration: "true"]
         }
     }
 }
@@ -89,6 +93,6 @@ flutter {
 
 dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.10"
+    // Rely on the Kotlin stdlib provided by the Kotlin Gradle plugin (2.1.x)
     implementation "androidx.annotation:annotation:1.7.0"
 }

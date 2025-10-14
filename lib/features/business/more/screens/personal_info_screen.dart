@@ -6,6 +6,8 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:now_shipping/features/business/services/user_service.dart';
 import 'package:intl/intl.dart';
+import 'package:now_shipping/core/l10n/app_localizations.dart';
+import 'package:now_shipping/core/utils/responsive_utils.dart';
 
 class PersonalInfoScreen extends ConsumerWidget {
   const PersonalInfoScreen({super.key});
@@ -14,24 +16,49 @@ class PersonalInfoScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userData = ref.watch(userDataProvider);
     
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Personal Information'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF2F2F2F)),
-          onPressed: () => Navigator.pop(context),
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            AppLocalizations.of(context).personalInformation,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 18, 
+                tablet: 20, 
+                desktop: 22,
+              ),
+            ),
+          ),
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new, 
+              color: const Color(0xFF2F2F2F),
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-      ),
-      body: userData.when(
-        data: (user) {
-          if (user == null) {
-            return const Center(
-              child: Text('No user data available'),
-            );
-          }
-          
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+        body: userData.when(
+          data: (user) {
+            if (user == null) {
+              return Center(
+                child: Text(
+                  AppLocalizations.of(context).noUserDataAvailable,
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context, 
+                      mobile: 14, 
+                      tablet: 16, 
+                      desktop: 18,
+                    ),
+                  ),
+                ),
+              );
+            }
+            
+            return SingleChildScrollView(
+              padding: ResponsiveUtils.getResponsivePadding(context),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -40,9 +67,9 @@ class PersonalInfoScreen extends ConsumerWidget {
                     children: [
                       _buildProfileAvatar(user),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Profile Picture',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context).profilePicture,
+                        style: const TextStyle(
                           fontSize: 16,
                           color: Color(0xfff29620),
                         ),
@@ -52,9 +79,9 @@ class PersonalInfoScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 
-                const Text(
-                  'Basic Information',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context).basicInformation,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xfff29620),
@@ -62,15 +89,15 @@ class PersonalInfoScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 
-                _buildInfoItem('Full Name', user.name),
-                _buildInfoItem('Email', user.email),
-                _buildInfoItem('Phone', user.phoneNumber),
+                _buildInfoItem(AppLocalizations.of(context).fullName, user.name),
+                _buildInfoItem(AppLocalizations.of(context).email, user.email),
+                _buildInfoItem(AppLocalizations.of(context).phone, user.phoneNumber),
                 
                 const SizedBox(height: 24),
                 
-                const Text(
-                  'Business Information',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context).businessInformation,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xfff29620),
@@ -78,11 +105,11 @@ class PersonalInfoScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 
-                _buildInfoItem('Business Name', user.brandInfo.brandName),
-                _buildInfoItem('Role', _formatRole(user.role)),
-                _buildInfoItem('Storage Needed', user.isNeedStorage ? 'Yes' : 'No'),
-                _buildInfoItem('Account Status', _getAccountStatus(user)),
-                _buildInfoItem('Registered Date', _formatDate(user.createdAt)),
+                _buildInfoItem(AppLocalizations.of(context).businessName, user.brandInfo.brandName),
+                _buildInfoItem(AppLocalizations.of(context).role, _formatRole(user.role)),
+                _buildInfoItem(AppLocalizations.of(context).storageNeeded, user.isNeedStorage ? AppLocalizations.of(context).yes : AppLocalizations.of(context).no),
+                _buildInfoItem(AppLocalizations.of(context).accountStatus, _getAccountStatus(user, context)),
+                _buildInfoItem(AppLocalizations.of(context).registeredDate, _formatDate(user.createdAt)),
 /*                
                 const SizedBox(height: 24),
                 
@@ -116,7 +143,7 @@ class PersonalInfoScreen extends ConsumerWidget {
                         ),
                       ).then((_) {
                         // Refresh user data when returning from edit screen
-                        ref.refresh(userDataProvider);
+                        ref.invalidate(userDataProvider);
                       });
                     },
                     style: ElevatedButton.styleFrom(
@@ -127,7 +154,7 @@ class PersonalInfoScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text('Edit Information'),
+                    child: Text(AppLocalizations.of(context).editInformation),
                   ),
                 ),
               ],
@@ -156,7 +183,7 @@ class PersonalInfoScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => ref.refresh(userDataProvider),
+                onPressed: () => ref.invalidate(userDataProvider),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xfff29620),
                   foregroundColor: Colors.white,
@@ -167,6 +194,7 @@ class PersonalInfoScreen extends ConsumerWidget {
           ),
         ),
       ),
+    ),
     );
   }
   
@@ -204,13 +232,13 @@ class PersonalInfoScreen extends ConsumerWidget {
     return role.substring(0, 1).toUpperCase() + role.substring(1);
   }
   
-  String _getAccountStatus(UserModel user) {
+  String _getAccountStatus(UserModel user, BuildContext context) {
     if (user.isVerified && user.isCompleted) {
-      return 'Active';
+      return AppLocalizations.of(context).active;
     } else if (user.isCompleted) {
-      return 'Pending Verification';
+      return AppLocalizations.of(context).pendingVerification;
     } else {
-      return 'Incomplete';
+      return AppLocalizations.of(context).inactive;
     }
   }
   
@@ -443,7 +471,7 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
         
         if (success) {
           // Refresh user data provider to update UI
-          ref.refresh(userDataProvider);
+          ref.invalidate(userDataProvider);
           
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -480,21 +508,42 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
     final userData = ref.watch(userDataProvider);
     
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Personal Information'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF2F2F2F)),
-          onPressed: () => Navigator.pop(context),
+        appBar: AppBar(
+          title: Text(
+            AppLocalizations.of(context).editPersonalInformation,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 18, 
+                tablet: 20, 
+                desktop: 22,
+              ),
+            ),
+          ),
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new, 
+              color: const Color(0xFF2F2F2F),
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-      ),
-      body: userData.when(
-        data: (_) => SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        body: userData.when(
+          data: (_) => SingleChildScrollView(
+            padding: ResponsiveUtils.getResponsivePadding(context),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: ResponsiveUtils.isTablet(context) 
+                      ? MediaQuery.of(context).size.width * 0.8
+                      : double.infinity,
+                ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                 // Display error message if there is one
                 if (_errorMessage != null)
                   Container(
@@ -539,9 +588,9 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
                         ],
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Tap to change profile picture',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context).tapToChangeProfilePicture,
+                        style: const TextStyle(
                           fontSize: 14,
                           color: Colors.grey,
                         ),
@@ -551,9 +600,9 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
                 ),
                 const SizedBox(height: 24),
                 
-                const Text(
-                  'Basic Information',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context).basicInformation,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xfff29620),
@@ -563,13 +612,13 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
                 
                 TextFormField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Full Name',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).fullName,
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
+                      return AppLocalizations.of(context).pleaseEnterYourName;
                     }
                     return null;
                   },
@@ -578,16 +627,16 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
                 
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).email,
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
+                      return AppLocalizations.of(context).pleaseEnterYourEmail;
                     }
                     if (!value.contains('@')) {
-                      return 'Please enter a valid email';
+                      return AppLocalizations.of(context).pleaseEnterValidEmail;
                     }
                     return null;
                   },
@@ -596,13 +645,16 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
                 
                 TextFormField(
                   controller: _phoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone',
-                    border: OutlineInputBorder(),
+                  keyboardType: TextInputType.phone,
+                  maxLength: 11,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).phone,
+                    border: const OutlineInputBorder(),
+                    counterText: '', // Hide the character counter
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
+                      return AppLocalizations.of(context).pleaseEnterYourPhoneNumber;
                     }
                     return null;
                   },
@@ -610,9 +662,9 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
         
                 const SizedBox(height: 24),
                 
-                const Text(
-                  'Business Information',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context).businessInformation,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xfff29620),
@@ -622,13 +674,13 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
                 
                 TextFormField(
                   controller: _businessNameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Business Name',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context).businessName,
+                    border: const OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your business name';
+                      return AppLocalizations.of(context).pleaseEnterYourBusinessName;
                     }
                     return null;
                   },
@@ -703,9 +755,12 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
                 
                 TextFormField(
                   controller: _pickupPhoneController,
+                  keyboardType: TextInputType.phone,
+                  maxLength: 11,
                   decoration: const InputDecoration(
                     labelText: 'Pickup Phone',
                     border: OutlineInputBorder(),
+                    counterText: '', // Hide the character counter
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -734,12 +789,14 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
                         ? const CircularProgressIndicator(
                             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           )
-                        : const Text('Save Changes'),
+                        : Text(AppLocalizations.of(context).saveChanges),
                   ),
                 ),
               ],
-            ),
           ),
+        ),
+        ),
+        ),
         ),
         loading: () => const Center(
           child: CircularProgressIndicator(
@@ -763,7 +820,7 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => ref.refresh(userDataProvider),
+                onPressed: () => ref.invalidate(userDataProvider),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xfff29620),
                   foregroundColor: Colors.white,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/app_dialog.dart';
 
 class ErrorDialog extends StatelessWidget {
   final String title;
@@ -14,23 +15,18 @@ class ErrorDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(title),
-      content: Text(message),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
-        ),
-        if (onRetry != null)
-          TextButton(
-            onPressed: () {
+    return AppDialog(
+      title: title,
+      message: message,
+      confirmText: onRetry != null ? 'Retry' : 'Close',
+      cancelText: onRetry != null ? 'Close' : 'Cancel',
+      onConfirm: onRetry != null
+          ? () {
               Navigator.of(context).pop();
               onRetry!();
-            },
-            child: const Text('Retry'),
-          ),
-      ],
+            }
+          : () => Navigator.of(context).pop(),
+      onCancel: () => Navigator.of(context).pop(),
     );
   }
 

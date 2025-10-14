@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'delete_account_success_screen.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class DeleteAccountConfirmScreen extends StatefulWidget {
   const DeleteAccountConfirmScreen({super.key});
@@ -88,134 +90,269 @@ class _DeleteAccountConfirmScreenState extends State<DeleteAccountConfirmScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Confirm Deletion'),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 24),
-              
-              // Security icon
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xfff29620).withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.lock_outline,
-                    color: Color(0xfff29620),
-                    size: 48,
-                  ),
-                ),
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            AppLocalizations.of(context).confirmDeletion,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 18, 
+                tablet: 20, 
+                desktop: 22,
               ),
-              
-              const SizedBox(height: 32),
-              
-              // Heading
-              const Text(
-                'Security Verification',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: ResponsiveUtils.getResponsivePadding(context),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: ResponsiveUtils.isTablet(context) 
+                    ? MediaQuery.of(context).size.width * 0.6
+                    : double.infinity,
               ),
-              
-              const SizedBox(height: 16),
-              
-              // Description
-              const Text(
-                'For security reasons, please enter your password to confirm account deletion.',
-                style: TextStyle(
-                  fontSize: 16,
-                ),
-              ),
-              
-              const SizedBox(height: 32),
-              
-              // Password field
-              TextFormField(
-                controller: _passwordController,
-                obscureText: !_isPasswordVisible,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 1.5),
+                    
+                    // Security icon
+                    Container(
+                      padding: ResponsiveUtils.getResponsivePadding(context),
+                      decoration: BoxDecoration(
+                        color: const Color(0xfff29620).withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.lock_outline,
+                        color: const Color(0xfff29620),
+                        size: ResponsiveUtils.getResponsiveIconSize(context) * 2,
+                      ),
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
-                },
-              ),
+                    
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 2),
+                    
+                    // Heading
+                    Text(
+                      AppLocalizations.of(context).securityVerification,
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context, 
+                          mobile: 20, 
+                          tablet: 24, 
+                          desktop: 28,
+                        ),
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                    
+                    // Description
+                    Text(
+                      AppLocalizations.of(context).securityPasswordPrompt,
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context, 
+                          mobile: 14, 
+                          tablet: 16, 
+                          desktop: 18,
+                        ),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 2),
               
-              // Error message
-              if (_errorMessage != null) ...[
-                const SizedBox(height: 16),
-                Text(
-                  _errorMessage!,
-                  style: const TextStyle(
-                    color: Colors.red,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-              
-              const SizedBox(height: 32),
-              
-              // Buttons
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _confirmDeletion,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            strokeWidth: 2,
+                    // Password field
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: !_isPasswordVisible,
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context).password,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context)),
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                            size: ResponsiveUtils.getResponsiveIconSize(context),
                           ),
-                        )
-                      : const Text('Confirm Deletion'),
+                          onPressed: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return AppLocalizations.of(context).pleaseEnterPassword;
+                        }
+                        return null;
+                      },
+                    ),
+                    
+                    // Error message
+                    if (_errorMessage != null) ...[
+                      SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                      Text(
+                        _errorMessage!,
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(
+                            context, 
+                            mobile: 12, 
+                            tablet: 14, 
+                            desktop: 16,
+                          ),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                    
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 2),
+                    
+                    // Buttons
+                    ResponsiveUtils.isTablet(context) 
+                        ? Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _confirmDeletion,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context)),
+                                    ),
+                                  ),
+                                  child: _isLoading
+                                      ? SizedBox(
+                                          height: ResponsiveUtils.getResponsiveSpacing(context) * 1.2,
+                                          width: ResponsiveUtils.getResponsiveSpacing(context) * 1.2,
+                                          child: const CircularProgressIndicator(
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text(
+                                          AppLocalizations.of(context).confirmDeletion,
+                                          style: TextStyle(
+                                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                              context, 
+                                              mobile: 14, 
+                                              tablet: 16, 
+                                              desktop: 18,
+                                            ),
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              
+                              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                              
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context)),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    AppLocalizations.of(context).cancel,
+                                    style: TextStyle(
+                                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                        context, 
+                                        mobile: 14, 
+                                        tablet: 16, 
+                                        desktop: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _isLoading ? null : _confirmDeletion,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    foregroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context)),
+                                    ),
+                                  ),
+                                  child: _isLoading
+                                      ? SizedBox(
+                                          height: ResponsiveUtils.getResponsiveSpacing(context) * 1.2,
+                                          width: ResponsiveUtils.getResponsiveSpacing(context) * 1.2,
+                                          child: const CircularProgressIndicator(
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text(
+                                          AppLocalizations.of(context).confirmDeletion,
+                                          style: TextStyle(
+                                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                              context, 
+                                              mobile: 14, 
+                                              tablet: 16, 
+                                              desktop: 18,
+                                            ),
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              
+                              SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                              
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context)),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    AppLocalizations.of(context).cancel,
+                                    style: TextStyle(
+                                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                        context, 
+                                        mobile: 14, 
+                                        tablet: 16, 
+                                        desktop: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                  ],
                 ),
               ),
-              
-              const SizedBox(height: 16),
-              
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text('Cancel'),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

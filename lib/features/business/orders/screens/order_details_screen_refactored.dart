@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:now_shipping/features/business/orders/providers/order_details_provider.dart';
-import 'package:now_shipping/features/business/orders/screens/create_order/create_order_screen.dart';
 import 'package:now_shipping/features/business/orders/screens/edit_order_screen.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/action_item.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/tracking_tab.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/details_tab.dart';
 import 'package:now_shipping/features/business/orders/widgets/print_selection_dialog.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/widgets/app_dialog.dart';
 
 class OrderDetailsScreenRefactored extends ConsumerStatefulWidget {
   final String orderId;
@@ -75,7 +77,7 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
               const SizedBox(height: 16),
               ActionItem(
                 icon: Icons.qr_code_scanner_outlined,
-                title: 'Scan Smart Sticker',
+                title: AppLocalizations.of(context).scanSmartSticker,
                 onTap: () {
                   Navigator.pop(context);
                   _scanBarcode();
@@ -83,7 +85,7 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
               ),
               ActionItem(
                 icon: Icons.print_outlined,
-                title: 'Print Airwaybill',
+                title: AppLocalizations.of(context).printAirwaybill,
                 onTap: () {
                   Navigator.pop(context);
                   _showPrintOptions();
@@ -91,7 +93,7 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
               ),
               ActionItem(
                 icon: Icons.edit_outlined,
-                title: 'Edit order',
+                title: AppLocalizations.of(context).editOrder,
                 onTap: () {
                   Navigator.pop(context);
                   _navigateToEditOrder();
@@ -99,7 +101,7 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
               ),
               ActionItem(
                 icon: Icons.delete_outline,
-                title: 'Delete order',
+                title: AppLocalizations.of(context).deleteOrder,
                 titleColor: Colors.red,
                 backgroundColor: const Color(0xFFFEE8E8),
                 onTap: () {
@@ -235,35 +237,25 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
   
   // Method to show delete confirmation dialog
   void _showDeleteConfirmation(BuildContext context) {
-    showDialog(
-      
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Order'),
-        content: const Text('Are you sure you want to delete this order? This action cannot be undone.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+    AppDialog.show(
+      context,
+      title: 'Delete Order',
+      message: 'Are you sure you want to delete this order? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      confirmColor: Colors.red,
+    ).then((confirmed) {
+      if (confirmed == true) {
+        // Implementation for deleting order
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Order deleted successfully'),
+            backgroundColor: Colors.green,
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Implementation for deleting order
-              // In a real app, you would call a provider method here to delete the order
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Order deleted successfully'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-              Navigator.pop(context); // Go back to orders list
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
+        );
+        Navigator.pop(context);
+      }
+    });
   }
 
   // Show print options dialog
@@ -288,60 +280,91 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F9),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          'Order #${widget.orderId}',
-          style: const TextStyle(
-            color: Color(0xFF2F2F2F),
-            fontSize: 18,
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
+        backgroundColor: const Color(0xFFF7F7F9),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: Text(
+            '${AppLocalizations.of(context).orderNumber}${widget.orderId}',
+            style: TextStyle(
+              color: const Color(0xFF2F2F2F),
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 16, 
+                tablet: 18, 
+                desktop: 20,
+              ),
+            ),
+          ),
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new, 
+              color: const Color(0xFF2F2F2F),
+              size: ResponsiveUtils.getResponsiveIconSize(context),
+            ),
+            onPressed: () => Navigator.pop(context),
+          ),
+          // actions: [
+          //   IconButton(
+          //     icon: const Icon(Icons.more_vert, color: Color(0xFF2F2F2F)),
+          //     onPressed: () => _showActionsBottomSheet(context),
+          //   ),
+          // ],
+          bottom: TabBar(
+            controller: _tabController,
+            labelColor: const Color(0xFF26A2B9),
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: const Color(0xFF26A2B9),
+            labelStyle: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 14, 
+                tablet: 16, 
+                desktop: 18,
+              ),
+            ),
+            unselectedLabelStyle: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 14, 
+                tablet: 16, 
+                desktop: 18,
+              ),
+            ),
+            tabs: [
+              Tab(text: AppLocalizations.of(context).tracking),
+              Tab(text: AppLocalizations.of(context).orderDetails),
+            ],
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF2F2F2F)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.more_vert, color: Color(0xFF2F2F2F)),
-        //     onPressed: () => _showActionsBottomSheet(context),
-        //   ),
-        // ],
-        bottom: TabBar(
+        body: TabBarView(
           controller: _tabController,
-          labelColor: const Color(0xFF26A2B9),
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: const Color(0xFF26A2B9),
-          tabs: const [
-            Tab(text: 'Tracking'),
-            Tab(text: 'Order Details'),
+          children: [
+            // Tracking Tab
+            TrackingTab(
+              orderId: widget.orderId,
+              status: widget.status,
+            ),
+            
+            // Details Tab
+            DetailsTab(
+              orderId: widget.orderId,
+              onScanSticker: _scanBarcode,
+            ),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // Tracking Tab
-          TrackingTab(
-            orderId: widget.orderId,
-            status: widget.status,
+        floatingActionButton: FloatingActionButton(
+          heroTag: 'order_details_fab',
+          backgroundColor: const Color(0xfff29620),
+          onPressed: () => _showActionsBottomSheet(context),
+          child: Icon(
+            Icons.menu, 
+            color: Colors.white,
+            size: ResponsiveUtils.getResponsiveIconSize(context),
           ),
-          
-          // Details Tab
-          DetailsTab(
-            orderId: widget.orderId,
-            onScanSticker: _scanBarcode,
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'order_details_fab',
-        backgroundColor: const Color(0xfff29620),
-        onPressed: () => _showActionsBottomSheet(context),
-        child: const Icon(Icons.menu, color: Colors.white),
+        ),
       ),
     );
   }

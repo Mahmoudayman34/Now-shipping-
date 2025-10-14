@@ -1,23 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/l10n/app_localizations.dart';
 import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
 import 'package:now_shipping/features/business/pickups/widgets/special_requirement_card.dart';
+import 'package:now_shipping/features/business/services/user_service.dart';
+import 'package:now_shipping/data/services/api_service.dart';
+import 'package:now_shipping/features/auth/services/auth_service.dart';
+import 'package:now_shipping/core/widgets/toast_.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
-class CreatePickupScreen extends StatefulWidget {
+class CreatePickupScreen extends ConsumerStatefulWidget {
   final PickupModel? pickupToEdit; // Added parameter for pickup to edit
 
   const CreatePickupScreen({super.key, this.pickupToEdit});
 
   @override
-  State<CreatePickupScreen> createState() => _CreatePickupScreenState();
+  ConsumerState<CreatePickupScreen> createState() => _CreatePickupScreenState();
 }
 
-class _CreatePickupScreenState extends State<CreatePickupScreen> {
+class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
   final _formKey = GlobalKey<FormState>();
   DateTime? _selectedDate;
   bool _isFragileItem = false;
   bool _isLargeItem = false;
   bool _isEditing = false; // Flag to track if we're in edit mode
+  bool _isSubmitting = false; // Loading state for API call
 
   final _ordersController = TextEditingController();
   final _pickupAddressController = TextEditingController();
@@ -36,7 +44,6 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
     // Populate fields if we're editing an existing pickup
     if (widget.pickupToEdit != null) {
       _isEditing = true;
-      _pickupAddressController.text = widget.pickupToEdit!.address;
       _contactNumberController.text =
           widget.pickupToEdit!.contactNumber.replaceAll('+20', ''); // Remove country code
       _notesController.text = widget.pickupToEdit!.notes ?? '';
@@ -45,6 +52,29 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
       _isLargeItem = widget.pickupToEdit!.isLargeItem ?? false;
       // Assuming 1 order for now, in a real app you might want to store this in the pickup model
       _ordersController.text = '1';
+    }
+    // Load user address data
+    _loadUserAddress();
+  }
+
+  void _loadUserAddress() async {
+    try {
+      final userService = ref.read(userServiceProvider);
+      final userData = await userService.getUserData();
+      
+      if (userData != null && userData.pickUpAddress.addressDetails.isNotEmpty) {
+        final address = userData.pickUpAddress;
+        final fullAddress = '${address.addressDetails}, ${address.city}, ${address.country}';
+        if (address.nearbyLandmark.isNotEmpty) {
+          _pickupAddressController.text = '$fullAddress (Near: ${address.nearbyLandmark})';
+        } else {
+          _pickupAddressController.text = fullAddress;
+        }
+      } else {
+        _pickupAddressController.text = 'No registered pickup address found';
+      }
+    } catch (e) {
+      _pickupAddressController.text = 'Error loading address';
     }
   }
 
@@ -59,97 +89,97 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
         backgroundColor: Colors.white,
-        elevation: 0,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(width: 8),
-            Text(
-              _isEditing ? 'Edit PickUP' : 'Create PickUP',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Color(0xff2F2F2F),
-                fontSize: 18,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(width: spacing * 0.67),
+              Text(
+                _isEditing ? AppLocalizations.of(context).editPickup : AppLocalizations.of(context).createPickup,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xff2F2F2F),
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 18,
+                    tablet: 20,
+                    desktop: 22,
+                  ),
+                ),
               ),
+            ],
+          ),
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(
+              Icons.close,
+              color: const Color(0xff2F2F2F),
+              size: ResponsiveUtils.getResponsiveIconSize(context),
             ),
-          ],
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Color(0xff2F2F2F)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _formKey.currentState?.reset();
-                _ordersController.clear();
-                _pickupAddressController.clear();
-                _contactNumberController.clear();
-                _notesController.clear();
-                _selectedDate = null;
-                _isFragileItem = false;
-                _isLargeItem = false;
-              });
-            },
-            child: const Text('Clear', style: TextStyle(color: Colors.grey)),
-          )
-        ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+        body: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: ResponsiveUtils.getResponsivePadding(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Pickup Details',
+              Text(
+                AppLocalizations.of(context).pickupDetails,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 18,
+                    tablet: 20,
+                    desktop: 22,
+                  ),
                   fontWeight: FontWeight.w600,
-                  color: Color(0xff2F2F2F),
+                  color: const Color(0xff2F2F2F),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: spacing * 1.67),
 
               // Number of Orders
-              _buildFieldLabel('Number of Orders', isRequired: true),
+              _buildFieldLabel(AppLocalizations.of(context).numberOfOrders, isRequired: true),
               _buildTextField(
                 controller: _ordersController,
-                hintText: 'Enter number of orders',
+                hintText: AppLocalizations.of(context).enterNumberOfOrders,
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 24),
 
               // Place of Pickup
-              _buildFieldLabel('Place of Pickup', isRequired: true),
+              _buildFieldLabel(AppLocalizations.of(context).placeOfPickup, isRequired: true),
               _buildAddressField(
                 controller: _pickupAddressController,
                 hintText: 'Enter pickup address',
               ),
-              _buildInfoText('Your saved pickup address will be used for this order.'),
+              _buildInfoText(AppLocalizations.of(context).pickupAddressHelper),
               const SizedBox(height: 24),
 
               // Contact Info
-              _buildFieldLabel('Contact Info', isRequired: true),
+              _buildFieldLabel(AppLocalizations.of(context).contactInfo, isRequired: true),
               _buildPhoneNumberField(),
-              _buildInfoText('Please ensure this number is available on WhatsApp for delivery updates.'),
+              _buildInfoText(AppLocalizations.of(context).whatsappHelper),
               const SizedBox(height: 24),
 
               // Enhanced Pick Up Date
-              _buildFieldLabel('Pick Up Date', isRequired: true),
+              _buildFieldLabel(AppLocalizations.of(context).pickUpDate, isRequired: true),
               _buildEnhancedDatePicker(),
               const SizedBox(height: 24),
 
               // Pickup Notes
-              const Text(
-                'Pickup Notes',
+              Text(
+                AppLocalizations.of(context).pickupNotes,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
@@ -160,7 +190,7 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
               TextFormField(
                 controller: _notesController,
                 decoration: InputDecoration(
-                  hintText: 'Enter any special instructions or notes for the pickup',
+                  hintText: AppLocalizations.of(context).enterPickupNotes,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey.shade300),
@@ -172,9 +202,9 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
               const SizedBox(height: 24),
 
               // Options
-              const Text(
-                'Special Requirements',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).specialRequirements,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Color(0xff2F2F2F),
@@ -184,11 +214,11 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: SpecialRequirementCard(title: 'Fragile\nItem', subtitle: 'Special handling required', icon: Icons.warning_amber_rounded, isSelected: _isFragileItem, onTap: () => setState(() => _isFragileItem = !_isFragileItem)),
+                    child: SpecialRequirementCard(title: AppLocalizations.of(context).fragileItem, subtitle: AppLocalizations.of(context).specialHandlingRequired, icon: Icons.warning_amber_rounded, isSelected: _isFragileItem, onTap: () => setState(() => _isFragileItem = !_isFragileItem)),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: SpecialRequirementCard(title: 'Large\nItem', subtitle: 'Requires larger vehicle', icon: Icons.local_shipping, isSelected: _isLargeItem, onTap: () => setState(() => _isLargeItem = !_isLargeItem)),
+                    child: SpecialRequirementCard(title: AppLocalizations.of(context).largeItem, subtitle: AppLocalizations.of(context).requiresLargerVehicle, icon: Icons.local_shipping, isSelected: _isLargeItem, onTap: () => setState(() => _isLargeItem = !_isLargeItem)),
                   ),
                 ],
               ),
@@ -197,47 +227,65 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: Colors.grey.shade300),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+        bottomNavigationBar: Padding(
+          padding: ResponsiveUtils.getResponsivePadding(context),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isSubmitting ? null : _submitPickup,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isSubmitting ? Colors.grey : const Color(0xFFF89C29),
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(
+                  vertical: ResponsiveUtils.getResponsiveSpacing(context),
                 ),
-                child: const Text('Close'),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _submitPickup,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFF89C29),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  _isEditing ? 'Save Changes' : 'Create',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(
+                    ResponsiveUtils.getResponsiveBorderRadius(context),
                   ),
                 ),
               ),
+              child: _isSubmitting
+                  ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: ResponsiveUtils.getResponsiveIconSize(context),
+                          height: ResponsiveUtils.getResponsiveIconSize(context),
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                        SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context)),
+                        Text(
+                          'Creating...',
+                          style: TextStyle(
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 16,
+                              tablet: 18,
+                              desktop: 20,
+                            ),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Text(
+                      _isEditing ? 'Save Changes' : AppLocalizations.of(context).create,
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 16,
+                          tablet: 18,
+                          desktop: 20,
+                        ),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -291,11 +339,13 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
               children: [
                 Icon(Icons.check_circle, color: Colors.green.shade400, size: 20),
                 const SizedBox(width: 8),
-                Text(
-                  'Pickup Date: ${DateFormat('EEEE, MMMM d, y').format(_selectedDate!)}',
-                  style: TextStyle(
-                    color: Colors.green.shade800,
-                    fontWeight: FontWeight.w500,
+                Expanded(
+                  child: Text(
+                    'Pickup Date: ${DateFormat('EEEE, MMMM d, y').format(_selectedDate!)}',
+                    style: TextStyle(
+                      color: Colors.green.shade800,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
@@ -526,22 +576,27 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(12),
+        color: Colors.grey.shade50, // Light background to indicate it's read-only
       ),
       child: Row(
         children: [
           Expanded(
             child: TextFormField(
               controller: controller,
+              enabled: false, // Make the field non-editable
               decoration: InputDecoration(
                 hintText: hintText,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                prefixIcon: Icon(Icons.location_on, color: Colors.grey.shade600),
               ),
+              style: TextStyle(color: Colors.grey.shade700), // Darker text for better readability
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'This field is required';
+                  return 'Registered pickup address is required';
                 }
                 return null;
               },
@@ -565,7 +620,7 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: const Text(
-              '+2',
+              '+20',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -578,12 +633,14 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
             child: TextFormField(
               controller: _contactNumberController,
               keyboardType: TextInputType.phone,
+              maxLength: 11,
               decoration: const InputDecoration(
                 hintText: 'Enter phone number',
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(vertical: 16),
+                counterText: '', // Hide the character counter
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -623,41 +680,102 @@ class _CreatePickupScreenState extends State<CreatePickupScreen> {
     );
   }
 
-  void _submitPickup() {
+  void _submitPickup() async {
     if (_formKey.currentState?.validate() ?? false) {
       if (_selectedDate == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a pickup date')),
+        ToastService.show(
+          context,
+          'Please select a pickup date',
+          type: ToastType.error,
         );
         return;
       }
 
-      // Create the updated or new pickup model
-      final pickup = PickupModel(
-        id: _isEditing
-            ? widget.pickupToEdit!.id
-            : DateTime.now().millisecondsSinceEpoch.toString(),
-        pickupNumber: _isEditing
-            ? widget.pickupToEdit!.pickupNumber
-            : DateTime.now().millisecondsSinceEpoch.toString().substring(0, 6),
-        numberOfOrders: _isEditing ? widget.pickupToEdit!.numberOfOrders : 1,
-        pickupFees: _isEditing ? widget.pickupToEdit!.pickupFees : 0.0,
-        pickupDate: _selectedDate!,
-        phoneNumber: '+20${_contactNumberController.text}',
-        isFragileItems: _isFragileItem,
-        isLargeItems: _isLargeItem,
-        pickupStatus: _isEditing ? widget.pickupToEdit!.pickupStatus : 'new',
-        pickupNotes: _notesController.text.isEmpty ? '' : _notesController.text,
-        ordersPickedUp: _isEditing ? widget.pickupToEdit!.ordersPickedUp : [],
-        business: _isEditing ? widget.pickupToEdit!.business : null,
-        pickupStages: _isEditing ? widget.pickupToEdit!.pickupStages : [],
-        createdAt: _isEditing ? widget.pickupToEdit!.createdAt : DateTime.now(),
-        updatedAt: DateTime.now(),
-        assignedDriver: _isEditing ? widget.pickupToEdit!.assignedDriver : null,
-      );
+      if (_ordersController.text.isEmpty) {
+        ToastService.show(
+          context,
+          'Please enter the number of orders',
+          type: ToastType.error,
+        );
+        return;
+      }
 
-      // Return the pickup to the previous screen
-      Navigator.pop(context, pickup);
+      setState(() {
+        _isSubmitting = true;
+      });
+
+      try {
+        // Get the auth token
+        final authService = ref.read(authServiceProvider);
+        final token = await authService.getToken();
+
+        if (token == null) {
+          throw Exception('Authentication token not found');
+        }
+
+        // Prepare the request body according to the API specification
+        final requestBody = {
+          "numberOfOrders": int.tryParse(_ordersController.text) ?? 1,
+          "pickupDate": DateFormat('yyyy-MM-dd').format(_selectedDate!),
+          "phoneNumber": _contactNumberController.text.trim(),
+          "isFragileItems": _isFragileItem.toString(),
+          "isLargeItems": _isLargeItem.toString(),
+          "pickupNotes": _notesController.text.trim(),
+        };
+
+        // Create API service instance
+        final apiService = ApiService();
+
+        // Make the API call
+        final response = await apiService.post(
+          '/business/create-pickup',
+          body: requestBody,
+          token: token,
+        );
+
+        setState(() {
+          _isSubmitting = false;
+        });
+
+        // Handle successful response
+        if (response != null) {
+          ToastService.show(
+            context,
+            'Pickup created successfully!',
+            type: ToastType.success,
+          );
+
+          // Navigate back to the previous screen
+          Navigator.pop(context, true); // Return true to indicate success
+        } else {
+          ToastService.show(
+            context,
+            'Failed to create pickup. Please try again.',
+            type: ToastType.error,
+          );
+        }
+      } catch (e) {
+        setState(() {
+          _isSubmitting = false;
+        });
+
+        // Handle errors
+        String errorMessage = 'Failed to create pickup. Please try again.';
+        
+        if (e.toString().contains('No internet connection')) {
+          errorMessage = 'No internet connection. Please check your network.';
+        } else if (e.toString().contains('Authentication token not found')) {
+          errorMessage = 'Session expired. Please login again.';
+        }
+
+        ToastService.show(
+          context,
+          errorMessage,
+          type: ToastType.error,
+        );
+
+        print('Error creating pickup: $e');
+      }
     }
   }
 }

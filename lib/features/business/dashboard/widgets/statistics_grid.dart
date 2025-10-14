@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class StatisticsGrid extends StatelessWidget {
   final int headingToCustomer;
@@ -11,7 +13,7 @@ class StatisticsGrid extends StatelessWidget {
   final double unsuccessRate;
   
   const StatisticsGrid({
-    Key? key,
+    super.key,
     required this.headingToCustomer,
     required this.awaitingAction,
     required this.successfulOrders,
@@ -20,40 +22,135 @@ class StatisticsGrid extends StatelessWidget {
     required this.newOrders,
     this.successRate = 0.0,
     this.unsuccessRate = 0.0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0),
-      child: GridView.count(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1.5, // Make cards more rectangular and less square
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        children: [
-          _buildStatCard("Heading To Customer", headingToCustomer.toString(), Icons.info_outline),
-          _buildStatCard("Awaiting Action", awaitingAction.toString(), Icons.info_outline, valueColor: Colors.orange),
-          _buildStatCard("Successful Orders", successfulOrders.toString(), Icons.info_outline, 
-              showPercentage: true, percentage: successRate),
-          _buildStatCard("Unsuccessful Orders", unsuccessfulOrders.toString(), Icons.info_outline, 
-              showPercentage: true, percentage: unsuccessRate),
-          _buildStatCard("Heading To You", headingToYou.toString(), Icons.info_outline),
-          _buildStatCard("New Orders", newOrders.toString(), Icons.info_outline, valueColor: Colors.black),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final screenType = ResponsiveUtils.getScreenType(context);
+        final padding = ResponsiveUtils.getResponsiveHorizontalPadding(context);
+        final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+        final columns = ResponsiveUtils.getGridColumns(context);
+        
+        // Adjust aspect ratio based on screen size
+        double aspectRatio;
+        switch (screenType) {
+          case ScreenType.mobile:
+            aspectRatio = 1.5;
+            break;
+          case ScreenType.tablet:
+            aspectRatio = 1.3;
+            break;
+          case ScreenType.desktop:
+            aspectRatio = 1.2;
+            break;
+        }
+        
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: padding.horizontal / 2),
+          child: GridView.count(
+            crossAxisCount: columns,
+            crossAxisSpacing: spacing,
+            mainAxisSpacing: spacing,
+            childAspectRatio: aspectRatio,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              _buildStatCard(
+                context,
+                AppLocalizations.of(context).headingToCustomer, 
+                headingToCustomer.toString(), 
+                Icons.info_outline,
+              ),
+              _buildStatCard(
+                context,
+                AppLocalizations.of(context).awaitingAction, 
+                awaitingAction.toString(), 
+                Icons.info_outline, 
+                valueColor: Colors.orange,
+              ),
+              _buildStatCard(
+                context,
+                AppLocalizations.of(context).successfulOrders, 
+                successfulOrders.toString(), 
+                Icons.info_outline, 
+                showPercentage: true, 
+                percentage: successRate,
+              ),
+              _buildStatCard(
+                context,
+                AppLocalizations.of(context).unsuccessfulOrders, 
+                unsuccessfulOrders.toString(), 
+                Icons.info_outline, 
+                showPercentage: true, 
+                percentage: unsuccessRate,
+              ),
+              _buildStatCard(
+                context,
+                AppLocalizations.of(context).headingToYou, 
+                headingToYou.toString(), 
+                Icons.info_outline,
+              ),
+              _buildStatCard(
+                context,
+                AppLocalizations.of(context).newOrders, 
+                newOrders.toString(), 
+                Icons.info_outline, 
+                valueColor: Colors.black,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, 
-      {bool showPercentage = false, Color? valueColor, double percentage = 0.0}) {
+  Widget _buildStatCard(
+    BuildContext context,
+    String title, 
+    String value, 
+    IconData icon, 
+    {bool showPercentage = false, 
+    Color? valueColor, 
+    double percentage = 0.0}
+  ) {
+    final screenType = ResponsiveUtils.getScreenType(context);
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+    
+    // Responsive font sizes
+    final titleFontSize = ResponsiveUtils.getResponsiveFontSize(
+      context,
+      mobile: 12,
+      tablet: 14,
+      desktop: 16,
+    );
+    
+    final valueFontSize = ResponsiveUtils.getResponsiveFontSize(
+      context,
+      mobile: 18,
+      tablet: 22,
+      desktop: 26,
+    );
+    
+    final percentageFontSize = ResponsiveUtils.getResponsiveFontSize(
+      context,
+      mobile: 12,
+      tablet: 14,
+      desktop: 16,
+    );
+    
+    // Responsive padding
+    final cardPadding = screenType == ScreenType.mobile 
+        ? EdgeInsets.all(spacing)
+        : EdgeInsets.all(spacing + 4);
+    
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: cardPadding,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.withOpacity(0.15)),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,39 +160,47 @@ class StatisticsGrid extends StatelessWidget {
             title,
             style: TextStyle(
               color: Colors.grey[700],
-              fontSize: 14,
+              fontSize: titleFontSize,
             ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: spacing / 3),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 22,
-                  color: valueColor,
+              Flexible(
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: valueFontSize,
+                    color: valueColor,
+                  ),
                 ),
               ),
               if (showPercentage) ...[
-                const SizedBox(width: 4),
+                SizedBox(width: spacing / 3),
                 Text(
                   "${percentage.toStringAsFixed(0)}%",
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.grey,
-                    fontSize: 14,
+                    fontSize: percentageFontSize,
                   ),
                 ),
               ],
               const Spacer(),
               Container(
-                padding: const EdgeInsets.all(3),
+                padding: EdgeInsets.all(spacing / 4),
                 decoration: BoxDecoration(
                   color: Colors.grey.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, size: 14, color: Colors.grey),
+                child: Icon(
+                  icon, 
+                  size: ResponsiveUtils.getResponsiveIconSize(context) * 0.7, 
+                  color: Colors.grey,
+                ),
               ),
             ],
           ),

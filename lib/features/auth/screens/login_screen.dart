@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../widgets/login_form.dart';
+import '../../../core/l10n/app_localizations.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -132,9 +133,9 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ).createShader(bounds),
-                        child: const Text(
-                          'Welcome Back',
-                          style: TextStyle(
+                        child: Text(
+                          AppLocalizations.of(context).welcomeBack,
+                          style: const TextStyle(
                             fontSize: 32,
                         fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -145,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
                       const SizedBox(height: 12),
                       
                       Text(
-                        'Login to your account to continue',
+                        AppLocalizations.of(context).loginToAccount,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey[600],

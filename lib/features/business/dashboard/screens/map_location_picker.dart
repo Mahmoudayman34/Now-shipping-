@@ -4,7 +4,6 @@ import 'package:geocoding/geocoding.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/location_model.dart';
-import '../../../../config/env.dart';
 
 class MapLocationPicker extends StatefulWidget {
   final double? initialLatitude;
@@ -31,7 +30,7 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
   bool _isSearching = false;
-  final String _apiKey = AppConfig.googleMapsApiKey;
+  final String _apiKey = 'AIzaSyCGxSkL--7poxqkFZJg9c3v_0Y3czMIiOI';
   
   // Focus node to handle keyboard interactions
   final FocusNode _searchFocusNode = FocusNode();

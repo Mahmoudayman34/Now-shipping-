@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class CashSummary extends StatelessWidget {
   final double expectedCash;
@@ -6,69 +8,110 @@ class CashSummary extends StatelessWidget {
   final double collectionRate;
   
   const CashSummary({
-    Key? key,
+    super.key,
     required this.expectedCash,
     required this.collectedCash,
     this.collectionRate = 0.0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            _buildCashItem("Expected Cash", "${expectedCash.toStringAsFixed(1)} EGP"),
-            _buildCashItem("Collected Cash", "${collectedCash.toStringAsFixed(1)} EGP", 
-              valueColor: Colors.green, showPercentage: true),
-          ],
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final padding = ResponsiveUtils.getResponsiveHorizontalPadding(context);
+        final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+        final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+        
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: padding.horizontal / 2),
+          child: Container(
+            padding: EdgeInsets.all(spacing),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            child: Column(
+              children: [
+                _buildCashItem(
+                  context, 
+                  AppLocalizations.of(context).expectedCash, 
+                  "${expectedCash.toStringAsFixed(1)} ${AppLocalizations.of(context).egp}",
+                ),
+                _buildCashItem(
+                  context, 
+                  AppLocalizations.of(context).collectedCash, 
+                  "${collectedCash.toStringAsFixed(1)} ${AppLocalizations.of(context).egp}", 
+                  valueColor: Colors.green, 
+                  showPercentage: true,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildCashItem(String label, String value, {Color? valueColor, bool showPercentage = false}) {
+  Widget _buildCashItem(BuildContext context, String label, String value, {Color? valueColor, bool showPercentage = false}) {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context) / 4;
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context) / 2;
+    
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: EdgeInsets.symmetric(vertical: spacing),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 16,
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 14,
+                  tablet: 16,
+                  desktop: 18,
+                ),
+              ),
             ),
           ),
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 value,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 14,
+                    tablet: 16,
+                    desktop: 18,
+                  ),
                   color: valueColor,
                 ),
               ),
               if (showPercentage) ...[
-                const SizedBox(width: 8),
+                SizedBox(width: spacing * 2),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: spacing * 1.5, 
+                    vertical: spacing / 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(borderRadius),
                   ),
                   child: Text(
                     "${collectionRate.toStringAsFixed(0)} %",
                     style: TextStyle(
                       color: valueColor ?? Colors.grey,
-                      fontSize: 12,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context,
+                        mobile: 10,
+                        tablet: 12,
+                        desktop: 14,
+                      ),
                       fontWeight: FontWeight.bold,
                     ),
                   ),

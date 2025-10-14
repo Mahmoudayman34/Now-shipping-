@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:svg_flutter/svg.dart';
 import '../providers/dashboard_provider.dart';
 
 class DashboardBottomNav extends ConsumerWidget {
-  const DashboardBottomNav({Key? key}) : super(key: key);
+  const DashboardBottomNav({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

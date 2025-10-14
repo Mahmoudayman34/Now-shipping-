@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/section_utilities.dart';
+import '../../../../../core/l10n/app_localizations.dart';
 
 class ShippingSection extends StatelessWidget {
   final String deliveryType;
 
   const ShippingSection({
-    Key? key,
+    super.key,
     required this.deliveryType,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,8 +16,8 @@ class ShippingSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(
-            title: 'Shipping Information',
+          SectionHeader(
+            title: AppLocalizations.of(context).shippingInformation,
             icon: Icons.local_shipping_outlined,
           ),
           const SizedBox(height: 16),
@@ -41,7 +42,7 @@ class ShippingSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      deliveryType,
+                      _getLocalizedDeliveryType(context, deliveryType),
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
@@ -49,9 +50,7 @@ class ShippingSection extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      deliveryType == 'Deliver' ? 'Deliver items to customer' :
-                      deliveryType == 'Exchange' ? 'Exchange items with customer' :
-                      'Return items from customer',
+                      _getLocalizedDescription(context, deliveryType),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey[600],
@@ -65,5 +64,31 @@ class ShippingSection extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getLocalizedDeliveryType(BuildContext context, String deliveryType) {
+    switch (deliveryType) {
+      case 'Deliver':
+        return AppLocalizations.of(context).deliverType;
+      case 'Exchange':
+        return AppLocalizations.of(context).exchangeType;
+      case 'Return':
+        return AppLocalizations.of(context).returnType;
+      default:
+        return deliveryType;
+    }
+  }
+
+  String _getLocalizedDescription(BuildContext context, String deliveryType) {
+    switch (deliveryType) {
+      case 'Deliver':
+        return AppLocalizations.of(context).deliverItemsToCustomer;
+      case 'Exchange':
+        return AppLocalizations.of(context).exchangeItemsWithCustomer;
+      case 'Return':
+        return AppLocalizations.of(context).returnItemsFromCustomer;
+      default:
+        return deliveryType;
+    }
   }
 }

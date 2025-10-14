@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/providers/orders_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 /// Model class to represent order details needed for display
 class OrderDetailsModel {
@@ -64,10 +65,10 @@ class OrderDetailsModel {
     // Determine if this is a return order
     final isReturnOrder = orderShipping['orderType'] == 'Return';
     
-    // Format phone number to use +2 instead of +20
+    // Format phone number to remove +20 prefix
     String phoneNumber = orderCustomer['phoneNumber'] ?? '';
     if (phoneNumber.startsWith('+20')) {
-      phoneNumber = '+2${phoneNumber.substring(3)}';
+      phoneNumber = phoneNumber.substring(3);
     }
     
     return OrderDetailsModel(

@@ -1,26 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class ShippingInformationWidget extends ConsumerWidget {
   final bool isEditing;
   
   const ShippingInformationWidget({
-    Key? key,
+    super.key,
     this.isEditing = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final order = ref.watch(orderModelProvider);
     final selectedDeliveryType = order.deliveryType ?? 'Deliver';
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: ResponsiveUtils.getResponsivePadding(context),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(borderRadius),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -33,39 +37,54 @@ class ShippingInformationWidget extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Title
-          const Text(
-            'Shipping Information',
+          Text(
+            AppLocalizations.of(context).shippingInformation,
             style: TextStyle(
-              fontSize: 18,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 18,
+                tablet: 20,
+                desktop: 22,
+              ),
               fontWeight: FontWeight.w600,
-              color: Color(0xff2F2F2F),
+              color: const Color(0xff2F2F2F),
             ),
           ),
           
-          const SizedBox(height: 8),
+          SizedBox(height: spacing * 0.67),
           
           // Subtitle
-          const Text(
-            'Select delivery type and provide shipping details',
+          Text(
+            AppLocalizations.of(context).selectDeliveryTypeDescription,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 14,
+                tablet: 16,
+                desktop: 18,
+              ),
               color: Colors.grey,
             ),
           ),
           
-          const SizedBox(height: 16),
+          SizedBox(height: spacing),
           
           // Order Type text heading
-          const Text(
-            'Order Type',
+          Text(
+            AppLocalizations.of(context).orderType,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context,
+                mobile: 16,
+                tablet: 18,
+                desktop: 20,
+              ),
               fontWeight: FontWeight.w500,
-              color: Color(0xff2F2F2F),
+              color: const Color(0xff2F2F2F),
             ),
           ),
           
-          const SizedBox(height: 12),
+          SizedBox(height: spacing),
           
           // Shipping cards grid
           Row(
@@ -73,6 +92,7 @@ class ShippingInformationWidget extends ConsumerWidget {
               // Deliver Card
               Expanded(
                 child: _buildShippingTypeCard(
+                  context,
                   type: 'Deliver',
                   icon: Icons.local_shipping,
                   isSelected: selectedDeliveryType == 'Deliver',
@@ -80,11 +100,12 @@ class ShippingInformationWidget extends ConsumerWidget {
                   onTap: isEditing ? null : () => _updateDeliveryType(ref, 'Deliver'),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: spacing * 0.67),
               
               // Exchange Card
               Expanded(
                 child: _buildShippingTypeCard(
+                  context,
                   type: 'Exchange',
                   icon: Icons.swap_horiz,
                   isSelected: selectedDeliveryType == 'Exchange',
@@ -92,27 +113,37 @@ class ShippingInformationWidget extends ConsumerWidget {
                   onTap: isEditing ? null : () => _updateDeliveryType(ref, 'Exchange'),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: spacing * 0.67),
               
               // Return Card
               Expanded(
                 child: _buildShippingTypeCard(
+                  context,
                   type: 'Return',
-                  icon: Image.asset('assets/icons/Return.png', width: 24, height: 24,
-                  color: Colors.orange.shade300),
+                  icon: Image.asset(
+                    'assets/icons/Return.png',
+                    width: ResponsiveUtils.getResponsiveIconSize(context),
+                    height: ResponsiveUtils.getResponsiveIconSize(context),
+                    color: Colors.orange.shade300,
+                  ),
                   isSelected: selectedDeliveryType == 'Return',
                   iconColor: Colors.orange.shade300,
                   onTap: isEditing ? null : () => _updateDeliveryType(ref, 'Return'),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: spacing * 0.67),
               
               // Cash Collection Card
               Expanded(
                 child: _buildShippingTypeCard(
+                  context,
                   type: 'Cash Collect',
-                  icon: Image.asset('assets/icons/Cash.png', width: 24, height: 24,
-                  color: Colors.orange.shade300),
+                  icon: Image.asset(
+                    'assets/icons/Cash.png',
+                    width: ResponsiveUtils.getResponsiveIconSize(context),
+                    height: ResponsiveUtils.getResponsiveIconSize(context),
+                    color: Colors.orange.shade300,
+                  ),
                   isSelected: selectedDeliveryType == 'Cash Collect',
                   iconColor: Colors.orange.shade300,
                   onTap: isEditing ? null : () => _updateDeliveryType(ref, 'Cash Collect'),
@@ -129,7 +160,7 @@ class ShippingInformationWidget extends ConsumerWidget {
     ref.read(orderModelProvider.notifier).updateDeliveryType(type);
   }
   
-  Widget _buildShippingTypeCard({
+  Widget _buildShippingTypeCard(BuildContext context, {
     required String type,
     required dynamic icon,
     required bool isSelected,
@@ -138,18 +169,22 @@ class ShippingInformationWidget extends ConsumerWidget {
   }) {
     // Add opacity to show card is disabled when in edit mode
     final bool isDisabled = onTap == null;
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+    final iconSize = ResponsiveUtils.getResponsiveIconSize(context);
     
     return GestureDetector(
       onTap: onTap,
       child: Opacity(
         opacity: isDisabled && !isSelected ? 0.5 : 1.0,  // Non-selected cards are dimmed in edit mode
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
-          width: 85, // Fixed width for all cards
-          height: 102, // Fixed height for all cards
+          padding: EdgeInsets.symmetric(
+            vertical: spacing,
+            horizontal: spacing * 0.33,
+          ),
           decoration: BoxDecoration(
             color: isSelected ? Colors.orange.shade50 : Colors.white,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(borderRadius),
             border: Border.all(
               color: isSelected ? Colors.orange.shade300 : Colors.grey.shade300,
               width: isSelected ? 2 : 1,
@@ -163,16 +198,21 @@ class ShippingInformationWidget extends ConsumerWidget {
                 ? Icon(
                     icon,
                     color: iconColor,
-                    size: 24,
+                    size: iconSize,
                   )
                 : icon, // Directly use the widget if it's not an IconData
-              const SizedBox(height: 8),
+              SizedBox(height: spacing * 0.67),
               Text(
-                type,
+                _getLocalizedShippingType(context, type),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: isSelected? FontWeight.w600 : FontWeight.normal,
+                  fontSize: ResponsiveUtils.getResponsiveFontSize(
+                    context,
+                    mobile: 11,
+                    tablet: 13,
+                    desktop: 15,
+                  ),
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                   color: const Color(0xff2F2F2F),
                 ),
                 maxLines: 2,
@@ -183,5 +223,21 @@ class ShippingInformationWidget extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _getLocalizedShippingType(BuildContext context, String type) {
+    final l10n = AppLocalizations.of(context);
+    switch (type) {
+      case 'Deliver':
+        return l10n.deliverType;
+      case 'Exchange':
+        return l10n.exchangeType;
+      case 'Return':
+        return l10n.returnType;
+      case 'Cash Collect':
+        return l10n.cashCollect;
+      default:
+        return type;
+    }
   }
 }

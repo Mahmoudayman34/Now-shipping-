@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/l10n/app_localizations.dart';
 
 class CustomerDetailsScreen extends StatefulWidget {
   final Map<String, dynamic>? initialData;
@@ -27,12 +28,12 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
   final TextEditingController _apartmentController = TextEditingController();
   final TextEditingController _landmarkController = TextEditingController();
   
-  String _selectedCountryCode = '+2';
+  String _selectedCountryCode = '+20';
   String? _selectedCity;
   bool _isWorkingAddress = false;
   bool _showSecondaryPhone = false;
   
-  // City options for dropdown
+  // City options for dropdown (English keys for API)
   final List<String> _cities = [
     'Cairo', 
     'Alexandria', 
@@ -141,9 +142,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: const Text(
-          'Create new order',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context).createNewOrder,
+          style: const TextStyle(
             color: Color(0xff2F2F2F),
             fontSize: 18,
             fontWeight: FontWeight.bold
@@ -172,7 +173,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 _isWorkingAddress = false;
               });
             },
-            child: const Text('Clear', style: TextStyle(color: Colors.grey)),
+            child: Text(AppLocalizations.of(context).clear, style: const TextStyle(color: Colors.grey)),
           )
         ],
       ),
@@ -184,9 +185,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Customer Details',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context).customerDetails,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                     color: Color(0xff2F2F2F),
@@ -208,7 +209,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                   child: Text(
                     _showSecondaryPhone 
                         ? 'Hide secondary number' 
-                        : 'Add secondary number',
+                        : AppLocalizations.of(context).addSecondaryNumber,
                     style: TextStyle(
                       color: Colors.teal.shade400,
                       fontWeight: FontWeight.w500,
@@ -228,7 +229,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
-                    hintText: 'name',
+                    hintText: AppLocalizations.of(context).namePlaceholder,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Colors.grey.shade300),
@@ -249,9 +250,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 const SizedBox(height: 24),
                 
                 // Address section
-                const Text(
-                  'Address',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context).address,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w500,
                     color: Color(0xff2F2F2F),
@@ -267,7 +268,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 TextFormField(
                   controller: _addressDetailsController,
                   decoration: InputDecoration(
-                    hintText: 'Address details',
+                    hintText: AppLocalizations.of(context).addressDetails,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Colors.grey.shade300),
@@ -294,7 +295,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                       child: TextFormField(
                         controller: _buildingController,
                         decoration: InputDecoration(
-                          hintText: 'Building',
+                          hintText: AppLocalizations.of(context).building,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -313,7 +314,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                       child: TextFormField(
                         controller: _floorController,
                         decoration: InputDecoration(
-                          hintText: 'Floor',
+                          hintText: AppLocalizations.of(context).floor,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -332,7 +333,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                       child: TextFormField(
                         controller: _apartmentController,
                         decoration: InputDecoration(
-                          hintText: 'Apartment',
+                          hintText: AppLocalizations.of(context).apartment,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(color: Colors.grey.shade300),
@@ -352,7 +353,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 TextFormField(
                   controller: _landmarkController,
                   decoration: InputDecoration(
-                    hintText: 'Landmark',
+                    hintText: AppLocalizations.of(context).landmark,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(color: Colors.grey.shade300),
@@ -379,9 +380,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
-                    const Text(
-                      'This is working address',
-                      style: TextStyle(
+                    Text(
+                      AppLocalizations.of(context).thisIsWorkingAddress,
+                      style: const TextStyle(
                         fontSize: 16,
                         color: Color(0xff2F2F2F),
                       ),
@@ -407,9 +408,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          child: const Text(
-            'Save',
-            style: TextStyle(
+          child: Text(
+            AppLocalizations.of(context).save,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -454,12 +455,14 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
             child: TextFormField(
               controller: isSecondary ? _secondaryPhoneController : _phoneController,
               keyboardType: TextInputType.phone,
+              maxLength: 11,
               decoration: InputDecoration(
-                hintText: isSecondary ? 'Secondary Phone Number' : 'Phone Number',
+                hintText: isSecondary ? 'Secondary Phone Number' : AppLocalizations.of(context).phoneNumber,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                counterText: '', // Hide the character counter
               ),
               validator: isSecondary
                   ? null // Secondary phone is optional
@@ -485,17 +488,17 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: DropdownButtonFormField<String>(
         value: _selectedCity,
-        decoration: const InputDecoration(
-          hintText: 'City - Area',
+        decoration: InputDecoration(
+          hintText: AppLocalizations.of(context).cityArea,
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(vertical: 16),
         ),
         icon: const Icon(Icons.arrow_drop_down),
         isExpanded: true,
         items: _cities.map((String city) {
           return DropdownMenuItem<String>(
             value: city,
-            child: Text(city),
+            child: Text(_getLocalizedCityName(context, city)),
           );
         }).toList(),
         onChanged: (String? newValue) {
@@ -511,5 +514,31 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
         },
       ),
     );
+  }
+
+  String _getLocalizedCityName(BuildContext context, String englishCityName) {
+    final l10n = AppLocalizations.of(context);
+    switch (englishCityName) {
+      case 'Cairo':
+        return l10n.cairo;
+      case 'Alexandria':
+        return l10n.alexandria;
+      case 'Giza':
+        return l10n.giza;
+      case 'Port Said':
+        return l10n.portSaid;
+      case 'Suez':
+        return l10n.suez;
+      case 'Luxor':
+        return l10n.luxor;
+      case 'Aswan':
+        return l10n.aswan;
+      case 'Hurghada':
+        return l10n.hurghada;
+      case 'Sharm El Sheikh':
+        return l10n.sharmElSheikh;
+      default:
+        return englishCityName;
+    }
   }
 }

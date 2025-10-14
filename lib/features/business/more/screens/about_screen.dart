@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'contact_us_screen.dart';
+import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
@@ -15,127 +17,163 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('About'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // App logo and version
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 40),
-              color: const Color(0xfff29620).withOpacity(0.05),
-              child: Column(
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.local_shipping,
-                        size: 50,
-                        color: Color(0xfff29620),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Now Shipping',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Version 1.0.0',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            AppLocalizations.of(context).about,
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 18, 
+                tablet: 20, 
+                desktop: 22,
               ),
             ),
+          ),
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              // App logo and version
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(vertical: ResponsiveUtils.getResponsiveSpacing(context) * 2.5),
+                color: const Color(0xfff29620).withOpacity(0.05),
+                child: Column(
+                  children: [
+                    Container(
+                      width: ResponsiveUtils.getResponsiveImageSize(context) * 2.5,
+                      height: ResponsiveUtils.getResponsiveImageSize(context) * 2.5,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context) * 2.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            blurRadius: ResponsiveUtils.getResponsiveSpacing(context),
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.local_shipping,
+                          size: ResponsiveUtils.getResponsiveIconSize(context) * 1.25,
+                          color: const Color(0xfff29620),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                    Text(
+                      'Now Shipping',
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context, 
+                          mobile: 20, 
+                          tablet: 24, 
+                          desktop: 28,
+                        ),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 0.5),
+                    Text(
+                      'Version 1.0.0',
+                      style: TextStyle(
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context, 
+                          mobile: 14, 
+                          tablet: 16, 
+                          desktop: 18,
+                        ),
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             
             // About app
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: ResponsiveUtils.getResponsivePadding(context),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'About Now Shipping',
+                  Text(
+                    AppLocalizations.of(context).aboutNowShipping,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context, 
+                        mobile: 16, 
+                        tablet: 18, 
+                        desktop: 20,
+                      ),
                       fontWeight: FontWeight.bold,
-                      color: Color(0xfff29620),
+                      color: const Color(0xfff29620),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
                   Text(
-                    'Now Shipping is a modern shipping management platform designed for businesses of all sizes. Our platform helps you manage your shipping operations efficiently, from creating orders to tracking deliveries.',
+                    AppLocalizations.of(context).aboutDescription,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context, 
+                        mobile: 14, 
+                        tablet: 16, 
+                        desktop: 18,
+                      ),
                       color: Colors.grey[700],
                       height: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context) * 1.5),
                   
                   // Features
-                  const Text(
-                    'Key Features',
+                  Text(
+                    AppLocalizations.of(context).keyFeatures,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: ResponsiveUtils.getResponsiveFontSize(
+                        context, 
+                        mobile: 16, 
+                        tablet: 18, 
+                        desktop: 20,
+                      ),
                       fontWeight: FontWeight.bold,
-                      color: Color(0xfff29620),
+                      color: const Color(0xfff29620),
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  _buildFeatureItem('Easy order creation and management'),
-                  _buildFeatureItem('Real-time shipment tracking'),
-                  _buildFeatureItem('Integrated payment solutions'),
-                  _buildFeatureItem('Customer address management'),
-                  _buildFeatureItem('Analytics and reporting'),
-                  _buildFeatureItem('Multi-platform support'),
+                  SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
+                  _buildFeatureItem(context, AppLocalizations.of(context).easyOrderCreation),
+                  _buildFeatureItem(context, AppLocalizations.of(context).realTimeTracking),
+                  _buildFeatureItem(context, AppLocalizations.of(context).integratedPayments),
+                  _buildFeatureItem(context, AppLocalizations.of(context).addressManagement),
+                  _buildFeatureItem(context, AppLocalizations.of(context).analyticsReporting),
+                  _buildFeatureItem(context, AppLocalizations.of(context).multiPlatformSupport),
                   
                   const SizedBox(height: 24),
                   
                   // Company info
-                  const Text(
-                    'Company Information',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context).companyInformation,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xfff29620),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildCompanyInfo('Founded', '2023'),
-                  _buildCompanyInfo('Headquarters', 'Cairo, Egypt'),
-                  _buildCompanyInfo('Website', 'www.nowshipping.com'),
-                  _buildCompanyInfo('Email', 'info@nowshipping.com'),
+                  _buildCompanyInfo(context, AppLocalizations.of(context).founded, '2023'),
+                  _buildCompanyInfo(context, AppLocalizations.of(context).headquarters, 'Cairo, Egypt'),
+                  _buildCompanyInfo(context, AppLocalizations.of(context).website, 'www.nowshipping.com'),
+                  _buildCompanyInfo(context, AppLocalizations.of(context).email, 'info@nowshipping.com'),
                   
                   const SizedBox(height: 24),
                   
                   // Legal info
-                  const Text(
-                    'Legal',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context).legal,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Color(0xfff29620),
@@ -154,9 +192,9 @@ class AboutScreen extends StatelessWidget {
                         children: [
                           const Icon(Icons.description_outlined, color: Color(0xfff29620)),
                           const SizedBox(width: 16),
-                          const Text(
-                            'Terms of Service',
-                            style: TextStyle(fontSize: 16),
+                          Text(
+                            AppLocalizations.of(context).termsOfService,
+                            style: const TextStyle(fontSize: 16),
                           ),
                           const Spacer(),
                           Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
@@ -176,9 +214,9 @@ class AboutScreen extends StatelessWidget {
                         children: [
                           const Icon(Icons.privacy_tip_outlined, color: Color(0xfff29620)),
                           const SizedBox(width: 16),
-                          const Text(
-                            'Privacy Policy',
-                            style: TextStyle(fontSize: 16),
+                          Text(
+                            AppLocalizations.of(context).privacyPolicy,
+                            style: const TextStyle(fontSize: 16),
                           ),
                           const Spacer(),
                           Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
@@ -207,7 +245,7 @@ class AboutScreen extends StatelessWidget {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
-                      child: const Text('Contact Us'),
+                      child: Text(AppLocalizations.of(context).contactUs),
                     ),
                   ),
                   
@@ -216,7 +254,7 @@ class AboutScreen extends StatelessWidget {
                   // Copyright
                   Center(
                     child: Text(
-                      '© ${DateTime.now().year} Now Shipping. All rights reserved.',
+                      AppLocalizations.of(context).allRightsReserved,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -230,25 +268,33 @@ class AboutScreen extends StatelessWidget {
           ],
         ),
       ),
+    ),
     );
   }
   
-  Widget _buildFeatureItem(String feature) {
+  Widget _buildFeatureItem(BuildContext context, String feature) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: ResponsiveUtils.getResponsiveSpacing(context) * 0.8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.check_circle,
-            color: Color(0xfff29620),
-            size: 20,
+            color: const Color(0xfff29620),
+            size: ResponsiveUtils.getResponsiveIconSize(context),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: ResponsiveUtils.getResponsiveSpacing(context) * 0.8),
           Expanded(
             child: Text(
               feature,
-              style: const TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context, 
+                  mobile: 14, 
+                  tablet: 16, 
+                  desktop: 18,
+                ),
+              ),
             ),
           ),
         ],
@@ -256,17 +302,22 @@ class AboutScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildCompanyInfo(String label, String value) {
+  Widget _buildCompanyInfo(BuildContext context, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: ResponsiveUtils.getResponsiveSpacing(context) * 0.8),
       child: Row(
         children: [
           SizedBox(
-            width: 120,
+            width: ResponsiveUtils.getResponsiveSpacing(context) * 7.5,
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context, 
+                  mobile: 14, 
+                  tablet: 16, 
+                  desktop: 18,
+                ),
                 color: Colors.grey[600],
               ),
             ),
@@ -274,8 +325,13 @@ class AboutScreen extends StatelessWidget {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 16,
+              style: TextStyle(
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context, 
+                  mobile: 14, 
+                  tablet: 16, 
+                  desktop: 18,
+                ),
                 fontWeight: FontWeight.w500,
               ),
             ),

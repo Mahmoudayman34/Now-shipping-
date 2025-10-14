@@ -2,11 +2,21 @@ flutter_native_splash:
   android: true
   ios: true
   web: false
-  
+
+  # Background color (required)
   color: "#f29620"
+
+  # Splash screen image (recommended transparent PNG)
   image: assets/images/logo.png
-  branding: "assets/images/branding.png"
+
+  # Optional: Branding image at the bottom of the screen
+  branding: assets/images/branding.png
+  branding_mode: bottom
+
+  # Android 12+ configuration (API 31+)
   android_12:
-    image: assets/images/logo.png
+    image: assets/images/logo_android12.png
     icon_background_color: "#f29620"
-    branding: "assets/images/branding.png"
+
+  # Fullscreen mode
+  fullscreen: true

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:now_shipping/features/business/orders/providers/order_details_provider.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/section_utilities.dart';
+import '../../../../../core/l10n/app_localizations.dart';
 
 class DeliveryDetailsSection extends StatelessWidget {
   final OrderDetailsModel orderDetails;
@@ -16,23 +17,23 @@ class DeliveryDetailsSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(
-            title: 'Delivery Details',
+          SectionHeader(
+            title: AppLocalizations.of(context).deliveryDetails,
             icon: Icons.inventory_2_outlined,
           ),
           const SizedBox(height: 16),
           
           // Package Type
           DetailRow(
-            label: 'Package Type',
-            value: orderDetails.packageType,
+            label: AppLocalizations.of(context).packageType,
+            value: _getLocalizedPackageType(context, orderDetails.packageType),
           ),
           
           const SizedBox(height: 12),
           
           // Number of Items
           DetailRow(
-            label: 'Number of Items',
+            label: AppLocalizations.of(context).numberOfItems,
             value: '${orderDetails.numberOfItems}',
           ),
           
@@ -40,7 +41,7 @@ class DeliveryDetailsSection extends StatelessWidget {
           
           // Package Description
           DetailRow(
-            label: 'Package Description',
+            label: AppLocalizations.of(context).packageDescription,
             value: orderDetails.packageDescription,
             maxLines: 3,
           ),
@@ -49,7 +50,7 @@ class DeliveryDetailsSection extends StatelessWidget {
           
           // Cash on Delivery
           DetailRow(
-            label: 'Cash on Delivery',
+            label: AppLocalizations.of(context).cashOnDeliveryText,
             value: '${orderDetails.collectCashAmount} EGP',
             isHighlighted: true,
           ),
@@ -67,9 +68,9 @@ class DeliveryDetailsSection extends StatelessWidget {
                 size: 20,
               ),
               const SizedBox(width: 8),
-              const Text(
-                'Allow customer to inspect package',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).allowCustomerInspect,
+                style: const TextStyle(
                   fontSize: 14,
                   color: Color(0xFF2F2F2F),
                 ),
@@ -90,9 +91,9 @@ class DeliveryDetailsSection extends StatelessWidget {
                 size: 20,
               ),
               const SizedBox(width: 8),
-              const Text(
-                'Express Shipping',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).expressShipping,
+                style: const TextStyle(
                   fontSize: 14,
                   color: Color(0xFF2F2F2F),
                 ),
@@ -102,5 +103,15 @@ class DeliveryDetailsSection extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getLocalizedPackageType(BuildContext context, String packageType) {
+    final l10n = AppLocalizations.of(context);
+    switch (packageType.toLowerCase()) {
+      case 'parcel':
+        return l10n.parcel;
+      default:
+        return packageType;
+    }
   }
 }

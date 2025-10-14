@@ -5,7 +5,9 @@ import 'package:now_shipping/core/widgets/toast_.dart';
 import 'package:now_shipping/features/business/orders/screens/create_order/create_order_screen.dart';
 import 'package:now_shipping/features/business/pickups/screens/create_pickup_screen.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
-
+import '../mixins/refreshable_screen_mixin.dart';
+import 'package:flutter_riverpod/legacy.dart';
+import '../l10n/app_localizations.dart';
 // Provider to manage the selected tab index
 final selectedTabIndexProvider = StateProvider<int>((ref) => 0);
 
@@ -67,15 +69,15 @@ class MainLayout extends ConsumerWidget {
           ],
           color: Colors.white,
         ),
-        height: 68,
+        height: 90,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(context, 0, 'assets/icons/home.png', 'Home', selectedIndex, ref),
-            _buildNavItem(context, 1, 'assets/icons/order.png', 'Orders', selectedIndex, ref),
-            _buildNavItem(context, 2, 'assets/icons/pickup.png', 'Pickups', selectedIndex, ref),
-            _buildNavItem(context, 3, 'assets/icons/wallet.png', 'Wallet', selectedIndex, ref),
-            _buildNavItem(context, 4, 'assets/icons/more.png', 'More', selectedIndex, ref),
+            _buildNavItem(context, 0, 'assets/icons/home.png', AppLocalizations.of(context).home, selectedIndex, ref),
+            _buildNavItem(context, 1, 'assets/icons/order.png', AppLocalizations.of(context).orders, selectedIndex, ref),
+            _buildNavItem(context, 2, 'assets/icons/pickup.png', AppLocalizations.of(context).pickups, selectedIndex, ref),
+            _buildNavItem(context, 3, 'assets/icons/wallet.png', AppLocalizations.of(context).wallet, selectedIndex, ref),
+            _buildNavItem(context, 4, 'assets/icons/more.png', AppLocalizations.of(context).more, selectedIndex, ref),
           ],
         ),
     
@@ -87,7 +89,19 @@ class MainLayout extends ConsumerWidget {
     final isSelected = selectedIndex == index;
     
     return InkWell(
-      onTap: () => ref.read(selectedTabIndexProvider.notifier).state = index,
+      onTap: () {
+        // If the same tab is tapped, trigger refresh
+        if (isSelected) {
+          final refreshCallbacks = ref.read(screenRefreshProvider);
+          final refreshCallback = refreshCallbacks[index];
+          if (refreshCallback != null) {
+            refreshCallback();
+          }
+        } else {
+          // Switch to different tab
+          ref.read(selectedTabIndexProvider.notifier).state = index;
+        }
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -153,11 +167,11 @@ class MainLayout extends ConsumerWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Padding(
-                            padding: EdgeInsets.only(left: 130.0),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 130.0),
                             child: Text(
-                              'Create',
-                              style: TextStyle(
+                              AppLocalizations.of(context).create,
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xff2F2F2F),
@@ -213,22 +227,22 @@ class MainLayout extends ConsumerWidget {
                                 height: 30,
                               ),
                               const SizedBox(width: 16),
-                              const Expanded(
+                              Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Single Order',
-                                      style: TextStyle(
+                                      AppLocalizations.of(context).singleOrder,
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
                                         color: Color(0xff2F2F2F),
                                       ),
                                     ),
-                                    SizedBox(height: 0.5),
+                                    const SizedBox(height: 0.5),
                                     Text(
-                                      'Create orders one by one.',
-                                      style: TextStyle(
+                                      AppLocalizations.of(context).createOrdersOneByOne,
+                                      style: const TextStyle(
                                         color: Colors.grey,
                                       ),
                                     ),
@@ -278,22 +292,22 @@ class MainLayout extends ConsumerWidget {
                                 height: 30,
                               ),
                               const SizedBox(width: 16),
-                              const Expanded(
+                              Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Schedule Pickup',
-                                      style: TextStyle(
+                                      AppLocalizations.of(context).schedulePickup,
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
                                         color: Color(0xff2F2F2F),
                                       ),
                                     ),
-                                    SizedBox(height: 0.5),
+                                    const SizedBox(height: 0.5),
                                     Text(
-                                      'Request a pickup to pick your orders.',
-                                      style: TextStyle(
+                                      AppLocalizations.of(context).requestPickupToPickOrders,
+                                      style: const TextStyle(
                                         color: Colors.grey,
                                       ),
                                     ),

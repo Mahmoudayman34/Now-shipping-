@@ -1,16 +1,28 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notifications'),
-      ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
+    return ResponsiveUtils.wrapScreen(
+      body: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Notifications',
+            style: TextStyle(
+              fontSize: ResponsiveUtils.getResponsiveFontSize(
+                context, 
+                mobile: 18, 
+                tablet: 20, 
+                desktop: 22,
+              ),
+            ),
+          ),
+        ),
+        body: ListView.builder(
+          padding: ResponsiveUtils.getResponsivePadding(context),
         itemCount: _demoNotifications.length,
         itemBuilder: (context, index) {
           final notification = _demoNotifications[index];
@@ -22,6 +34,7 @@ class NotificationsScreen extends StatelessWidget {
             isRead: notification['isRead'],
           );
         },
+        ),
       ),
     );
   }
@@ -33,21 +46,24 @@ class NotificationsScreen extends StatelessWidget {
     required String time,
     required bool isRead,
   }) {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final iconSize = ResponsiveUtils.getResponsiveIconSize(context);
+    
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: spacing * 0.8),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context) * 1.5),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: spacing,
+          vertical: spacing * 0.8,
         ),
         leading: Container(
-          width: 48,
-          height: 48,
+          width: iconSize * 2.5,
+          height: iconSize * 2.5,
           decoration: BoxDecoration(
             color: isRead ? Colors.grey.shade100 : const Color(0xfff29620).withOpacity(0.1),
             shape: BoxShape.circle,
@@ -55,34 +71,50 @@ class NotificationsScreen extends StatelessWidget {
           child: Icon(
             Icons.notifications,
             color: isRead ? Colors.grey : const Color(0xfff29620),
+            size: iconSize,
           ),
         ),
         title: Text(
           title,
           style: TextStyle(
             fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
-            fontSize: 16,
+            fontSize: ResponsiveUtils.getResponsiveFontSize(
+              context, 
+              mobile: 14, 
+              tablet: 16, 
+              desktop: 18,
+            ),
           ),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
+            SizedBox(height: spacing * 0.5),
             Text(
               message,
               style: TextStyle(
                 color: Colors.grey[600],
-                fontSize: 14,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context, 
+                  mobile: 12, 
+                  tablet: 14, 
+                  desktop: 16,
+                ),
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: spacing * 0.5),
             Text(
               time,
               style: TextStyle(
                 color: Colors.grey[500],
-                fontSize: 12,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context, 
+                  mobile: 10, 
+                  tablet: 12, 
+                  desktop: 14,
+                ),
               ),
             ),
           ],

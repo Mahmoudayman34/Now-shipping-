@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class NewOrdersNotification extends StatelessWidget {
   final int newOrdersCount;
@@ -79,9 +81,9 @@ class NewOrdersNotification extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Preparing Your Orders',
-                              style: TextStyle(
+                            Text(
+                              AppLocalizations.of(context).preparingYourOrders,
+                              style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xff1D1B20),
@@ -90,7 +92,7 @@ class NewOrdersNotification extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Follow these professional steps for successful shipping',
+                              AppLocalizations.of(context).followProfessionalSteps,
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 14,
@@ -114,41 +116,46 @@ class NewOrdersNotification extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 children: [
                   _buildProfessionalStep(
+                    context: context,
                     step: 1,
-                    title: 'Verify Order Information',
-                    description: 'Double-check all customer details, addresses, and product specifications for accuracy.',
+                    title: AppLocalizations.of(context).verifyOrderInformation,
+                    description: AppLocalizations.of(context).doubleCheckCustomerDetails,
                     icon: Icons.fact_check_outlined,
                     iconBackgroundColor: const Color(0xFF1ABC9C),
                   ),
                   
                   _buildProfessionalStep(
+                    context: context,
                     step: 2,
-                    title: 'Select Proper Packaging',
-                    description: 'Choose appropriate packaging materials based on product fragility, weight, and dimensions.',
+                    title: AppLocalizations.of(context).selectProperPackaging,
+                    description: AppLocalizations.of(context).chooseAppropriatePackaging,
                     icon: Icons.inventory_2_outlined,
                     iconBackgroundColor: const Color(0xFF3498DB),
                   ),
                   
                   _buildProfessionalStep(
+                    context: context,
                     step: 3,
-                    title: 'Secure Package Contents',
-                    description: 'Use proper cushioning materials and ensure products are securely positioned to prevent damage.',
+                    title: AppLocalizations.of(context).securePackageContents,
+                    description: AppLocalizations.of(context).useProperCushioning,
                     icon: Icons.security_outlined,
                     iconBackgroundColor: const Color(0xFF9B59B6),
                   ),
                   
                   _buildProfessionalStep(
+                    context: context,
                     step: 4,
-                    title: 'Apply Shipping Label',
-                    description: 'Print and affix shipping labels clearly on the package, ensuring barcodes are scannable.',
+                    title: AppLocalizations.of(context).applyShippingLabel,
+                    description: AppLocalizations.of(context).printAndAffixLabels,
                     icon: Icons.print_outlined,
                     iconBackgroundColor: const Color(0xFFE74C3C),
                   ),
                   
                   _buildProfessionalStep(
+                    context: context,
                     step: 5,
-                    title: 'Schedule Pickup',
-                    description: 'Arrange for pickup through the app or prepare to drop off at an authorized shipping location.',
+                    title: AppLocalizations.of(context).schedulePickup,
+                    description: AppLocalizations.of(context).arrangeForPickup,
                     icon: Icons.schedule_outlined,
                     iconBackgroundColor: const Color(0xFFF39C12),
                     isLast: true,
@@ -182,9 +189,9 @@ class NewOrdersNotification extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-                child: const Text(
-                  'Ready to Prepare',
-                  style: TextStyle(
+                child: Text(
+                  AppLocalizations.of(context).readyToPrepare,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,
@@ -199,6 +206,7 @@ class NewOrdersNotification extends StatelessWidget {
   }
 
   Widget _buildProfessionalStep({
+    required BuildContext context,
     required int step,
     required String title,
     required String description,
@@ -327,60 +335,89 @@ class NewOrdersNotification extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final padding = ResponsiveUtils.getResponsiveHorizontalPadding(context);
+        final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+        final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+        final iconSize = ResponsiveUtils.getResponsiveIconSize(context);
+        
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: padding.horizontal / 2),
+          child: Container(
+            padding: EdgeInsets.all(spacing),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-               Image.asset('assets/icons/pickup.png', width: 26, height: 26, color: Colors.teal),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: RichText(
-                    text: TextSpan(
-                      style: const TextStyle(fontSize: 16, color: Color(0xff1D1B20)), 
-                      children: [
-                        const TextSpan(
-                          text: "You have created ",
+                Row(
+                  children: [
+                    Image.asset(
+                      'assets/icons/pickup.png', 
+                      width: iconSize + 6, 
+                      height: iconSize + 6, 
+                      color: Colors.teal,
+                    ),
+                    SizedBox(width: spacing / 2),
+                    Flexible(
+                      child: RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: ResponsiveUtils.getResponsiveFontSize(
+                              context,
+                              mobile: 14,
+                              tablet: 16,
+                              desktop: 18,
+                            ), 
+                            color: const Color(0xff1D1B20),
+                          ), 
+                          children: [
+                            TextSpan(
+                              text: AppLocalizations.of(context).youHaveCreatedOrders.replaceAll('{count}', '$newOrdersCount'),
+                              style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                            ),
+                          ],
                         ),
-                        TextSpan(
-                          text: "$newOrdersCount new ${newOrdersCount == 1 ? 'Order' : 'Orders'}",
-                          style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: spacing),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => _showPreparationSteps(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.teal),
+                      padding: EdgeInsets.all(spacing / 3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(borderRadius),
+                      ),
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context).prepareOrders, 
+                      style: TextStyle(
+                        color: Colors.teal,
+                        fontSize: ResponsiveUtils.getResponsiveFontSize(
+                          context,
+                          mobile: 14,
+                          tablet: 16,
+                          desktop: 18,
                         ),
-                        const TextSpan(text: "."),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-                child: ElevatedButton(
-                onPressed: () => _showPreparationSteps(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.teal),
-                  padding: const EdgeInsets.all(4),
-                  shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  ),
-                ),
-                child: const Text('Prepare orders', style: TextStyle(color: Colors.teal)),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

@@ -1,5 +1,3 @@
-import 'secrets.dart';
-
 enum Environment {
   development,
   staging,
@@ -19,13 +17,6 @@ class AppConfig {
       case Environment.production:
         return 'https://nowshipping.co/api/v1';
     }
-  }
-  
-  // API Keys - secure access
-  static String get googleMapsApiKey {
-    // In production, this should come from environment variables
-    // For now, we're using the secrets file
-    return ApiKeys.googleMapsApiKey;
   }
   
   // Feature toggles

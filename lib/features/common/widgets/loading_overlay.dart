@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
 import 'package:now_shipping/features/common/widgets/shimmer_loading.dart';
 
 class LoadingOverlay extends StatelessWidget {

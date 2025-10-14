@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/responsive_utils.dart';
 
 class SpecialRequirementCard extends StatelessWidget {
   const SpecialRequirementCard({
@@ -18,13 +19,17 @@ class SpecialRequirementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+    final iconSize = ResponsiveUtils.getResponsiveIconSize(context);
+    
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(spacing),
         decoration: BoxDecoration(
           color: isSelected ? Colors.orange.shade50 : Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(borderRadius),
           border: Border.all(
             color: isSelected ? Colors.orange.shade300 : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
@@ -37,29 +42,39 @@ class SpecialRequirementCard extends StatelessWidget {
             // Icon at the top
             Icon(
               icon,
-              size: 28,
+              size: iconSize * 1.4,
               color: isSelected ? Colors.orange.shade300 : Colors.grey.shade400,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: spacing),
 
             // Title in the middle
             Text(
               title,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 16,
+                  tablet: 18,
+                  desktop: 20,
+                ),
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: const Color(0xff2F2F2F),
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: spacing * 0.67),
 
             // Subtitle at the bottom
             Text(
               subtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                  context,
+                  mobile: 12,
+                  tablet: 14,
+                  desktop: 16,
+                ),
                 color: Colors.grey.shade500,
               ),
               maxLines: 2,

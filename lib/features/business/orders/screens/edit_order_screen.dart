@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:now_shipping/features/business/orders/models/order_model.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
 import 'package:now_shipping/features/business/orders/providers/orders_provider.dart';
@@ -11,6 +12,8 @@ import 'package:now_shipping/features/business/orders/widgets/edit_order_fee_sum
 import 'package:now_shipping/features/business/orders/widgets/exchange_details_widget.dart';
 import 'package:now_shipping/features/business/orders/widgets/return_details_widget.dart';
 import 'package:now_shipping/features/business/orders/widgets/shipping_information_widget.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/widgets/app_dialog.dart';
 
 // Provider for fetching order by ID
 final getOrderByIdProvider = FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, orderId) async {
@@ -457,9 +460,9 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text(
-          'Edit Order',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context).editOrder,
+          style: const TextStyle(
             color: Color(0xff2F2F2F),
             fontSize: 18,
             fontWeight: FontWeight.bold
@@ -471,82 +474,18 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
         leading: IconButton(
           icon: const Icon(Icons.close, color: Color(0xff2F2F2F)),
           onPressed: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  backgroundColor: Colors.white,
-                  title: const Text(
-                    "Are you sure you want to exit?",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xff2F2F2F),
-                    ),
-                  ),
-                  titlePadding: const EdgeInsets.fromLTRB(16, 16, 16, 5),
-                  content: const Text(
-                    "Changes to the order won't be saved if you exit",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xff2F2F2F),
-                      fontSize: 14,
-                      fontFamily: 'Inter',
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  actions: <Widget>[
-                    Container(
-                      height: 1,
-                      color: Colors.white54,
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        TextButton(
-                          child: const Text(
-                            "Cancel",
-                            style: TextStyle(
-                              color: Colors.blue,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                          },
-                        ),
-                        Container(
-                          width: 1,
-                          height: 47,
-                          color: Colors.white54,
-                        ),
-                        TextButton(
-                          child: const Text(
-                            "Exit",
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                            Navigator.of(context).pop(); // Close the screen
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                  actionsPadding: EdgeInsets.zero,
-                );
-              },
-            );
+            AppDialog.show(
+              context,
+              title: AppLocalizations.of(context).areYouSureExit,
+              message: AppLocalizations.of(context).changesWontBeSaved,
+              confirmText: AppLocalizations.of(context).exit,
+              cancelText: AppLocalizations.of(context).cancel,
+              confirmColor: Colors.red,
+            ).then((confirmed) {
+              if (confirmed == true) {
+                Navigator.of(context).pop();
+              }
+            });
           },
         ),
       ),
@@ -619,9 +558,9 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: const Text(
-            'Save Changes',
-            style: TextStyle(
+          child: Text(
+            AppLocalizations.of(context).saveChanges,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),

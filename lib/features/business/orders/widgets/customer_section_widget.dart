@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
 import 'package:now_shipping/features/business/orders/screens/create_order/customer_details_screen.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class CustomerSectionWidget extends ConsumerWidget {
-  const CustomerSectionWidget({Key? key}) : super(key: key);
+  const CustomerSectionWidget({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,7 +29,7 @@ class CustomerSectionWidget extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Section Header
-          _buildSectionHeader('Customer', Icons.person_outline),
+          _buildSectionHeader(AppLocalizations.of(context).customer, Icons.person_outline),
           const SizedBox(height: 12),
           
           // Show customer details or add button
@@ -45,10 +46,10 @@ class CustomerSectionWidget extends ConsumerWidget {
                   color: const Color(0xFFE3F8FC),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'Add Customer Details',
+                child: Text(
+                  AppLocalizations.of(context).addCustomerDetails,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.blue,
                     fontWeight: FontWeight.w500,
                     fontSize: 16,
@@ -100,9 +101,9 @@ class CustomerSectionWidget extends ConsumerWidget {
             // Edit button
             TextButton(
               onPressed: () => _navigateToCustomerDetails(context, ref, customerData),
-              child: const Text(
-                'Edit',
-                style: TextStyle(
+              child: Text(
+                AppLocalizations.of(context).edit,
+                style: const TextStyle(
                   color: Colors.blue,
                   fontWeight: FontWeight.w500,
                 ),
