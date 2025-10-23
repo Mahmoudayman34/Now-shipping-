@@ -23,11 +23,21 @@ class ShippingSection extends StatelessWidget {
           const SizedBox(height: 16),
           
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFFE3F8FC),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue.withOpacity(0.3)),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFFF6B35).withOpacity(0.1),
+                  const Color(0xFFFFB499).withOpacity(0.1),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFFFF6B35).withOpacity(0.3),
+                width: 1.5,
+              ),
             ),
             child: Row(
               children: [
@@ -35,28 +45,34 @@ class ShippingSection extends StatelessWidget {
                   deliveryType == 'Deliver' ? Icons.local_shipping_outlined :
                   deliveryType == 'Exchange' ? Icons.swap_horiz_outlined :
                   Icons.assignment_return_outlined,
-                  color: Colors.blue,
+                  color: const Color(0xFFFF6B35),
+                  size: 28,
                 ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _getLocalizedDeliveryType(context, deliveryType),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Colors.blue,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _getLocalizedDeliveryType(context, deliveryType),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Color(0xFFFF6B35),
+                          letterSpacing: 0.3,
+                        ),
                       ),
-                    ),
-                    Text(
-                      _getLocalizedDescription(context, deliveryType),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
+                      const SizedBox(height: 4),
+                      Text(
+                        _getLocalizedDescription(context, deliveryType),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey[700],
+                          letterSpacing: 0.2,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),

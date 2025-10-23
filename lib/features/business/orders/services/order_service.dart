@@ -32,12 +32,15 @@ class OrderService {
         
         // Extract needed information for the order list
         try {
+          final apiStatus = order['orderStatus'] ?? order['status'] ?? '';
           final result = {
             'orderId': order['orderNumber'] ?? order['id'] ?? '',
             'customerName': _extractCustomerName(order),
             'location': _extractLocation(order),
             'amount': _extractAmount(order),
-            'status': _mapOrderStatus(order['orderStatus'] ?? order['status'] ?? ''),
+            'status': _mapOrderStatus(apiStatus),
+            'apiStatus': apiStatus, // Keep original API status
+            'statusCategory': order['statusCategory'], // Backend-provided category
             'deliveryType': order.containsKey('orderShipping') ? 
                           order['orderShipping']['orderType'] : 
                           order['deliveryType'] ?? 'Deliver',
@@ -45,7 +48,7 @@ class OrderService {
             'phoneNumber': _extractPhoneNumber(order),
             'rawOrder': order, // Keep the raw order for additional data if needed
           };
-          print('DEBUG SERVICE: Successfully mapped order: ${result['orderId']}');
+          print('DEBUG SERVICE: Successfully mapped order: ${result['orderId']} - Status: ${result['status']} - Category: ${result['statusCategory']}');
           return result;
         } catch (e) {
           print('DEBUG SERVICE: Error mapping order: $e');
@@ -223,22 +226,47 @@ class OrderService {
   // Map API's order status to the app's status format
   String _mapOrderStatus(String apiStatus) {
     final Map<String, String> statusMap = {
+      // NEW Category
       'new': 'New',
-      'pickedUp': 'Picked Up',
-      'inStock': 'In Stock',
-      'inProgress': 'In Progress',
-      'headingToCustomer': 'Heading To Customer',
-      'headingToYou': 'Heading To You',
+      'pendingpickup': 'Pending Pickup',
+      
+      // PROCESSING Category
+      'pickedup': 'Picked Up',
+      'instock': 'In Stock',
+      'inreturnstock': 'In Return Stock',
+      'inprogress': 'In Progress',
+      'headingtocustomer': 'Heading to Customer',
+      'returntowarehouse': 'Return to Warehouse',
+      'headingtoyou': 'Heading to You',
+      'rescheduled': 'Rescheduled',
+      'returninitiated': 'Return Initiated',
+      'returnassigned': 'Return Assigned',
+      'returnpickedup': 'Return Picked Up',
+      'returnatwarehouse': 'Return at Warehouse',
+      'returntobusiness': 'Return to Business',
+      'returnlinked': 'Return Linked',
+      
+      // PAUSED Category
+      'waitingaction': 'Waiting Action',
+      'rejected': 'Rejected',
+      
+      // SUCCESSFUL Category
       'completed': 'Completed',
+      'returncompleted': 'Return Completed',
+      
+      // UNSUCCESSFUL Category
       'cancelled': 'Canceled',
       'canceled': 'Canceled',
-      'rejected': 'Rejected',
       'returned': 'Returned',
       'terminated': 'Terminated',
+      'deliveryfailed': 'Delivery Failed',
+      'autoreturninitiated': 'Auto Return Initiated',
+      
+      // Legacy support
       'pending': 'New',
     };
     
-    return statusMap[apiStatus.toLowerCase()] ?? apiStatus;
+    return statusMap[apiStatus.toLowerCase().replaceAll(' ', '')] ?? apiStatus;
   }
 
   // Map API order response to OrderModel
@@ -297,6 +325,56 @@ class OrderService {
         status: 'Unknown',
         createdAt: DateTime.now(),
       );
+    }
+  }
+
+  // Retry order tomorrow
+  Future<Map<String, dynamic>> retryTomorrow(String orderId) async {
+    try {
+      return await _orderRepository.retryTomorrow(orderId);
+    } catch (e) {
+      print('DEBUG SERVICE: Error in retryTomorrow: $e');
+      throw Exception('Failed to schedule retry tomorrow: $e');
+    }
+  }
+
+  // Schedule retry for specific date
+  Future<Map<String, dynamic>> retryScheduled(String orderId, DateTime date) async {
+    try {
+      return await _orderRepository.retryScheduled(orderId, date);
+    } catch (e) {
+      print('DEBUG SERVICE: Error in retryScheduled: $e');
+      throw Exception('Failed to schedule retry: $e');
+    }
+  }
+
+  // Return order to warehouse
+  Future<Map<String, dynamic>> returnToWarehouse(String orderId) async {
+    try {
+      return await _orderRepository.returnToWarehouse(orderId);
+    } catch (e) {
+      print('DEBUG SERVICE: Error in returnToWarehouse: $e');
+      throw Exception('Failed to return order to warehouse: $e');
+    }
+  }
+
+  // Cancel order
+  Future<Map<String, dynamic>> cancelOrder(String orderId) async {
+    try {
+      return await _orderRepository.cancelOrder(orderId);
+    } catch (e) {
+      print('DEBUG SERVICE: Error in cancelOrder: $e');
+      throw Exception('Failed to cancel order: $e');
+    }
+  }
+
+  // Validate original order for return
+  Future<Map<String, dynamic>> validateOriginalOrder(String orderNumber) async {
+    try {
+      return await _orderRepository.validateOriginalOrder(orderNumber);
+    } catch (e) {
+      print('DEBUG SERVICE: Error in validateOriginalOrder: $e');
+      throw Exception('Failed to validate original order: $e');
     }
   }
 }

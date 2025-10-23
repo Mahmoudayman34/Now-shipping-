@@ -31,6 +31,8 @@ class OrdersScreen extends ConsumerStatefulWidget {
 class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerProviderStateMixin, RefreshableScreenMixin {
   final RefreshController _refreshController = RefreshController(initialRefresh: false);
   late AnimationController _rotationController;
+  final TextEditingController _searchController = TextEditingController();
+  bool _isSearchVisible = false;
 
   @override
   void initState() {
@@ -63,6 +65,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
   void dispose() {
     _refreshController.dispose();
     _rotationController.dispose();
+    _searchController.dispose();
     // Unregister refresh callback
     unregisterRefreshCallback(1);
     super.dispose();
@@ -227,6 +230,80 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
         );
   }
   
+  // Build search bar widget
+  Widget _buildSearchBar() {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    final horizontalPadding = ResponsiveUtils.getResponsiveHorizontalPadding(context);
+    final searchQuery = ref.watch(orderSearchQueryProvider);
+    
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding.horizontal / 2,
+        vertical: spacing * 0.8,
+      ),
+      child: TextField(
+        controller: _searchController,
+        autofocus: true,
+        onChanged: (value) {
+          // Update search query in provider (triggers UI rebuild)
+          ref.read(orderSearchQueryProvider.notifier).state = value;
+        },
+        decoration: InputDecoration(
+          hintText: 'Search by Order ID or Customer Name',
+          hintStyle: TextStyle(
+            color: Colors.grey.shade500,
+            fontSize: ResponsiveUtils.getResponsiveFontSize(
+              context,
+              mobile: 14,
+              tablet: 16,
+              desktop: 18,
+            ),
+          ),
+          prefixIcon: Icon(
+            Icons.search,
+            color: Colors.grey.shade600,
+            size: ResponsiveUtils.getResponsiveIconSize(context),
+          ),
+          suffixIcon: searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: Icon(
+                    Icons.clear,
+                    color: Colors.grey.shade600,
+                    size: ResponsiveUtils.getResponsiveIconSize(context) * 0.8,
+                  ),
+                  onPressed: () {
+                    _searchController.clear();
+                    ref.read(orderSearchQueryProvider.notifier).state = '';
+                  },
+                )
+              : null,
+          filled: true,
+          fillColor: Colors.grey.shade100,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(
+              ResponsiveUtils.getResponsiveBorderRadius(context),
+            ),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(
+              ResponsiveUtils.getResponsiveBorderRadius(context),
+            ),
+            borderSide: const BorderSide(
+              color: Color(0xFF26A2B9),
+              width: 2,
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: spacing,
+            vertical: spacing * 0.8,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final loadingState = ref.watch(ordersLoadingStateProvider);
@@ -251,6 +328,24 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
           ),
           backgroundColor: Colors.white,
           actions: [
+            // Search icon
+            IconButton(
+              icon: Icon(
+                _isSearchVisible ? Icons.close : Icons.search,
+                color: const Color(0xff2F2F2F),
+                size: ResponsiveUtils.getResponsiveIconSize(context),
+              ),
+              onPressed: () {
+                setState(() {
+                  _isSearchVisible = !_isSearchVisible;
+                  if (!_isSearchVisible) {
+                    // Clear search when closing
+                    _searchController.clear();
+                    ref.read(orderSearchQueryProvider.notifier).state = '';
+                  }
+                });
+              },
+            ),
             // Badge to show if filter is active
             Stack(
               alignment: Alignment.center,
@@ -282,6 +377,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
         ),
         body: Column(
           children: [
+            // Search bar (conditionally shown)
+            if (_isSearchVisible) _buildSearchBar(),
+            
             // Tab bar for Orders categories
             _buildTabBar(selectedTab),
             
@@ -564,17 +662,41 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
             ),
             children: [
               _buildTabItem(AppLocalizations.of(context).allOrders, 'All', selectedTab),
+              
+              // NEW Category
               _buildTabItem(AppLocalizations.of(context).newStatus, 'New', selectedTab),
+              _buildTabItem('Pending Pickup', 'Pending Pickup', selectedTab),
+              
+              // PROCESSING Category
               _buildTabItem(AppLocalizations.of(context).pickedUpStatus, 'Picked Up', selectedTab),
               _buildTabItem(AppLocalizations.of(context).inStockStatus, 'In Stock', selectedTab),
+              _buildTabItem('In Return Stock', 'In Return Stock', selectedTab),
               _buildTabItem(AppLocalizations.of(context).inProgressStatus, 'In Progress', selectedTab),
-              _buildTabItem(AppLocalizations.of(context).headingToCustomerStatus, 'Heading To Customer', selectedTab),
-              _buildTabItem(AppLocalizations.of(context).headingToYouStatus, 'Heading To You', selectedTab),
-              _buildTabItem(AppLocalizations.of(context).completedStatus, 'Completed', selectedTab),
-              _buildTabItem(AppLocalizations.of(context).canceledStatus, 'Canceled', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).headingToCustomerStatus, 'Heading to Customer', selectedTab),
+              _buildTabItem('Return to Warehouse', 'Return to Warehouse', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).headingToYouStatus, 'Heading to You', selectedTab),
+              _buildTabItem('Rescheduled', 'Rescheduled', selectedTab),
+              _buildTabItem('Return Initiated', 'Return Initiated', selectedTab),
+              _buildTabItem('Return Assigned', 'Return Assigned', selectedTab),
+              _buildTabItem('Return Picked Up', 'Return Picked Up', selectedTab),
+              _buildTabItem('Return at Warehouse', 'Return at Warehouse', selectedTab),
+              _buildTabItem('Return to Business', 'Return to Business', selectedTab),
+              _buildTabItem('Return Linked', 'Return Linked', selectedTab),
+              
+              // PAUSED Category
+              _buildTabItem('Waiting Action', 'Waiting Action', selectedTab),
               _buildTabItem(AppLocalizations.of(context).rejectedStatus, 'Rejected', selectedTab),
+              
+              // SUCCESSFUL Category
+              _buildTabItem(AppLocalizations.of(context).completedStatus, 'Completed', selectedTab),
+              _buildTabItem('Return Completed', 'Return Completed', selectedTab),
+              
+              // UNSUCCESSFUL Category
+              _buildTabItem(AppLocalizations.of(context).canceledStatus, 'Canceled', selectedTab),
               _buildTabItem(AppLocalizations.of(context).returnedStatus, 'Returned', selectedTab),
               _buildTabItem(AppLocalizations.of(context).terminatedStatus, 'Terminated', selectedTab),
+              _buildTabItem('Delivery Failed', 'Delivery Failed', selectedTab),
+              _buildTabItem('Auto Return Initiated', 'Auto Return Initiated', selectedTab),
             ],
           ),
         );

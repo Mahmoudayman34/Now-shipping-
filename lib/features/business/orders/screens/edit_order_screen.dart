@@ -200,7 +200,33 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
       
       String? referralNumber = orderData['referralNumber'];
       
+      // Extract return order fields
+      String? originalOrderNumber;
+      String? returnReason;
+      String? returnType;
+      int? numberOfItemsToReturn;
+      int? partialReturnItemCount;
+      bool isPartialReturn = false;
+      
+      if (orderData['orderShipping'] != null && orderData['orderShipping'] is Map<String, dynamic>) {
+        final shipping = orderData['orderShipping'];
+        originalOrderNumber = shipping['originalOrderNumber'];
+        returnReason = shipping['returnReason'];
+        isPartialReturn = shipping['isPartialReturn'] == true;
+        partialReturnItemCount = shipping['partialReturnItemCount'];
+        
+        // Determine return type based on isPartialReturn
+        if (isPartialReturn) {
+          returnType = 'partial';
+          numberOfItemsToReturn = partialReturnItemCount ?? 1;
+        } else if (originalOrderNumber != null && originalOrderNumber.isNotEmpty) {
+          returnType = 'full';
+          numberOfItemsToReturn = numberOfItems;
+        }
+      }
+      
       print('DEBUG EDIT: Extracted special instructions: $specialInstructions, referral: $referralNumber');
+      print('DEBUG EDIT: Extracted return fields - originalOrderNumber: $originalOrderNumber, returnReason: $returnReason, returnType: $returnType');
       
       // Initialize order model with fetched data
       final order = OrderModel(
@@ -223,6 +249,11 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
                  orderData['createdAt'] != null ? 
                  DateTime.parse(orderData['createdAt']) : 
                  DateTime.now(),
+        // Return order fields
+        originalOrderNumber: originalOrderNumber,
+        returnReason: returnReason,
+        returnType: returnType,
+        numberOfItemsToReturn: numberOfItemsToReturn,
       );
       
       print('DEBUG EDIT: Created order model: ${order.toJson()}');
@@ -370,16 +401,6 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
     return '';
   }
   
-  bool _extractAllowPackageInspection(Map<String, dynamic> orderData) {
-    if (orderData['previewPermission'] != null) {
-      return orderData['previewPermission'] == 'on';
-    } else if (orderData['allowPackageInspection'] != null) {
-      return orderData['allowPackageInspection'] == true;
-    } else if (orderData['isOrderAvailableForPreview'] != null) {
-      return orderData['isOrderAvailableForPreview'] == true;
-    }
-    return widget.initialAllowPackageInspection ?? false;
-  }
   
   Map<String, dynamic>? _extractCustomerData(Map<String, dynamic> orderData) {
     // Prepare customer data for the provider

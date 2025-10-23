@@ -62,17 +62,19 @@ class DeliveryDetailsSection extends StatelessWidget {
             children: [
               Icon(
                 orderDetails.allowOpeningPackage
-                    ? Icons.check_box_outlined
-                    : Icons.check_box_outline_blank,
-                color: const Color(0xFF26A2B9),
-                size: 20,
+                    ? Icons.check_box_rounded
+                    : Icons.check_box_outline_blank_rounded,
+                color: const Color(0xFFFF6B35),
+                size: 22,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Text(
                 AppLocalizations.of(context).allowCustomerInspect,
                 style: const TextStyle(
                   fontSize: 14,
-                  color: Color(0xFF2F2F2F),
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF2C3E50),
+                  letterSpacing: 0.2,
                 ),
               ),
             ],
@@ -85,17 +87,19 @@ class DeliveryDetailsSection extends StatelessWidget {
             children: [
               Icon(
                 orderDetails.isExpressShipping
-                    ? Icons.check_box_outlined
-                    : Icons.check_box_outline_blank,
-                color: const Color(0xFF26A2B9),
-                size: 20,
+                    ? Icons.check_box_rounded
+                    : Icons.check_box_outline_blank_rounded,
+                color: const Color(0xFFFF6B35),
+                size: 22,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Text(
                 AppLocalizations.of(context).expressShipping,
                 style: const TextStyle(
                   fontSize: 14,
-                  color: Color(0xFF2F2F2F),
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF2C3E50),
+                  letterSpacing: 0.2,
                 ),
               ),
             ],

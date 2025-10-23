@@ -280,4 +280,168 @@ class OrderRepository {
       throw Exception('Failed to calculate fees: $e');
     }
   }
+
+  // Retry order tomorrow
+  Future<Map<String, dynamic>> retryTomorrow(String orderId) async {
+    try {
+      print('DEBUG REPO: Retry tomorrow for order: $orderId');
+      
+      // Get authentication token
+      final token = await _authService.getToken();
+      if (token == null) {
+        print('DEBUG REPO: Auth token is null');
+        throw Exception('Authentication token not found');
+      }
+      
+      // Send retry tomorrow request to API
+      final response = await _apiService.post(
+        '/business/orders/$orderId/retry-tomorrow',
+        token: token,
+        body: {},
+      );
+      
+      print('DEBUG REPO: Retry tomorrow response: $response');
+      
+      // Return the response
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else {
+        print('DEBUG REPO: Response is not a map: $response');
+        return {'success': true};
+      }
+    } catch (e) {
+      print('DEBUG REPO: Exception in retryTomorrow: $e');
+      throw Exception('Failed to schedule retry tomorrow: $e');
+    }
+  }
+
+  // Schedule retry for specific date
+  Future<Map<String, dynamic>> retryScheduled(String orderId, DateTime date) async {
+    try {
+      print('DEBUG REPO: Schedule retry for order: $orderId on date: ${date.toIso8601String()}');
+      
+      // Get authentication token
+      final token = await _authService.getToken();
+      if (token == null) {
+        print('DEBUG REPO: Auth token is null');
+        throw Exception('Authentication token not found');
+      }
+      
+      // Send schedule retry request to API
+      final response = await _apiService.post(
+        '/business/orders/$orderId/retry-scheduled',
+        token: token,
+        body: {
+          'date': date.toIso8601String(),
+        },
+      );
+      
+      print('DEBUG REPO: Retry scheduled response: $response');
+      
+      // Return the response
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else {
+        print('DEBUG REPO: Response is not a map: $response');
+        return {'success': true};
+      }
+    } catch (e) {
+      print('DEBUG REPO: Exception in retryScheduled: $e');
+      throw Exception('Failed to schedule retry: $e');
+    }
+  }
+
+  // Return order to warehouse
+  Future<Map<String, dynamic>> returnToWarehouse(String orderId) async {
+    try {
+      print('DEBUG REPO: Return to warehouse for order: $orderId');
+      
+      // Get authentication token
+      final token = await _authService.getToken();
+      if (token == null) {
+        print('DEBUG REPO: Auth token is null');
+        throw Exception('Authentication token not found');
+      }
+      
+      // Send return to warehouse request to API
+      final response = await _apiService.post(
+        '/business/orders/$orderId/return-to-warehouse',
+        token: token,
+        body: {},
+      );
+      
+      print('DEBUG REPO: Return to warehouse response: $response');
+      
+      // Return the response
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else {
+        print('DEBUG REPO: Response is not a map: $response');
+        return {'success': true};
+      }
+    } catch (e) {
+      print('DEBUG REPO: Exception in returnToWarehouse: $e');
+      throw Exception('Failed to return order to warehouse: $e');
+    }
+  }
+
+  // Cancel order
+  Future<Map<String, dynamic>> cancelOrder(String orderId) async {
+    try {
+      print('DEBUG REPO: Cancel order: $orderId');
+      
+      // Get authentication token
+      final token = await _authService.getToken();
+      if (token == null) {
+        print('DEBUG REPO: Auth token is null');
+        throw Exception('Authentication token not found');
+      }
+      
+      // Send cancel order request to API
+      final response = await _apiService.post(
+        '/business/orders/$orderId/cancel',
+        token: token,
+        body: {},
+      );
+      
+      print('DEBUG REPO: Cancel order response: $response');
+      
+      // Return the response
+      return response;
+    } catch (e) {
+      print('DEBUG REPO: Exception in cancelOrder: $e');
+      throw Exception('Failed to cancel order: $e');
+    }
+  }
+
+  // Validate original order for return
+  Future<Map<String, dynamic>> validateOriginalOrder(String orderNumber) async {
+    try {
+      print('DEBUG REPO: Validate original order: $orderNumber');
+      
+      // Get authentication token
+      final token = await _authService.getToken();
+      if (token == null) {
+        print('DEBUG REPO: Auth token is null');
+        throw Exception('Authentication token not found');
+      }
+      
+      // Send validate original order request to API
+      final response = await _apiService.post(
+        '/business/orders/validate-original',
+        token: token,
+        body: {
+          'orderNumber': orderNumber,
+        },
+      );
+      
+      print('DEBUG REPO: Validate original order response: $response');
+      
+      // Return the response
+      return response;
+    } catch (e) {
+      print('DEBUG REPO: Exception in validateOriginalOrder: $e');
+      throw Exception('Failed to validate original order: $e');
+    }
+  }
 }

@@ -86,9 +86,31 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       print('DEBUG PROVIDER: Final Cash Collection request: $request');
     }
     else if (state.deliveryType == 'Return') {
-      // Format Return order according to requirements
+      // Format Return order according to API specification
       request['productDescription'] = state.productDescription ?? '';
-      request['numberOfItems'] = state.numberOfItems ?? 1;  // Use standard numberOfItems field to match API schema
+      request['originalOrderNumber'] = state.originalOrderNumber ?? '';
+      request['returnReason'] = state.returnReason ?? '';
+      
+      // Determine if it's a partial return
+      final isPartialReturn = state.returnType == 'partial';
+      
+      if (isPartialReturn) {
+        // Partial Return fields
+        request['isPartialReturn'] = true;
+        request['partialReturnItemCount'] = state.numberOfItemsToReturn ?? 1;
+        
+        // Get original order item count from original order data
+        if (state.originalOrderData != null) {
+          final orderShipping = state.originalOrderData!['orderShipping'] as Map<String, dynamic>?;
+          final originalItemCount = orderShipping?['numberOfItems'] as int? ?? 0;
+          if (originalItemCount > 0) {
+            request['originalOrderItemCount'] = originalItemCount;
+          }
+        }
+      } else {
+        // Full Return fields
+        request['numberOfItems'] = state.numberOfItems ?? 1;
+      }
       
       // Log the Return order request for debugging
       print('DEBUG PROVIDER: Final Return order request: $request');
@@ -139,6 +161,11 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       amountToCollect: state.amountToCollect,
       createdAt: state.createdAt,
       status: state.status,
+      originalOrderNumber: state.originalOrderNumber,
+      originalOrderData: state.originalOrderData,
+      returnType: state.returnType,
+      numberOfItemsToReturn: state.numberOfItemsToReturn,
+      returnReason: state.returnReason,
     );
   }
   
@@ -165,6 +192,11 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       amountToCollect: state.amountToCollect,
       createdAt: state.createdAt,
       status: state.status,
+      originalOrderNumber: state.originalOrderNumber,
+      originalOrderData: state.originalOrderData,
+      returnType: state.returnType,
+      numberOfItemsToReturn: state.numberOfItemsToReturn,
+      returnReason: state.returnReason,
     );
   }
   
@@ -198,6 +230,11 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       createdAt: state.createdAt,
       status: state.status,
       expressShipping: expressShipping ?? state.expressShipping,
+      originalOrderNumber: state.originalOrderNumber,
+      originalOrderData: state.originalOrderData,
+      returnType: state.returnType,
+      numberOfItemsToReturn: state.numberOfItemsToReturn,
+      returnReason: state.returnReason,
     );
   }
     // Update exchange details
@@ -232,13 +269,24 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       createdAt: state.createdAt,
       status: state.status,
       expressShipping: expressShipping ?? state.expressShipping,
+      originalOrderNumber: state.originalOrderNumber,
+      originalOrderData: state.originalOrderData,
+      returnType: state.returnType,
+      numberOfItemsToReturn: state.numberOfItemsToReturn,
+      returnReason: state.returnReason,
     );
   }
     // Update return details
   void updateReturnDetails({
     String? returnProductDescription,
+    String? productDescription,
     int? numberOfReturnItems,
     bool? expressShipping,
+    String? originalOrderNumber,
+    Map<String, dynamic>? originalOrderData,
+    String? returnType,
+    int? numberOfItemsToReturn,
+    String? returnReason,
   }) {
     state = OrderModel(
       id: state.id,
@@ -246,7 +294,7 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       customerPhone: state.customerPhone,
       customerAddress: state.customerAddress,
       deliveryType: state.deliveryType,
-      productDescription: returnProductDescription ?? state.productDescription,
+      productDescription: productDescription ?? returnProductDescription ?? state.productDescription,
       newProductDescription: state.newProductDescription,
       numberOfItems: numberOfReturnItems ?? state.numberOfItems,
       numberOfNewItems: state.numberOfNewItems,
@@ -262,6 +310,11 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       createdAt: state.createdAt,
       status: state.status,
       expressShipping: expressShipping ?? state.expressShipping,
+      originalOrderNumber: originalOrderNumber ?? state.originalOrderNumber,
+      originalOrderData: originalOrderData ?? state.originalOrderData,
+      returnType: returnType ?? state.returnType,
+      numberOfItemsToReturn: numberOfItemsToReturn ?? state.numberOfItemsToReturn,
+      returnReason: returnReason ?? state.returnReason,
     );
   }
     // Update cash collection details
@@ -288,6 +341,11 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       createdAt: state.createdAt,
       status: state.status,
       expressShipping: expressShipping ?? state.expressShipping,
+      originalOrderNumber: state.originalOrderNumber,
+      originalOrderData: state.originalOrderData,
+      returnType: state.returnType,
+      numberOfItemsToReturn: state.numberOfItemsToReturn,
+      returnReason: state.returnReason,
     );
   }
     // Update additional options
@@ -318,6 +376,11 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       createdAt: state.createdAt,
       status: state.status,
       expressShipping: state.expressShipping,
+      originalOrderNumber: state.originalOrderNumber,
+      originalOrderData: state.originalOrderData,
+      returnType: state.returnType,
+      numberOfItemsToReturn: state.numberOfItemsToReturn,
+      returnReason: state.returnReason,
     );
   }
   

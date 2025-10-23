@@ -156,4 +156,85 @@ class PickupRepository {
       throw Exception('Failed to fetch picked up orders: $e');
     }
   }
+
+  /// Rate a pickup
+  /// [pickupNumber] is the pickup number to rate
+  /// [driverRating] is the driver rating from 1 to 5
+  /// [pickupRating] is the pickup rating from 1 to 5
+  Future<bool> ratePickup({
+    required String pickupNumber,
+    required int driverRating,
+    required int pickupRating,
+  }) async {
+    try {
+      print('DEBUG PICKUP REPO: Rating pickup $pickupNumber with driverRating: $driverRating, pickupRating: $pickupRating');
+      
+      // Get authentication token
+      final token = await _authService.getToken();
+      if (token == null) {
+        print('DEBUG PICKUP REPO: Auth token is null');
+        throw Exception('Authentication token not found');
+      }
+      
+      // Validate ratings
+      if (driverRating < 1 || driverRating > 5) {
+        throw Exception('Driver rating must be between 1 and 5');
+      }
+      if (pickupRating < 1 || pickupRating > 5) {
+        throw Exception('Pickup rating must be between 1 and 5');
+      }
+      
+      // Prepare request body
+      final requestBody = {
+        'driverRating': driverRating,
+        'pickupRating': pickupRating,
+      };
+      
+      // Submit rating to API
+      final response = await _apiService.post(
+        '/business/pickup-details/$pickupNumber/rate-pickup',
+        body: requestBody,
+        token: token,
+      );
+      
+      print('DEBUG PICKUP REPO: Rating response type: ${response.runtimeType}');
+      print('DEBUG PICKUP REPO: Rating response: $response');
+      
+      // Return true if successful (API returns any response)
+      return response != null;
+    } catch (e) {
+      print('DEBUG PICKUP REPO: Exception in ratePickup: $e');
+      throw Exception('Failed to rate pickup: $e');
+    }
+  }
+
+  /// Delete a pickup
+  /// [pickupNumber] is the pickup number to delete
+  Future<bool> deletePickup(String pickupNumber) async {
+    try {
+      print('DEBUG PICKUP REPO: Deleting pickup $pickupNumber');
+      
+      // Get authentication token
+      final token = await _authService.getToken();
+      if (token == null) {
+        print('DEBUG PICKUP REPO: Auth token is null');
+        throw Exception('Authentication token not found');
+      }
+      
+      // Delete pickup from API
+      final response = await _apiService.delete(
+        '/business/pickup-details/$pickupNumber',
+        token: token,
+      );
+      
+      print('DEBUG PICKUP REPO: Delete response type: ${response.runtimeType}');
+      print('DEBUG PICKUP REPO: Delete response: $response');
+      
+      // Return true if successful (API returns any response)
+      return response != null;
+    } catch (e) {
+      print('DEBUG PICKUP REPO: Exception in deletePickup: $e');
+      throw Exception('Failed to delete pickup: $e');
+    }
+  }
 } 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:now_shipping/features/business/pickups/screens/pickup_details_tabbed_screen.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:now_shipping/core/widgets/toast_.dart';
@@ -7,7 +8,7 @@ import 'package:now_shipping/features/auth/services/auth_service.dart';
 import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
 import 'package:now_shipping/features/business/pickups/providers/pickup_provider.dart';
 import 'package:now_shipping/features/business/pickups/screens/create_pickup_screen.dart';
-import 'package:now_shipping/features/business/pickups/screens/pickup_details_screen.dart';
+
 import 'package:now_shipping/features/business/pickups/widgets/pickup_card.dart';
 import 'package:now_shipping/features/common/widgets/shimmer_loading.dart';
 import '../../../../core/mixins/refreshable_screen_mixin.dart';
@@ -193,6 +194,9 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
                             pickup: pickup,
                             onTap: () {
                               _showPickupActions(context, pickup);
+                            },
+                            onDelete: () {
+                              _deletePickup(context, pickup);
                             },
                           );
                         },
@@ -575,7 +579,7 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PickupDetailsScreen(pickup: pickup),
+                      builder: (context) => PickupDetailsTabbedScreen(pickup: pickup),
                     ),
                   );
                   
@@ -636,6 +640,61 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
             content: Text('Pickup cancellation feature coming soon'),
           ),
         );
+      }
+    });
+  }
+
+  void _deletePickup(BuildContext context, PickupModel pickup) {
+    AppDialog.show(
+      context,
+      title: 'Delete Pickup',
+      message: 'Are you sure you want to delete pickup #${pickup.pickupNumber}? This action cannot be undone.',
+      confirmText: 'Yes, Delete',
+      cancelText: 'No',
+      confirmColor: Colors.red,
+    ).then((confirmed) async {
+      if (confirmed == true) {
+        try {
+          // Get the pickup repository
+          final repository = ref.read(pickupRepositoryProvider);
+          
+          // Delete the pickup
+          final success = await repository.deletePickup(pickup.pickupNumber);
+          
+          if (success) {
+            // Show success message and refresh the list
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Pickup deleted successfully'),
+                  backgroundColor: Color(0xFF4CAF50),
+                ),
+              );
+              // Refresh pickups list
+              refreshPickups(ref);
+            }
+          } else {
+            // Show error message
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Failed to delete pickup. Please try again.'),
+                  backgroundColor: Color(0xFFE53E3E),
+                ),
+              );
+            }
+          }
+        } catch (e) {
+          // Show error message
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Error: ${e.toString()}'),
+                backgroundColor: const Color(0xFFE53E3E),
+              ),
+            );
+          }
+        }
       }
     });
   }

@@ -16,6 +16,8 @@ class PickupModel {
   final DateTime createdAt;
   final DateTime updatedAt;
   final AssignedDriver? assignedDriver;
+  final int? driverRating;
+  final int? pickupRating;
 
   PickupModel({
     required this.id,
@@ -34,6 +36,8 @@ class PickupModel {
     required this.createdAt,
     required this.updatedAt,
     this.assignedDriver,
+    this.driverRating,
+    this.pickupRating,
   });
 
   factory PickupModel.fromJson(Map<String, dynamic> json) {
@@ -58,6 +62,8 @@ class PickupModel {
       assignedDriver: json['assignedDriver'] != null 
           ? AssignedDriver.fromJson(json['assignedDriver']) 
           : null,
+      driverRating: json['driverRating'],
+      pickupRating: json['pickupRating'],
     );
   }
 
@@ -79,6 +85,8 @@ class PickupModel {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'assignedDriver': assignedDriver?.toJson(),
+      'driverRating': driverRating,
+      'pickupRating': pickupRating,
     };
   }
 
@@ -496,7 +504,7 @@ class PickedUpOrder {
   final OrderShipping orderShipping;
   final int attempts;
   final List<String> unavailableReason;
-  final List<OrderStage> orderStages;
+  final Map<String, dynamic> orderStages;
   final String business;
   final bool orderFullyCompleted;
   final DateTime? completedDate;
@@ -504,6 +512,13 @@ class PickedUpOrder {
   final bool isMoneyReceivedFromCourier;
   final DateTime updatedAt;
   final String? deliveryMan;
+  final double returnFees;
+  final double totalFees;
+  final String statusCategory;
+  final List<Map<String, dynamic>> orderStatusHistory;
+  final List<Map<String, dynamic>> courierHistory;
+  final Map<String, dynamic> feeBreakdown;
+  final Map<String, dynamic> financialProcessing;
 
   PickedUpOrder({
     required this.id,
@@ -526,6 +541,13 @@ class PickedUpOrder {
     required this.isMoneyReceivedFromCourier,
     required this.updatedAt,
     this.deliveryMan,
+    required this.returnFees,
+    required this.totalFees,
+    required this.statusCategory,
+    required this.orderStatusHistory,
+    required this.courierHistory,
+    required this.feeBreakdown,
+    required this.financialProcessing,
   });
 
   factory PickedUpOrder.fromJson(Map<String, dynamic> json) {
@@ -542,9 +564,7 @@ class PickedUpOrder {
       orderShipping: OrderShipping.fromJson(json['orderShipping'] ?? {}),
       attempts: json['Attemps'] ?? 0, // Note the typo in API
       unavailableReason: List<String>.from(json['UnavailableReason'] ?? []),
-      orderStages: (json['orderStages'] as List<dynamic>?)
-          ?.map((stage) => OrderStage.fromJson(stage))
-          .toList() ?? [],
+      orderStages: json['orderStages'] ?? {},
       business: json['business'] ?? '',
       orderFullyCompleted: json['orderFullyCompleted'] ?? false,
       completedDate: json['completedDate'] != null 
@@ -556,6 +576,13 @@ class PickedUpOrder {
       isMoneyReceivedFromCourier: json['isMoneyRecivedFromCourier'] ?? false, // Note the typo in API
       updatedAt: DateTime.parse(json['updatedAt'] ?? DateTime.now().toIso8601String()),
       deliveryMan: json['deliveryMan'],
+      returnFees: (json['returnFees'] ?? 0).toDouble(),
+      totalFees: (json['totalFees'] ?? 0).toDouble(),
+      statusCategory: json['statusCategory'] ?? '',
+      orderStatusHistory: List<Map<String, dynamic>>.from(json['orderStatusHistory'] ?? []),
+      courierHistory: List<Map<String, dynamic>>.from(json['courierHistory'] ?? []),
+      feeBreakdown: json['feeBreakdown'] ?? {},
+      financialProcessing: json['financialProcessing'] ?? {},
     );
   }
 
@@ -573,7 +600,7 @@ class PickedUpOrder {
       'orderShipping': orderShipping.toJson(),
       'Attemps': attempts,
       'UnavailableReason': unavailableReason,
-      'orderStages': orderStages.map((stage) => stage.toJson()).toList(),
+      'orderStages': orderStages,
       'business': business,
       'orderFullyCompleted': orderFullyCompleted,
       'completedDate': completedDate?.toIso8601String(),
@@ -581,6 +608,13 @@ class PickedUpOrder {
       'isMoneyRecivedFromCourier': isMoneyReceivedFromCourier,
       'updatedAt': updatedAt.toIso8601String(),
       'deliveryMan': deliveryMan,
+      'returnFees': returnFees,
+      'totalFees': totalFees,
+      'statusCategory': statusCategory,
+      'orderStatusHistory': orderStatusHistory,
+      'courierHistory': courierHistory,
+      'feeBreakdown': feeBreakdown,
+      'financialProcessing': financialProcessing,
     };
   }
 }
@@ -622,49 +656,89 @@ class OrderCustomer {
 }
 
 class OrderShipping {
-  final bool isExpressShipping;
   final String productDescription;
   final int numberOfItems;
   final String productDescriptionReplacement;
   final int numberOfItemsReplacement;
   final String orderType;
   final String amountType;
-  final double amount;
+  final bool isExpressShipping;
+  final String? returnReason;
+  final String? returnNotes;
+  final String? originalOrderNumber;
+  final bool isPartialReturn;
+  final String? originalOrderItemCount;
+  final String? partialReturnItemCount;
+  final double returnValue;
+  final List<String> returnPhotos;
+  final double refundAmount;
+  final String? linkedReturnOrder;
+  final String? returnOrderCode;
 
   OrderShipping({
-    required this.isExpressShipping,
     required this.productDescription,
     required this.numberOfItems,
     required this.productDescriptionReplacement,
     required this.numberOfItemsReplacement,
     required this.orderType,
     required this.amountType,
-    required this.amount,
+    required this.isExpressShipping,
+    this.returnReason,
+    this.returnNotes,
+    this.originalOrderNumber,
+    required this.isPartialReturn,
+    this.originalOrderItemCount,
+    this.partialReturnItemCount,
+    required this.returnValue,
+    required this.returnPhotos,
+    required this.refundAmount,
+    this.linkedReturnOrder,
+    this.returnOrderCode,
   });
 
   factory OrderShipping.fromJson(Map<String, dynamic> json) {
     return OrderShipping(
-      isExpressShipping: json['isExpressShipping'] ?? false,
       productDescription: json['productDescription'] ?? '',
       numberOfItems: json['numberOfItems'] ?? 0,
       productDescriptionReplacement: json['productDescriptionReplacement'] ?? '',
       numberOfItemsReplacement: json['numberOfItemsReplacement'] ?? 0,
       orderType: json['orderType'] ?? '',
       amountType: json['amountType'] ?? '',
-      amount: (json['amount'] ?? 0).toDouble(),
+      isExpressShipping: json['isExpressShipping'] ?? false,
+      returnReason: json['returnReason'],
+      returnNotes: json['returnNotes'],
+      originalOrderNumber: json['originalOrderNumber'],
+      isPartialReturn: json['isPartialReturn'] ?? false,
+      originalOrderItemCount: json['originalOrderItemCount'],
+      partialReturnItemCount: json['partialReturnItemCount'],
+      returnValue: (json['returnValue'] ?? 0).toDouble(),
+      returnPhotos: List<String>.from(json['returnPhotos'] ?? []),
+      refundAmount: (json['refundAmount'] ?? 0).toDouble(),
+      linkedReturnOrder: json['linkedReturnOrder'],
+      returnOrderCode: json['returnOrderCode'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'isExpressShipping': isExpressShipping,
       'productDescription': productDescription,
       'numberOfItems': numberOfItems,
       'productDescriptionReplacement': productDescriptionReplacement,
       'numberOfItemsReplacement': numberOfItemsReplacement,
       'orderType': orderType,
       'amountType': amountType,
-      'amount': amount,
+      'isExpressShipping': isExpressShipping,
+      'returnReason': returnReason,
+      'returnNotes': returnNotes,
+      'originalOrderNumber': originalOrderNumber,
+      'isPartialReturn': isPartialReturn,
+      'originalOrderItemCount': originalOrderItemCount,
+      'partialReturnItemCount': partialReturnItemCount,
+      'returnValue': returnValue,
+      'returnPhotos': returnPhotos,
+      'refundAmount': refundAmount,
+      'linkedReturnOrder': linkedReturnOrder,
+      'returnOrderCode': returnOrderCode,
     };
   }
 }

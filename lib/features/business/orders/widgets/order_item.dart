@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:now_shipping/core/utils/status_colors.dart';
+import 'package:now_shipping/core/utils/order_status_helper.dart';
+import 'package:now_shipping/core/constants/order_constants.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_actions_bottom_sheet.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/l10n/app_localizations.dart';
@@ -34,6 +37,20 @@ class OrderItem extends StatelessWidget {
     final Uri phoneUri = Uri(scheme: 'tel', path: phoneNumber);
     if (!await launchUrl(phoneUri)) {
       throw Exception('Could not launch $phoneUri');
+    }
+  }
+
+  // Function to copy order number to clipboard
+  Future<void> _copyOrderNumber(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: orderId));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(child: Text('copied to clipboard')),
+          duration: const Duration(seconds: 2),
+          backgroundColor: Colors.grey.shade600,
+        ),
+      );
     }
   }
 
@@ -116,49 +133,130 @@ class OrderItem extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: spacing * 0.5),
-                      Container(
-                        constraints: BoxConstraints(
-                          minWidth: ResponsiveUtils.getResponsiveSpacing(context) * 4,
-                        ),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: spacing * 1.0, 
-                          vertical: spacing * 0.5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: StatusColors.getBackgroundColor(status),
-                          borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context) * 0.5),
-                        ),
-                        child: Text(
-                          _getLocalizedStatus(context, status),
-                          style: TextStyle(
-                            color: StatusColors.getTextColor(status),
-                            fontWeight: FontWeight.w500,
-                            fontSize: ResponsiveUtils.getResponsiveFontSize(
-                              context, 
-                              mobile: 11, 
-                              tablet: 12, 
-                              desktop: 14,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          // Status badge
+                          Container(
+                            constraints: BoxConstraints(
+                              minWidth: ResponsiveUtils.getResponsiveSpacing(context) * 4,
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: spacing * 1.0, 
+                              vertical: spacing * 0.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: StatusColors.getBackgroundColorFromStatus(status),
+                              borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context) * 0.5),
+                            ),
+                            child: Text(
+                              OrderStatusHelper.getLocalizedStatus(context, status),
+                              style: TextStyle(
+                                color: StatusColors.getTextColorFromStatus(status),
+                                fontWeight: FontWeight.w500,
+                                fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                  context, 
+                                  mobile: 11, 
+                                  tablet: 12, 
+                                  desktop: 14,
+                                ),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              textAlign: TextAlign.center,
                             ),
                           ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          textAlign: TextAlign.center,
-                        ),
+                          SizedBox(height: spacing * 0.4),
+                          // Category badge
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: spacing * 0.8, 
+                              vertical: spacing * 0.3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: StatusColors.getCategoryBackgroundColor(
+                                OrderStatus.getCategory(status)
+                              ).withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(ResponsiveUtils.getResponsiveBorderRadius(context) * 0.4),
+                              border: Border.all(
+                                color: StatusColors.getCategoryTextColor(
+                                  OrderStatus.getCategory(status)
+                                ).withOpacity(0.5),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  OrderStatusHelper.getStatusIcon(status),
+                                  size: ResponsiveUtils.getResponsiveFontSize(
+                                    context,
+                                    mobile: 10,
+                                    tablet: 11,
+                                    desktop: 12,
+                                  ),
+                                  color: StatusColors.getCategoryTextColor(
+                                    OrderStatus.getCategory(status)
+                                  ),
+                                ),
+                                SizedBox(width: spacing * 0.3),
+                                Text(
+                                  OrderStatusHelper.getCategoryDisplayName(
+                                    OrderStatus.getCategory(status)
+                                  ),
+                                  style: TextStyle(
+                                    color: StatusColors.getCategoryTextColor(
+                                      OrderStatus.getCategory(status)
+                                    ),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                                      context, 
+                                      mobile: 9, 
+                                      tablet: 10, 
+                                      desktop: 11,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                   SizedBox(height: spacing * 0.3),
-                  Text(
-                    '${AppLocalizations.of(context).orderNumber}$orderId',
-                    style: TextStyle(
-                      color: const Color(0xff2F2F2F),
-                      fontSize: ResponsiveUtils.getResponsiveFontSize(
-                        context, 
-                        mobile: 12, 
-                        tablet: 14, 
-                        desktop: 16,
+                  Row(
+                    children: [
+                      Text(
+                        '${AppLocalizations.of(context).orderNumber}$orderId',
+                        style: TextStyle(
+                          color: const Color(0xff2F2F2F),
+                          fontSize: ResponsiveUtils.getResponsiveFontSize(
+                            context, 
+                            mobile: 12, 
+                            tablet: 14, 
+                            desktop: 16,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 4),
+                      GestureDetector(
+                        onTap: () => _copyOrderNumber(context),
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Icon(
+                            Icons.copy_rounded,
+                            size: ResponsiveUtils.getResponsiveIconSize(context) * 0.6,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   Divider(height: spacing * 1.5),
                   Row(
@@ -324,48 +422,6 @@ class OrderItem extends StatelessWidget {
   }
 
   String _getLocalizedOrderType(BuildContext context, String orderType) {
-    final l10n = AppLocalizations.of(context);
-    switch (orderType) {
-      case 'Deliver':
-        return l10n.deliverType;
-      case 'Exchange':
-        return l10n.exchangeType;
-      case 'Return':
-        return l10n.returnType;
-      case 'Cash Collection':
-        return l10n.cashCollectionType;
-      default:
-        return orderType;
-    }
-  }
-
-  String _getLocalizedStatus(BuildContext context, String status) {
-    final l10n = AppLocalizations.of(context);
-    switch (status) {
-      case 'New':
-        return l10n.newStatus;
-      case 'Picked Up':
-        return l10n.pickedUpStatus;
-      case 'In Stock':
-        return l10n.inStockStatus;
-      case 'In Progress':
-        return l10n.inProgressStatus;
-      case 'Heading To Customer':
-        return l10n.headingToCustomerStatus;
-      case 'Heading To You':
-        return l10n.headingToYouStatus;
-      case 'Completed':
-        return l10n.completedStatus;
-      case 'Canceled':
-        return l10n.canceledStatus;
-      case 'Rejected':
-        return l10n.rejectedStatus;
-      case 'Returned':
-        return l10n.returnedStatus;
-      case 'Terminated':
-        return l10n.terminatedStatus;
-      default:
-        return status;
-    }
+    return OrderStatusHelper.getLocalizedOrderType(context, orderType);
   }
 }

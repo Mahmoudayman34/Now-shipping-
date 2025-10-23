@@ -34,31 +34,35 @@ class CustomerSection extends StatelessWidget {
           // Phone
           Row(
             children: [
-              const Icon(Icons.phone, size: 16, color: Colors.grey),
-              const SizedBox(width: 8),
+              Icon(Icons.phone_rounded, size: 18, color: Colors.grey[600]),
+              const SizedBox(width: 10),
               Text(
                 orderDetails.customerPhone,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
+                  letterSpacing: 0.2,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           
           // Address
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.location_on, size: 16, color: Colors.grey),
-              const SizedBox(width: 8),
+              Icon(Icons.location_on_rounded, size: 18, color: Colors.grey[600]),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   orderDetails.customerAddress,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[700],
+                    letterSpacing: 0.2,
                   ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,

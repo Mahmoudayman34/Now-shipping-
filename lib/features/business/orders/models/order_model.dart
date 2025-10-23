@@ -20,6 +20,13 @@ class OrderModel {
   DateTime? createdAt;
   String? status;
   bool? expressShipping;
+  
+  // Return order specific fields
+  String? originalOrderNumber;
+  Map<String, dynamic>? originalOrderData;
+  String? returnType; // 'full' or 'partial'
+  int? numberOfItemsToReturn;
+  String? returnReason; // Optional reason for return
 
   OrderModel({
     this.id,
@@ -43,6 +50,11 @@ class OrderModel {
     this.createdAt,
     this.status = 'Pending',
     this.expressShipping = false,
+    this.originalOrderNumber,
+    this.originalOrderData,
+    this.returnType,
+    this.numberOfItemsToReturn,
+    this.returnReason,
   });
 
   // Convert to Map for storing in database
@@ -69,6 +81,11 @@ class OrderModel {
       'createdAt': createdAt?.toIso8601String(),
       'status': status,
       'expressShipping': expressShipping,
+      'originalOrderNumber': originalOrderNumber,
+      'originalOrderData': originalOrderData,
+      'returnType': returnType,
+      'numberOfItemsToReturn': numberOfItemsToReturn,
+      'returnReason': returnReason,
     };
   }
 
@@ -95,6 +112,11 @@ class OrderModel {
       'amountToCollect': amountToCollect,
       'status': status,
       'expressShipping': expressShipping,
+      'originalOrderNumber': originalOrderNumber,
+      'originalOrderData': originalOrderData,
+      'returnType': returnType,
+      'numberOfItemsToReturn': numberOfItemsToReturn,
+      'returnReason': returnReason,
     };
   }
 
@@ -122,6 +144,11 @@ class OrderModel {
       createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt']) : null,
       status: map['status'],
       expressShipping: map['expressShipping'],
+      originalOrderNumber: map['originalOrderNumber'],
+      originalOrderData: map['originalOrderData'],
+      returnType: map['returnType'],
+      numberOfItemsToReturn: map['numberOfItemsToReturn'],
+      returnReason: map['returnReason'],
     );
   }
 }

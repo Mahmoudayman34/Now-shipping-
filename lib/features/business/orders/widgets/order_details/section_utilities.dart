@@ -5,9 +5,9 @@ class SectionContainer extends StatelessWidget {
   final Widget child;
 
   const SectionContainer({
-    Key? key,
+    super.key,
     required this.child,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,11 +17,15 @@ class SectionContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFFF6B35).withOpacity(0.2),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: const Color(0xFFFF6B35).withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -36,23 +40,28 @@ class SectionHeader extends StatelessWidget {
   final IconData icon;
 
   const SectionHeader({
-    Key? key,
+    super.key,
     required this.title,
     required this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: const Color(0xFF26A2B9)),
-        const SizedBox(width: 8),
+        Icon(
+          icon,
+          color: const Color(0xFFFF6B35),
+          size: 24,
+        ),
+        const SizedBox(width: 12),
         Text(
           title,
           style: const TextStyle(
             fontSize: 18,
-            fontWeight: FontWeight.w500,
-            color: Color(0xFF2F2F2F),
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFFF6B35),
+            letterSpacing: 0.3,
           ),
         ),
       ],
@@ -69,13 +78,13 @@ class DetailRow extends StatelessWidget {
   final Color? valueColor;
 
   const DetailRow({
-    Key? key,
+    super.key,
     required this.label,
     required this.value,
     this.maxLines = 1,
     this.isHighlighted = false,
     this.valueColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -86,16 +95,19 @@ class DetailRow extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 13,
+            fontWeight: FontWeight.w500,
             color: Colors.grey[600],
+            letterSpacing: 0.2,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Text(
           value,
           style: TextStyle(
             fontSize: 15,
-            fontWeight: isHighlighted ? FontWeight.w600 : FontWeight.w400,
-            color: valueColor ?? (isHighlighted ? const Color(0xFFF89C29) : const Color(0xFF2F2F2F)),
+            fontWeight: isHighlighted ? FontWeight.bold : FontWeight.w500,
+            color: valueColor ?? (isHighlighted ? const Color(0xFFFF6B35) : const Color(0xFF2C3E50)),
+            letterSpacing: 0.2,
           ),
           maxLines: maxLines,
           overflow: TextOverflow.ellipsis,

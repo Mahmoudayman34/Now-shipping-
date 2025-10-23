@@ -21,6 +21,17 @@ class OrderDetailsModel {
   final String createdAt;
   final bool isExpressShipping;
   
+  // Additional API fields
+  final String? completedDate;
+  final String? statusLabel;
+  final String? statusDescription;
+  final double orderFees;
+  final int? progressPercentage;
+  final String? deliveryManName;
+  final String? deliveryManEmail;
+  final String? businessName;
+  final String? businessEmail;
+  
   // Exchange specific fields
   final int? currentItems;
   final String? currentProductDescription;
@@ -31,6 +42,13 @@ class OrderDetailsModel {
   final int? returnItems;
   final String? returnReason;
   final String? returnProductDescription;
+  final String? originalOrderNumber;
+  final bool? isPartialReturn;
+  final int? partialReturnItemCount;
+  final String? returnNotes;
+  
+  // Rescheduled field
+  final String? scheduledRetryAt;
 
   OrderDetailsModel({
     required this.orderId,
@@ -48,6 +66,15 @@ class OrderDetailsModel {
     required this.status,
     required this.createdAt,
     this.isExpressShipping = false,
+    this.completedDate,
+    this.statusLabel,
+    this.statusDescription,
+    this.orderFees = 0.0,
+    this.progressPercentage,
+    this.deliveryManName,
+    this.deliveryManEmail,
+    this.businessName,
+    this.businessEmail,
     this.currentItems,
     this.currentProductDescription,
     this.newItems,
@@ -55,12 +82,19 @@ class OrderDetailsModel {
     this.returnItems,
     this.returnReason,
     this.returnProductDescription,
+    this.originalOrderNumber,
+    this.isPartialReturn,
+    this.partialReturnItemCount,
+    this.returnNotes,
+    this.scheduledRetryAt,
   });
 
   // Create a model from API response
   factory OrderDetailsModel.fromApiResponse(Map<String, dynamic> apiOrder) {
     final orderCustomer = apiOrder['orderCustomer'] ?? {};
     final orderShipping = apiOrder['orderShipping'] ?? {};
+    final deliveryMan = apiOrder['deliveryMan'] as Map<String, dynamic>?;
+    final business = apiOrder['business'] as Map<String, dynamic>?;
     
     // Determine if this is a return order
     final isReturnOrder = orderShipping['orderType'] == 'Return';
@@ -69,6 +103,27 @@ class OrderDetailsModel {
     String phoneNumber = orderCustomer['phoneNumber'] ?? '';
     if (phoneNumber.startsWith('+20')) {
       phoneNumber = phoneNumber.substring(3);
+    }
+    
+    // Format dates
+    String formattedCreatedAt = '';
+    if (apiOrder['orderDate'] != null) {
+      try {
+        final dateTime = DateTime.parse(apiOrder['orderDate']);
+        formattedCreatedAt = DateFormat('dd MMM yyyy - HH:mm').format(dateTime);
+      } catch (e) {
+        formattedCreatedAt = apiOrder['orderDate'] ?? '';
+      }
+    }
+    
+    String? formattedCompletedDate;
+    if (apiOrder['completedDate'] != null) {
+      try {
+        final dateTime = DateTime.parse(apiOrder['completedDate']);
+        formattedCompletedDate = DateFormat('dd MMM yyyy - HH:mm').format(dateTime);
+      } catch (e) {
+        formattedCompletedDate = apiOrder['completedDate'];
+      }
     }
     
     return OrderDetailsModel(
@@ -85,8 +140,18 @@ class OrderDetailsModel {
       deliveryNotes: apiOrder['orderNotes'] ?? '',
       orderReference: apiOrder['referralNumber'] ?? '',
       status: apiOrder['orderStatus'] ?? '',
-      createdAt: apiOrder['orderDate'] ?? '',
-      isExpressShipping: orderShipping['isExpressShipping'] ?? false,
+      createdAt: formattedCreatedAt,
+      isExpressShipping: orderShipping['isExpressShipping'] ?? apiOrder['isFastShipping'] ?? false,
+      // Additional API fields
+      completedDate: formattedCompletedDate,
+      statusLabel: apiOrder['statusLabel'],
+      statusDescription: apiOrder['statusDescription'],
+      orderFees: (apiOrder['orderFees'] ?? 0).toDouble(),
+      progressPercentage: apiOrder['progressPercentage'],
+      deliveryManName: deliveryMan?['name'],
+      deliveryManEmail: deliveryMan?['email'],
+      businessName: business?['name'],
+      businessEmail: business?['email'],
       // Exchange fields
       currentItems: orderShipping['numberOfItems'],
       currentProductDescription: orderShipping['productDescription'],
@@ -94,8 +159,14 @@ class OrderDetailsModel {
       newProductDescription: orderShipping['productDescriptionReplacement'],
       // Return fields - for Return orders, use numberOfItems as returnItems
       returnItems: isReturnOrder ? orderShipping['numberOfItems'] : null,
-      returnReason: isReturnOrder ? (orderShipping['returnReason'] ?? 'N/A') : null,
+      returnReason: isReturnOrder ? orderShipping['returnReason'] : null,
       returnProductDescription: isReturnOrder ? orderShipping['productDescription'] : null,
+      originalOrderNumber: isReturnOrder ? orderShipping['originalOrderNumber'] : null,
+      isPartialReturn: isReturnOrder ? (orderShipping['isPartialReturn'] ?? false) : null,
+      partialReturnItemCount: isReturnOrder ? orderShipping['partialReturnItemCount'] : null,
+      returnNotes: isReturnOrder ? orderShipping['returnNotes'] : null,
+      // Rescheduled field
+      scheduledRetryAt: apiOrder['scheduledRetryAt'],
     );
   }
 
@@ -143,6 +214,9 @@ class OrderDetailsNotifier extends StateNotifier<OrderDetailsModel?> {
       // Store the raw order data in the provider for other providers to use
       _ref.read(rawOrderDataProvider(orderId).notifier).state = orderData;
       
+      // Debug log for scheduledRetryAt
+      print('DEBUG ORDER DETAILS: scheduledRetryAt = ${orderData['scheduledRetryAt']}');
+      
       // Debug logs for return orders
       final orderShipping = orderData['orderShipping'] ?? {};
       if (orderShipping['orderType'] == 'Return') {
@@ -153,6 +227,9 @@ class OrderDetailsNotifier extends StateNotifier<OrderDetailsModel?> {
       
       // Convert API response to OrderDetailsModel
       state = OrderDetailsModel.fromApiResponse(orderData);
+      
+      // Debug log for scheduledRetryAt after mapping
+      print('DEBUG ORDER DETAILS: After mapping, scheduledRetryAt = ${state?.scheduledRetryAt}');
       
       // Additional debug for Return orders after mapping
       if (state?.deliveryType == 'Return') {
@@ -314,52 +391,168 @@ final orderStagesTrackingProvider = Provider.family<List<Map<String, dynamic>>, 
 });
 
 /// Provider to get tracking steps based on the current order status
-final trackingStepsProvider = Provider.family<List<Map<String, dynamic>>, String>((ref, status) {
-  // Define tracking steps with their corresponding statuses
-  final List<Map<String, dynamic>> trackingSteps = [
-    {
-      'title': 'New',
-      'status': 'New',
-      'description': 'You successfully created the order.',
-      'time': '24 Feb 2025 - 21:07 PM',
-      'isCompleted': status == 'New' || status == 'Picked Up' || 
-                     status == 'In Stock' || status == 'In Progress' || 
-                     status == 'Heading To Customer' || status == 'Completed',
-      'isFirst': true,
-    },
-    {
-      'title': 'Picked up',
-      'status': 'Picked Up',
-      'description': 'We got your order! It should be at our warehouses by the end of day.',
-      'time': '',
-      'isCompleted': status == 'Picked Up' || status == 'In Stock' || 
-                     status == 'In Progress' || status == 'Heading To Customer' || 
-                     status == 'Completed',
-    },
-    {
-      'title': 'In Progress',
-      'status': 'In Progress',
-      'description': 'We\'re preparing your order and we\'ll start shipping it soon.',
-      'time': '',
-      'isCompleted': status == 'In Progress' || status == 'Heading To Customer' || 
-                     status == 'Completed',
-    },
-    {
-      'title': 'Heading to customer',
-      'status': 'Heading to customer',
-      'description': 'We shipped the order for delivery to your customer.',
-      'time': '',
-      'isCompleted': status == 'Heading To Customer' || status == 'Completed',
-    },
-    {
-      'title': 'Successful',
-      'status': 'Successful',
-      'description': 'Order delivered successfully to your customer 🎉',
-      'time': '',
-      'isCompleted': status == 'Completed',
-      'isLast': true,
-    },
-  ];
+/// Dynamic tracking steps provider that uses actual API data from orderStages and stageTimeline
+final trackingStepsProvider = Provider.family<List<Map<String, dynamic>>, String>((ref, orderId) {
+  // Get the raw order data
+  final rawOrderData = ref.watch(rawOrderDataProvider(orderId));
+  
+  // If no data yet, return empty list
+  if (rawOrderData.isEmpty) {
+    return [];
+  }
+  
+  // Get the stageTimeline from API response (this is already filtered to show only relevant stages)
+  final stageTimeline = rawOrderData['stageTimeline'] as List<dynamic>? ?? [];
+  final orderStages = rawOrderData['orderStages'] as Map<String, dynamic>? ?? {};
+  final orderType = rawOrderData['orderShipping']?['orderType'] ?? 'Deliver';
+  
+  print('DEBUG TRACKING: Order type: $orderType');
+  print('DEBUG TRACKING: Stage timeline length: ${stageTimeline.length}');
+  print('DEBUG TRACKING: Order stages keys: ${orderStages.keys.toList()}');
+  
+  // Build tracking steps from ONLY completed stages in the timeline
+  final List<Map<String, dynamic>> trackingSteps = [];
+  
+  for (int i = 0; i < stageTimeline.length; i++) {
+    final stage = stageTimeline[i] as Map<String, dynamic>;
+    final stageName = stage['stage'] as String;
+    final isCompleted = stage['isCompleted'] as bool? ?? false;
+    
+    // ONLY add stages that are completed
+    if (!isCompleted) {
+      continue;
+    }
+    
+    final completedAt = stage['completedAt'] as String?;
+    final notes = stage['notes'] as String? ?? '';
+    
+    // Format the completed time
+    String formattedTime = '';
+    if (completedAt != null && completedAt.isNotEmpty) {
+      try {
+        final dateTime = DateTime.parse(completedAt);
+        formattedTime = DateFormat('dd MMM yyyy - HH:mm').format(dateTime);
+      } catch (e) {
+        formattedTime = '';
+      }
+    }
+    
+    // Map stage names to display names
+    final displayName = _getStageDisplayName(stageName);
+    final description = notes.isNotEmpty ? notes : _getStageDefaultDescription(stageName);
+    
+    trackingSteps.add({
+      'title': displayName,
+      'status': stageName,
+      'description': description,
+      'time': formattedTime,
+      'isCompleted': true,
+      'isFirst': false,
+      'isLast': false,
+    });
+  }
+  
+  // If we have a return order, check if we need to add return stages from orderStages
+  if (orderType == 'Return') {
+    // Check for return stages that are completed but not in timeline
+    final returnStageKeys = [
+      'returnInitiated',
+      'returnAssigned',
+      'returnPickedUp',
+      'returnAtWarehouse',
+      'returnInspection',
+      'returnProcessing',
+      'returnToBusiness',
+      'returnCompleted',
+    ];
+    
+    for (final stageKey in returnStageKeys) {
+      final stageData = orderStages[stageKey] as Map<String, dynamic>?;
+      if (stageData != null && stageData['isCompleted'] == true) {
+        // Check if already in timeline
+        final alreadyInTimeline = trackingSteps.any((step) => step['status'] == stageKey);
+        if (!alreadyInTimeline) {
+          final completedAt = stageData['completedAt'] as String?;
+          String formattedTime = '';
+          if (completedAt != null && completedAt.isNotEmpty) {
+            try {
+              final dateTime = DateTime.parse(completedAt);
+              formattedTime = DateFormat('dd MMM yyyy - HH:mm').format(dateTime);
+            } catch (e) {
+              formattedTime = '';
+            }
+          }
+          
+          trackingSteps.add({
+            'title': _getStageDisplayName(stageKey),
+            'status': stageKey,
+            'description': stageData['notes'] ?? _getStageDefaultDescription(stageKey),
+            'time': formattedTime,
+            'isCompleted': true,
+            'isFirst': false,
+            'isLast': false,
+          });
+        }
+      }
+    }
+  }
+  
+  // Mark first and last items
+  if (trackingSteps.isNotEmpty) {
+    trackingSteps.first['isFirst'] = true;
+    trackingSteps.last['isLast'] = true;
+  }
+  
+  print('DEBUG TRACKING: Generated ${trackingSteps.length} completed tracking steps');
+  for (final step in trackingSteps) {
+    print('  - ${step['title']}: ${step['time']}');
+  }
   
   return trackingSteps;
 });
+
+/// Get display name for stage
+String _getStageDisplayName(String stageName) {
+  const Map<String, String> stageDisplayNames = {
+    'orderPlaced': 'Order Placed',
+    'packed': 'Packed',
+    'shipping': 'Shipping',
+    'inProgress': 'In Progress',
+    'outForDelivery': 'Out for Delivery',
+    'delivered': 'Delivered',
+    'returnInitiated': 'Return Initiated',
+    'returnAssigned': 'Return Assigned',
+    'returnPickedUp': 'Return Picked Up',
+    'returnAtWarehouse': 'Return at Warehouse',
+    'returnInspection': 'Return Inspection',
+    'returnProcessing': 'Return Processing',
+    'returnToBusiness': 'Return to Business',
+    'returnCompleted': 'Return Completed',
+    'returned': 'Returned',
+  };
+  
+  return stageDisplayNames[stageName] ?? stageName;
+}
+
+/// Get default description for stage
+String _getStageDefaultDescription(String stageName) {
+  const Map<String, String> stageDefaultDescriptions = {
+    'orderPlaced': 'Order has been created successfully',
+    'packed': 'Order is being packed',
+    'shipping': 'Order is being shipped',
+    'inProgress': 'Order is in progress',
+    'outForDelivery': 'Order is out for delivery',
+    'delivered': 'Order delivered successfully 🎉',
+    'returnInitiated': 'Return has been initiated',
+    'returnAssigned': 'Return assigned to courier',
+    'returnPickedUp': 'Return picked up from customer',
+    'returnAtWarehouse': 'Return arrived at warehouse',
+    'returnInspection': 'Return is being inspected',
+    'returnProcessing': 'Return is being processed',
+    'returnToBusiness': 'Return is being delivered to business',
+    'returnCompleted': 'Return completed successfully 🎉',
+    'returned': 'Item returned',
+  };
+  
+  return stageDefaultDescriptions[stageName] ?? '';
+}

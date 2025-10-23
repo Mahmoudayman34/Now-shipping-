@@ -6,6 +6,10 @@ class ApiConstants {
   static const String login = '/auth/login';
   static const String register = '/auth/register';
   static const String deleteAccount = '/auth/DeleteAccount';
+  static const String ratePickup = '/business/pickup-details';
+  static const String transactions = '/business/transactions';
+  static const String cashCycles = '/business/cash-cycles';
+  static const String exportCashCycles = '/business/wallet/export-cash-cycles';
   
   // API response keys
   static const String token = 'token';

@@ -161,6 +161,22 @@ class ApiService {
         return null;
       }
       
+      // Check if response is a binary file (Excel, PDF, etc.)
+      final contentType = response.headers['content-type'] ?? '';
+      if (contentType.contains('application/vnd.openxmlformats-officedocument') ||
+          contentType.contains('application/octet-stream') ||
+          contentType.contains('application/pdf') ||
+          response.body.startsWith('PK') || // ZIP/Excel file signature
+          response.body.startsWith('%PDF')) { // PDF file signature
+        print('DEBUG API: Binary file response detected, returning raw bytes');
+        return {
+          'type': 'binary',
+          'data': response.bodyBytes,
+          'contentType': contentType,
+          'filename': _extractFilename(response.headers),
+        };
+      }
+      
       try {
         final decoded = json.decode(response.body);
         print('DEBUG API: Successfully decoded JSON, type: ${decoded.runtimeType}');
@@ -178,5 +194,23 @@ class ApiService {
         response: response.body,
       );
     }
+  }
+
+  String? _extractFilename(Map<String, String> headers) {
+    final contentDisposition = headers['content-disposition'];
+    if (contentDisposition != null) {
+      // Try to extract filename from Content-Disposition header
+      // Format: attachment; filename="filename.xlsx" or attachment; filename=filename.xlsx
+      final filenameMatch = RegExp(r'filename[^;=\n]*=([^;\n]*)').firstMatch(contentDisposition);
+      if (filenameMatch != null) {
+        String filename = filenameMatch.group(1) ?? '';
+        // Remove quotes if present
+        filename = filename.replaceAll('"', '').replaceAll("'", '').trim();
+        if (filename.isNotEmpty) {
+          return filename;
+        }
+      }
+    }
+    return 'export.xlsx'; // Default filename
   }
 }
