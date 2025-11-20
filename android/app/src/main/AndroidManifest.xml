@@ -8,18 +8,10 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     
-    <!-- Storage permissions for downloading and saving Excel files -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <!-- For Android 13+ (API 33+) -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
-    <!-- For managing external storage -->
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
-    <!-- For accessing Downloads folder -->
-    <uses-permission android:name="android.permission.READ_MEDIA_DOCUMENTS" />
-    <uses-permission android:name="android.permission.WRITE_MEDIA_DOCUMENTS" />
+    <!-- Note: Storage permissions removed to comply with Google Play policies.
+         - Image selection uses Android Photo Picker (no permissions needed on Android 13+)
+         - Excel export uses share_plus which doesn't require storage permissions
+         - Files are saved to app documents directory and shared via system share dialog -->
     
     <!-- Firebase Cloud Messaging Permissions -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />

@@ -1,7 +1,7 @@
 name: now_shipping
 description: A shipping management application.
 publish_to: 'none'
-version: 1.0.6+6
+version: 1.0.7+8
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

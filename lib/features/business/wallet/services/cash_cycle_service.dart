@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:now_shipping/core/constants/api_constants.dart';
 import 'package:now_shipping/data/services/api_service.dart';
 import 'package:now_shipping/features/business/wallet/models/cash_cycle_model.dart';
-import 'package:now_shipping/core/services/permission_service.dart';
 import 'package:flutter/material.dart';
 
 class CashCycleService {
@@ -106,16 +105,8 @@ class CashCycleService {
     BuildContext? context,
   }) async {
     try {
-      // Request storage permissions before downloading
-      if (context != null) {
-        final hasPermissions = await PermissionService.hasStoragePermissions();
-        if (!hasPermissions) {
-          final permissionGranted = await PermissionService.requestStoragePermissions(context);
-          if (!permissionGranted) {
-            throw Exception('Storage permission is required to download Excel files');
-          }
-        }
-      }
+      // Note: No storage permissions needed - using share_plus which handles file sharing
+      // Files are saved to app documents directory and shared via system share dialog
       
       final queryParams = <String, dynamic>{
         'timePeriod': timePeriod,

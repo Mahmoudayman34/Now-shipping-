@@ -6,7 +6,6 @@ import 'package:open_file/open_file.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:now_shipping/features/business/wallet/providers/cash_cycle_provider.dart';
 import 'package:now_shipping/features/business/wallet/models/cash_cycle_model.dart';
-import 'package:now_shipping/core/services/permission_service.dart';
 import 'package:now_shipping/core/l10n/app_localizations.dart';
 
 class CashCycleScreen extends ConsumerWidget {
@@ -771,32 +770,8 @@ class CashCycleScreen extends ConsumerWidget {
 
   Future<void> _exportToExcel(WidgetRef ref, String timePeriod, BuildContext context) async {
     try {
-      // Request storage permissions before downloading
-      final hasPermissions = await PermissionService.hasStoragePermissions();
-      if (!hasPermissions) {
-        final permissionGranted = await PermissionService.requestStoragePermissions(context);
-        if (!permissionGranted) {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.error_rounded, color: Colors.white),
-                    SizedBox(width: 8),
-                    Text(AppLocalizations.of(context).storagePermissionExcel),
-                  ],
-                ),
-                backgroundColor: const Color(0xFFEF4444),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            );
-          }
-          return;
-        }
-      }
+      // Note: No storage permissions needed - using share_plus which handles file sharing
+      // Files are saved to app documents directory and shared via system share dialog
       
       // Show loading indicator
       showDialog(

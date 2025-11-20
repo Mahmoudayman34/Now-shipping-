@@ -1,0 +1,40 @@
+================================================================================
+GOOGLE PLAY CONSOLE PERMISSIONS FORM - COPY-PASTE ANSWERS
+================================================================================
+
+--------------------------------------------------------------------------------
+1. ALL FILES ACCESS (MANAGE_EXTERNAL_STORAGE)
+--------------------------------------------------------------------------------
+
+FEATURE DESCRIPTION (500 characters max):
+------------------------------------------
+Excel Financial Report Export: Our shipping management app exports financial data (cash cycles, transactions, wallet reports) to Excel files. Users need these files saved directly to Downloads folder for accounting and record-keeping. The permission is required to write Excel files to Downloads directory on Android 11+ devices, which is essential for business users who export reports frequently for financial analysis and sharing with accountants.
+
+WHY DOES YOUR APP NEED THIS? (Select):
+------------------------------------------
+✓ Core functionality
+
+TECHNICAL REASON (500 characters max):
+------------------------------------------
+Cannot use Storage Access Framework (SAF) or Media Store API: (1) Business users need Excel files saved directly to Downloads automatically - SAF requires manual navigation each time, disrupting workflow. (2) Excel files need seamless saving without file picker dialogs interrupting workflow. (3) Users expect reports in Downloads automatically, like desktop apps. (4) Media Store API is for media files, not business documents like Excel spreadsheets.
+
+--------------------------------------------------------------------------------
+2. READ MEDIA IMAGES (READ_MEDIA_IMAGES)
+--------------------------------------------------------------------------------
+
+DESCRIPTION (250 characters max):
+------------------------------------------
+Profile picture upload: users select images from gallery for business profiles. Document upload: during registration, users upload ID documents, business licenses, and brand documentation from gallery for account verification. Used frequently for profile updates and document submissions.
+
+--------------------------------------------------------------------------------
+3. READ MEDIA VIDEO (READ_MEDIA_VIDEO)
+--------------------------------------------------------------------------------
+
+DESCRIPTION (250 characters max):
+------------------------------------------
+Supports document upload during business profile completion. Ensures compatibility for video-based documentation in business verification. Provides future-proofing for features requiring video evidence (delivery confirmations, return conditions). Ensures seamless media access during upload workflow.
+
+================================================================================
+END OF ANSWERS
+================================================================================
+

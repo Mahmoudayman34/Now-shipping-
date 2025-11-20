@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/transaction_providers.dart';
 import '../../../auth/services/auth_service.dart';
-import '../../../../core/services/permission_service.dart';
 import 'package:now_shipping/core/l10n/app_localizations.dart';
 
 class ExportTransactionsWidget extends ConsumerStatefulWidget {
@@ -466,35 +465,8 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
     });
 
     try {
-      // Request storage permissions before downloading
-      final hasPermissions = await PermissionService.hasStoragePermissions();
-      if (!hasPermissions) {
-        final permissionGranted = await PermissionService.requestStoragePermissions(context);
-        if (!permissionGranted) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.error_rounded, color: Colors.white),
-                    SizedBox(width: 8),
-                    Text(AppLocalizations.of(context).storagePermissionExcel),
-                  ],
-                ),
-                backgroundColor: const Color(0xFFEF4444),
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            );
-          }
-          setState(() {
-            _isExporting = false;
-          });
-          return;
-        }
-      }
+      // Note: No storage permissions needed - using share_plus which handles file sharing
+      // Files are saved to app documents directory and shared via system share dialog
       
       final transactionService = ref.read(transactionServiceProvider);
       final authService = AuthService();
