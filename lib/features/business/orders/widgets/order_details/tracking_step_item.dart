@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:now_shipping/core/utils/responsive_utils.dart';
+import 'package:now_shipping/core/l10n/app_localizations.dart';
 
 /// Professional tracking step item with orange and white theme (Responsive)
 class TrackingStepItem extends StatelessWidget {
@@ -190,7 +191,7 @@ class TrackingStepItem extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            'Current',
+                            AppLocalizations.of(context).currentStatus,
                             style: TextStyle(
                               fontSize: screenType == ScreenType.mobile ? 10 : 11,
                               fontWeight: FontWeight.bold,

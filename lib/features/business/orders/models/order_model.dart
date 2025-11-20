@@ -28,6 +28,9 @@ class OrderModel {
   int? numberOfItemsToReturn;
   String? returnReason; // Optional reason for return
 
+  // Express shipping pickup address
+  String? selectedPickupAddressId; // ID of selected pickup address for express shipping
+
   OrderModel({
     this.id,
     this.customerName,
@@ -55,6 +58,7 @@ class OrderModel {
     this.returnType,
     this.numberOfItemsToReturn,
     this.returnReason,
+    this.selectedPickupAddressId,
   });
 
   // Convert to Map for storing in database
@@ -86,6 +90,7 @@ class OrderModel {
       'returnType': returnType,
       'numberOfItemsToReturn': numberOfItemsToReturn,
       'returnReason': returnReason,
+      'selectedPickupAddressId': selectedPickupAddressId,
     };
   }
 
@@ -117,6 +122,7 @@ class OrderModel {
       'returnType': returnType,
       'numberOfItemsToReturn': numberOfItemsToReturn,
       'returnReason': returnReason,
+      'selectedPickupAddressId': selectedPickupAddressId,
     };
   }
 
@@ -149,6 +155,7 @@ class OrderModel {
       returnType: map['returnType'],
       numberOfItemsToReturn: map['numberOfItemsToReturn'],
       returnReason: map['returnReason'],
+      selectedPickupAddressId: map['selectedPickupAddressId'],
     );
   }
 }

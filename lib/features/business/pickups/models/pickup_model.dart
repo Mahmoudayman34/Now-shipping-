@@ -1,3 +1,5 @@
+import 'package:now_shipping/features/business/services/user_service.dart' show PickUpAddressItem;
+
 // Pickup model for API response
 class PickupModel {
   final String id;
@@ -18,6 +20,8 @@ class PickupModel {
   final AssignedDriver? assignedDriver;
   final int? driverRating;
   final int? pickupRating;
+  final String? pickupAddressId;
+  final String? pickupLocation;
 
   PickupModel({
     required this.id,
@@ -38,6 +42,8 @@ class PickupModel {
     this.assignedDriver,
     this.driverRating,
     this.pickupRating,
+    this.pickupAddressId,
+    this.pickupLocation,
   });
 
   factory PickupModel.fromJson(Map<String, dynamic> json) {
@@ -64,6 +70,8 @@ class PickupModel {
           : null,
       driverRating: json['driverRating'],
       pickupRating: json['pickupRating'],
+      pickupAddressId: json['pickupAddressId'],
+      pickupLocation: json['pickupLocation'],
     );
   }
 
@@ -92,7 +100,35 @@ class PickupModel {
 
   // Helper getters for backward compatibility with existing UI
   String get pickupId => id;
-  String get address => business?.pickUpAddress?.addressDetails ?? '';
+  String get address {
+    // Try to get address from pickupLocation first, then from selected address in pickUpAddresses array
+    if (pickupLocation != null && pickupLocation!.isNotEmpty) {
+      return pickupLocation!;
+    }
+    // If pickupAddressId is available, find the matching address in pickUpAddresses array
+    if (pickupAddressId != null && business?.pickUpAddresses != null) {
+      final selectedAddress = business!.pickUpAddresses!.firstWhere(
+        (addr) => addr.addressId == pickupAddressId,
+        orElse: () => business!.pickUpAddresses!.first,
+      );
+      final addressParts = <String>[];
+      if (selectedAddress.adressDetails.isNotEmpty) {
+        addressParts.add(selectedAddress.adressDetails);
+      }
+      if (selectedAddress.zone != null && selectedAddress.zone!.isNotEmpty) {
+        addressParts.add(selectedAddress.zone!);
+      }
+      if (selectedAddress.city.isNotEmpty) {
+        addressParts.add(selectedAddress.city);
+      }
+      if (selectedAddress.country.isNotEmpty) {
+        addressParts.add(selectedAddress.country);
+      }
+      return addressParts.join(', ');
+    }
+    // Fallback to old pickUpAddress
+    return business?.pickUpAddress?.addressDetails ?? '';
+  }
   String get contactNumber => phoneNumber;
   DateTime get date => pickupDate;
   String get status => _mapStatusToDisplayStatus();
@@ -117,6 +153,7 @@ class PickupModel {
 class BusinessInfo {
   final BrandInfo? brandInfo;
   final PickUpAddress? pickUpAddress;
+  final List<PickUpAddressItem>? pickUpAddresses;
   final PaymentMethod? paymentMethod;
   final BrandType? brandType;
   final String id;
@@ -135,6 +172,7 @@ class BusinessInfo {
   BusinessInfo({
     this.brandInfo,
     this.pickUpAddress,
+    this.pickUpAddresses,
     this.paymentMethod,
     this.brandType,
     required this.id,
@@ -152,9 +190,17 @@ class BusinessInfo {
   });
 
   factory BusinessInfo.fromJson(Map<String, dynamic> json) {
+    List<PickUpAddressItem>? addresses;
+    if (json['pickUpAddresses'] != null && json['pickUpAddresses'] is List) {
+      addresses = (json['pickUpAddresses'] as List)
+          .map((addr) => PickUpAddressItem.fromJson(addr as Map<String, dynamic>))
+          .toList();
+    }
+    
     return BusinessInfo(
       brandInfo: json['brandInfo'] != null ? BrandInfo.fromJson(json['brandInfo']) : null,
       pickUpAddress: json['pickUpAdress'] != null ? PickUpAddress.fromJson(json['pickUpAdress']) : null,
+      pickUpAddresses: addresses,
       paymentMethod: json['paymentMethod'] != null ? PaymentMethod.fromJson(json['paymentMethod']) : null,
       brandType: json['brandType'] != null ? BrandType.fromJson(json['brandType']) : null,
       id: json['_id'] ?? '',

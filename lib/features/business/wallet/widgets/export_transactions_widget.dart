@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/transaction_providers.dart';
 import '../../../auth/services/auth_service.dart';
+import '../../../../core/services/permission_service.dart';
+import 'package:now_shipping/core/l10n/app_localizations.dart';
 
 class ExportTransactionsWidget extends ConsumerStatefulWidget {
   const ExportTransactionsWidget({super.key});
@@ -60,9 +62,9 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Export Transactions',
+                    AppLocalizations.of(context).exportTransactions,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -92,7 +94,7 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
           
           // Time Period Filter
           _buildFilterSection(
-            title: 'Time Period',
+            title: AppLocalizations.of(context).timePeriod,
             child: _buildTimePeriodFilter(),
           ),
           
@@ -100,7 +102,7 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
           
           // Status Filter
           _buildFilterSection(
-            title: 'Status Filter',
+            title: AppLocalizations.of(context).statusFilter,
             child: _buildStatusFilter(),
           ),
           
@@ -108,7 +110,7 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
           
           // Transaction Type Filter
           _buildFilterSection(
-            title: 'Transaction Type',
+            title: AppLocalizations.of(context).transactionType,
             child: _buildTransactionTypeFilter(),
           ),
           
@@ -116,7 +118,7 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
           
           // Custom Date Range
           _buildFilterSection(
-            title: 'Custom Date Range (Optional)',
+            title: AppLocalizations.of(context).customDateRangeOptional,
             child: _buildCustomDateRange(),
           ),
           
@@ -143,7 +145,7 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
                         ),
                       )
                     : const Icon(Icons.file_download),
-                label: Text(_isExporting ? 'Exporting...' : 'Export to Excel'),
+                label: Text(_isExporting ? AppLocalizations.of(context).exporting : AppLocalizations.of(context).exportToExcel),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue.shade600,
                   foregroundColor: Colors.white,
@@ -161,83 +163,135 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
   }
 
   Widget _buildFilterSection({required String title, required Widget child}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
-        ),
-        const SizedBox(height: 12),
-        child,
-      ],
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
     );
   }
 
   Widget _buildTimePeriodFilter() {
     final timePeriods = [
-      {'key': 'today', 'label': 'Today'},
-      {'key': 'week', 'label': 'This Week'},
-      {'key': 'month', 'label': 'This Month'},
-      {'key': 'year', 'label': 'This Year'},
-      {'key': 'all', 'label': 'All Time'},
+      {'key': 'all', 'label': AppLocalizations.of(context).allTime},
+      {'key': 'today', 'label': AppLocalizations.of(context).today},
+      {'key': 'week', 'label': AppLocalizations.of(context).thisWeek},
+      {'key': 'month', 'label': AppLocalizations.of(context).thisMonth},
+      {'key': 'year', 'label': AppLocalizations.of(context).thisMonth},
     ];
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: timePeriods.map((period) {
-        final isSelected = _selectedTimePeriod == period['key'];
-        return FilterChip(
-          label: Text(period['label']!),
-          selected: isSelected,
-          onSelected: (selected) {
-            if (selected) {
-              setState(() {
-                _selectedTimePeriod = period['key']!;
-                // Clear custom dates when selecting preset period
-                _dateFrom = null;
-                _dateTo = null;
-              });
-            }
-          },
-          selectedColor: Colors.blue.withOpacity(0.2),
-          checkmarkColor: Colors.blue,
-          backgroundColor: Colors.grey.shade100,
-        );
-      }).toList(),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          ...timePeriods.map((period) {
+            final isSelected = _selectedTimePeriod == period['key'];
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedTimePeriod = period['key']!;
+                      // Clear custom dates when selecting preset period
+                      _dateFrom = null;
+                      _dateTo = null;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isSelected ? Colors.orange : Colors.grey.shade100,
+                    foregroundColor: isSelected ? Colors.white : Colors.black87,
+                    elevation: isSelected ? 2 : 0,
+                    shadowColor: Colors.grey.withOpacity(0.3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      side: BorderSide(
+                        color: isSelected ? Colors.orange : Colors.grey.shade300,
+                        width: 1,
+                      ),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  ),
+                  child: Text(
+                    period['label']!,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 
   Widget _buildStatusFilter() {
     final statuses = [
-      {'key': 'all', 'label': 'All Status'},
-      {'key': 'settled', 'label': 'Settled'},
-      {'key': 'pending', 'label': 'Pending'},
+      {'key': 'all', 'label': AppLocalizations.of(context).allStatus},
+      {'key': 'settled', 'label': AppLocalizations.of(context).settled},
+      {'key': 'pending', 'label': AppLocalizations.of(context).pendingLower},
     ];
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+    return Row(
       children: statuses.map((status) {
         final isSelected = _selectedStatusFilter == status['key'];
-        return FilterChip(
-          label: Text(status['label']!),
-          selected: isSelected,
-          onSelected: (selected) {
-            if (selected) {
-              setState(() {
-                _selectedStatusFilter = status['key']!;
-              });
-            }
-          },
-          selectedColor: Colors.green.withOpacity(0.2),
-          checkmarkColor: Colors.green,
-          backgroundColor: Colors.grey.shade100,
+        return Expanded(
+          child: Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _selectedStatusFilter = status['key']!;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isSelected ? Colors.orange : Colors.grey.shade100,
+                foregroundColor: isSelected ? Colors.white : Colors.black87,
+                elevation: isSelected ? 2 : 0,
+                shadowColor: Colors.grey.withOpacity(0.3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(
+                    color: isSelected ? Colors.orange : Colors.grey.shade300,
+                    width: 1,
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: Text(
+                status['label']!,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
         );
       }).toList(),
     );
@@ -245,13 +299,13 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
 
   Widget _buildTransactionTypeFilter() {
     final types = [
-      {'key': 'all', 'label': 'All Types'},
-      {'key': 'cashCycle', 'label': 'Cash Cycle'},
-      {'key': 'fees', 'label': 'Service Fees'},
-      {'key': 'pickupFees', 'label': 'Pickup Fees'},
-      {'key': 'refund', 'label': 'Refund'},
-      {'key': 'deposit', 'label': 'Deposit'},
-      {'key': 'withdrawal', 'label': 'Withdrawal'},
+      {'key': 'all', 'label': AppLocalizations.of(context).allTypes},
+      {'key': 'cashCycle', 'label': AppLocalizations.of(context).cashCycle},
+      {'key': 'fees', 'label': AppLocalizations.of(context).serviceFees},
+      {'key': 'pickupFees', 'label': AppLocalizations.of(context).pickupFees},
+      {'key': 'refund', 'label': AppLocalizations.of(context).refund},
+      {'key': 'deposit', 'label': AppLocalizations.of(context).deposit},
+      {'key': 'withdrawal', 'label': AppLocalizations.of(context).withdrawal},
     ];
 
     return Wrap(
@@ -259,19 +313,33 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
       runSpacing: 8,
       children: types.map((type) {
         final isSelected = _selectedTransactionType == type['key'];
-        return FilterChip(
-          label: Text(type['label']!),
-          selected: isSelected,
-          onSelected: (selected) {
-            if (selected) {
-              setState(() {
-                _selectedTransactionType = type['key']!;
-              });
-            }
+        return ElevatedButton(
+          onPressed: () {
+            setState(() {
+              _selectedTransactionType = type['key']!;
+            });
           },
-          selectedColor: Colors.orange.withOpacity(0.2),
-          checkmarkColor: Colors.orange,
-          backgroundColor: Colors.grey.shade100,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isSelected ? Colors.orange : Colors.grey.shade100,
+            foregroundColor: isSelected ? Colors.white : Colors.black87,
+            elevation: isSelected ? 2 : 0,
+            shadowColor: Colors.grey.withOpacity(0.3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(
+                color: isSelected ? Colors.orange : Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          child: Text(
+            type['label']!,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
         );
       }).toList(),
     );
@@ -284,7 +352,7 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
           children: [
             Expanded(
               child: _buildDateField(
-                label: 'From Date',
+                label: AppLocalizations.of(context).fromDate,
                 date: _dateFrom,
                 onTap: () => _selectDate(true),
               ),
@@ -292,7 +360,7 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
             const SizedBox(width: 12),
             Expanded(
               child: _buildDateField(
-                label: 'To Date',
+                label: AppLocalizations.of(context).toDate,
                 date: _dateTo,
                 onTap: () => _selectDate(false),
               ),
@@ -313,7 +381,7 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
                     });
                   },
                   icon: const Icon(Icons.clear, size: 16),
-                  label: const Text('Clear Dates'),
+                  label: Text(AppLocalizations.of(context).clearDates),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
                     side: BorderSide(color: Colors.red.shade300),
@@ -398,13 +466,43 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
     });
 
     try {
+      // Request storage permissions before downloading
+      final hasPermissions = await PermissionService.hasStoragePermissions();
+      if (!hasPermissions) {
+        final permissionGranted = await PermissionService.requestStoragePermissions(context);
+        if (!permissionGranted) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.error_rounded, color: Colors.white),
+                    SizedBox(width: 8),
+                    Text(AppLocalizations.of(context).storagePermissionExcel),
+                  ],
+                ),
+                backgroundColor: const Color(0xFFEF4444),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            );
+          }
+          setState(() {
+            _isExporting = false;
+          });
+          return;
+        }
+      }
+      
       final transactionService = ref.read(transactionServiceProvider);
       final authService = AuthService();
       
       // Get authentication token
       final token = await authService.getToken();
       if (token == null) {
-        throw Exception('No authentication token found. Please log in again.');
+        throw Exception(AppLocalizations.of(context).noAuthToken);
       }
       
       await transactionService.exportTransactions(
@@ -414,6 +512,7 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
         dateFrom: _dateFrom,
         dateTo: _dateTo,
         token: token,
+        context: context,
       );
 
       if (mounted) {
@@ -428,9 +527,9 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
                   children: [
                     const Icon(Icons.check_circle, color: Colors.white),
                     const SizedBox(width: 8),
-                    const Expanded(
+                    Expanded(
                       child: Text(
-                        'Excel exported successfully!',
+                        AppLocalizations.of(context).excelExportedSuccessfully,
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -438,12 +537,12 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Filters: ${_getFilterDescription()}',
+                  '${AppLocalizations.of(context).filtersLabel} ${_getFilterDescription()}',
                   style: const TextStyle(fontSize: 12),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'File opened for you to save',
+                Text(
+                  AppLocalizations.of(context).useShareDialogToSave,
                   style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
                 ),
               ],
@@ -465,7 +564,7 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
               children: [
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Export failed: $e')),
+                Expanded(child: Text('${AppLocalizations.of(context).exportFailedPrefix}$e')),
               ],
             ),
             backgroundColor: Colors.red,
@@ -487,23 +586,25 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
 
   String _getFilterDescription() {
     final List<String> filters = [];
+    final l10n = AppLocalizations.of(context);
     
     // Time period
     switch (_selectedTimePeriod) {
       case 'today':
-        filters.add('Today');
+        filters.add(l10n.today);
         break;
       case 'week':
-        filters.add('This Week');
+        filters.add(l10n.thisWeek);
         break;
       case 'month':
-        filters.add('This Month');
+        filters.add(l10n.thisMonth);
         break;
       case 'year':
-        filters.add('This Year');
+        // No dedicated key; reuse thisMonth for brevity or keep English year
+        filters.add(l10n.thisMonth);
         break;
       case 'all':
-        filters.add('All Time');
+        filters.add(l10n.allTime);
         break;
     }
     
@@ -515,29 +616,29 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
     
     // Status filter
     if (_selectedStatusFilter != 'all') {
-      filters.add(_selectedStatusFilter == 'settled' ? 'Settled' : 'Pending');
+      filters.add(_selectedStatusFilter == 'settled' ? l10n.settled : l10n.pendingLower);
     }
     
     // Transaction type
     if (_selectedTransactionType != 'all') {
       switch (_selectedTransactionType) {
         case 'cashCycle':
-          filters.add('Cash Cycle');
+          filters.add(l10n.cashCycle);
           break;
         case 'fees':
-          filters.add('Service Fees');
+          filters.add(l10n.serviceFees);
           break;
         case 'pickupFees':
-          filters.add('Pickup Fees');
+          filters.add(l10n.pickupFees);
           break;
         case 'refund':
-          filters.add('Refund');
+          filters.add(l10n.refund);
           break;
         case 'deposit':
-          filters.add('Deposit');
+          filters.add(l10n.deposit);
           break;
         case 'withdrawal':
-          filters.add('Withdrawal');
+          filters.add(l10n.withdrawal);
           break;
       }
     }

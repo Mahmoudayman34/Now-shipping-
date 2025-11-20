@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'cash_cycle_screen.dart';
+import 'package:now_shipping/core/l10n/app_localizations.dart';
 import '../../../../core/mixins/refreshable_screen_mixin.dart';
 import '../providers/transaction_providers.dart';
 import '../models/transaction_model.dart';
@@ -46,7 +47,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Wallet'),
+        centerTitle: true,
+        title: Text(AppLocalizations.of(context).walletTitle),
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -103,8 +105,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
         data: (wallet) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'TOTAL BALANCE',
+            Text(
+              AppLocalizations.of(context).totalBalance,
               style: TextStyle(
                 color: Colors.white70,
                 fontSize: 16,
@@ -123,7 +125,9 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
             if (wallet.unsettledTransactions > 0) ...[
               const SizedBox(height: 8),
               Text(
-                wallet.balanceNote,
+                AppLocalizations.of(context)
+                    .balanceRecalculatedUnsettled
+                    .replaceAll('{count}', wallet.unsettledTransactions.toString()),
                 style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 14,
@@ -132,11 +136,11 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
             ],
           ],
         ),
-        loading: () => const Column(
+        loading: () => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-              'TOTAL BALANCE',
+              AppLocalizations.of(context).totalBalance,
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: 16,
@@ -145,7 +149,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
                   ),
                   SizedBox(height: 8),
                   Text(
-              'Loading...',
+              AppLocalizations.of(context).loading,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 32,
@@ -157,8 +161,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
         error: (error, _) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'TOTAL BALANCE',
+            Text(
+              AppLocalizations.of(context).totalBalance,
               style: TextStyle(
                 color: Colors.white70,
                 fontSize: 16,
@@ -166,8 +170,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Error loading balance',
+            Text(
+              AppLocalizations.of(context).errorLoadingBalance,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -188,8 +192,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
                 Expanded(
                   child: _buildInfoCard(
                     icon: Icons.loop,
-                    title: 'Withdraw Frequency',
-              value: wallet.withdrawalFrequency,
+                    title: AppLocalizations.of(context).withdrawFrequency,
+              value: _localizeFrequency(wallet.withdrawalFrequency),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -197,7 +201,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
                 Expanded(
                   child: _buildInfoCard(
                     icon: Icons.calendar_today,
-                    title: 'Next Withdraw Date',
+                    title: AppLocalizations.of(context).nextWithdrawDate,
               value: wallet.formattedNextWithdrawalDate,
                     isDate: true,
                   ),
@@ -206,16 +210,16 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
             ),
       loading: () => Row(
         children: [
-          Expanded(child: _buildInfoCard(icon: Icons.loop, title: 'Withdraw Frequency', value: 'Loading...')),
+          Expanded(child: _buildInfoCard(icon: Icons.loop, title: AppLocalizations.of(context).withdrawFrequency, value: AppLocalizations.of(context).loading)),
           const SizedBox(width: 16),
-          Expanded(child: _buildInfoCard(icon: Icons.calendar_today, title: 'Next Withdraw Date', value: 'Loading...', isDate: true)),
+          Expanded(child: _buildInfoCard(icon: Icons.calendar_today, title: AppLocalizations.of(context).nextWithdrawDate, value: AppLocalizations.of(context).loading, isDate: true)),
         ],
       ),
       error: (_, __) => Row(
         children: [
-          Expanded(child: _buildInfoCard(icon: Icons.loop, title: 'Withdraw Frequency', value: 'Error')),
+          Expanded(child: _buildInfoCard(icon: Icons.loop, title: AppLocalizations.of(context).withdrawFrequency, value: AppLocalizations.of(context).error)),
           const SizedBox(width: 16),
-          Expanded(child: _buildInfoCard(icon: Icons.calendar_today, title: 'Next Withdraw Date', value: 'Error', isDate: true)),
+          Expanded(child: _buildInfoCard(icon: Icons.calendar_today, title: AppLocalizations.of(context).nextWithdrawDate, value: AppLocalizations.of(context).error, isDate: true)),
         ],
       ),
     );
@@ -229,8 +233,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Transaction History',
+            Text(
+              AppLocalizations.of(context).transactionHistory,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -239,18 +243,21 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
             TextButton.icon(
               onPressed: () => _showExportDialog(),
               icon: const Icon(Icons.download, size: 16),
-              label: const Text('Export Excel'),
+              label: Text(AppLocalizations.of(context).export),
               style: TextButton.styleFrom(
-                backgroundColor: Colors.blue,
+                backgroundColor: const Color(0xfff29620),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        const Text(
-          'All your financial transactions and account activities.',
+        Text(
+          AppLocalizations.of(context).financialTransactionsHelp,
           style: TextStyle(
             color: Colors.grey,
             fontSize: 14,
@@ -266,11 +273,11 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
         // Transactions list
         transactionsState.when(
           data: (transactions) => transactions.isEmpty
-              ? const Center(
+              ? Center(
                   child: Padding(
                     padding: EdgeInsets.all(32.0),
                     child: Text(
-                      'No transactions found',
+                      AppLocalizations.of(context).noTransactionsFound,
                       style: TextStyle(
                         color: Colors.grey,
                         fontSize: 16,
@@ -295,13 +302,13 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
                   const Icon(Icons.error, color: Colors.red, size: 48),
                   const SizedBox(height: 16),
                   Text(
-                    'Error loading transactions',
+                    AppLocalizations.of(context).errorLoadingTransactions,
                     style: TextStyle(color: Colors.red[700]),
                   ),
                   const SizedBox(height: 8),
                   TextButton(
                     onPressed: _refreshWallet,
-                    child: const Text('Retry'),
+                    child: Text(AppLocalizations.of(context).retry),
                   ),
                 ],
               ),
@@ -314,27 +321,80 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
 
   Widget _buildFilterButtons(String selectedTimePeriod) {
     final timePeriods = [
-      {'key': 'month', 'label': 'Last Month'},
-      {'key': 'today', 'label': 'Today'},
-      {'key': 'all', 'label': 'All Time'},
+      {'key': 'all', 'label': AppLocalizations.of(context).allTime},
+      {'key': 'today', 'label': AppLocalizations.of(context).today},
+      {'key': 'week', 'label': AppLocalizations.of(context).thisWeek},
+      {'key': 'month', 'label': AppLocalizations.of(context).thisMonth},
+      {'key': 'year', 'label': AppLocalizations.of(context).thisMonth},
     ];
 
-    return Wrap(
-      spacing: 8,
-      children: timePeriods.map((period) {
-        final isSelected = selectedTimePeriod == period['key'];
-        return FilterChip(
-          label: Text(period['label']!),
-          selected: isSelected,
-          onSelected: (selected) {
-            if (selected) {
-              ref.read(selectedTimePeriodProvider.notifier).state = period['key']!;
-            }
-          },
-          selectedColor: Colors.blue.withOpacity(0.2),
-          checkmarkColor: Colors.blue,
-        );
-      }).toList(),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppLocalizations.of(context).timePeriod,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                ...timePeriods.map((period) {
+                  final isSelected = selectedTimePeriod == period['key'];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ElevatedButton(
+                        onPressed: () {
+                          ref.read(selectedTimePeriodProvider.notifier).state = period['key']!;
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isSelected ? Colors.orange : Colors.grey.shade100,
+                          foregroundColor: isSelected ? Colors.white : Colors.black87,
+                          elevation: isSelected ? 2 : 0,
+                          shadowColor: Colors.grey.withOpacity(0.3),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(
+                              color: isSelected ? Colors.orange : Colors.grey.shade300,
+                              width: 1,
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        ),
+                        child: Text(
+                          period['label']!,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -412,7 +472,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        transaction.displayType,
+                        _localizeTransactionType(transaction.displayType),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -463,26 +523,26 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
             child: Column(
               children: [
                 _buildProfessionalDetailRow(
-                  'Transaction Date', 
+                  AppLocalizations.of(context).transactionDate, 
                   transaction.formattedDate,
                   Icons.calendar_today,
                 ),
                 const SizedBox(height: 12),
                 _buildProfessionalDetailRow(
-                  'Transaction Type', 
-                  transaction.displayType,
+                  AppLocalizations.of(context).transactionTypeLabel, 
+                  _localizeTransactionType(transaction.displayType),
                   Icons.category,
                 ),
                 const SizedBox(height: 12),
                 _buildProfessionalDetailRow(
-                  'Amount (EGP)', 
+                  AppLocalizations.of(context).amountWithCurrency, 
                   transaction.formattedAmount,
                   Icons.attach_money,
                 ),
                 const SizedBox(height: 12),
                 _buildProfessionalDetailRow(
-                  'Status', 
-                  transaction.statusDisplay,
+                  AppLocalizations.of(context).status, 
+                  _localizeTransactionStatus(transaction.statusDisplay),
                   Icons.check_circle_outline,
                 ),
                 
@@ -587,6 +647,38 @@ class _WalletScreenState extends ConsumerState<WalletScreen> with RefreshableScr
         ],
       ),
     );
+  }
+
+  String _localizeTransactionType(String raw) {
+    final l10n = AppLocalizations.of(context);
+    final key = raw.toLowerCase();
+    if (key.contains('cash') && key.contains('cycle')) return l10n.cashCycle;
+    if (key == 'withdrawal') return l10n.withdrawal;
+    if (key.contains('service') && key.contains('fees')) return l10n.serviceFees;
+    if (key.contains('pickup') && key.contains('fees')) return l10n.pickupFees;
+    if (key == 'refund') return l10n.refund;
+    if (key == 'deposit') return l10n.deposit;
+    // Fallback: return same string
+    return raw;
+  }
+
+  String _localizeTransactionStatus(String raw) {
+    final l10n = AppLocalizations.of(context);
+    if (raw.toLowerCase().startsWith('settled')) {
+      return raw.replaceFirst(RegExp('Settled', caseSensitive: false), l10n.settled);
+    }
+    if (raw.toLowerCase().contains('pending')) return l10n.pendingLower;
+    return raw;
+  }
+
+  String _localizeFrequency(String freq) {
+    final f = freq.toLowerCase();
+    final l10n = AppLocalizations.of(context);
+    if (f.contains('week')) return l10n.weekly;
+    if (f.contains('day')) return l10n.daily;
+    if (f.contains('month')) return l10n.monthly;
+    if (f.contains('bi') && f.contains('week')) return l10n.biweekly;
+    return freq;
   }
 
   void _showExportDialog() {

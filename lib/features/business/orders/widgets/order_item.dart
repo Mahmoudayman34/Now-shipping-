@@ -17,6 +17,7 @@ class OrderItem extends StatelessWidget {
   final String orderType;
   final int attempts;
   final String phoneNumber;
+  final String? smartFlyerBarcode;
   final VoidCallback onTap;
 
   const OrderItem({
@@ -29,6 +30,7 @@ class OrderItem extends StatelessWidget {
     required this.orderType,
     required this.attempts,
     required this.phoneNumber,
+    this.smartFlyerBarcode,
     required this.onTap,
   });
 
@@ -203,6 +205,7 @@ class OrderItem extends StatelessWidget {
                                 SizedBox(width: spacing * 0.3),
                                 Text(
                                   OrderStatusHelper.getCategoryDisplayName(
+                                    context,
                                     OrderStatus.getCategory(status)
                                   ),
                                   style: TextStyle(
@@ -254,6 +257,30 @@ class OrderItem extends StatelessWidget {
                             size: ResponsiveUtils.getResponsiveIconSize(context) * 0.6,
                             color: Colors.grey.shade600,
                           ),
+                        ),
+                      ),
+                      // Smart Flyer Barcode Icon
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: (smartFlyerBarcode != null && smartFlyerBarcode!.isNotEmpty) 
+                              ? const Color(0xFFFF9800).withOpacity(0.1)  // Orange background for assigned
+                              : Colors.grey.withOpacity(0.1),             // Grey background for null
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: (smartFlyerBarcode != null && smartFlyerBarcode!.isNotEmpty) 
+                                ? const Color(0xFFFF9800).withOpacity(0.3)  // Orange border for assigned
+                                : Colors.grey.withOpacity(0.3),             // Grey border for null
+                            width: 1,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.qr_code,
+                          size: ResponsiveUtils.getResponsiveIconSize(context) * 0.7,
+                          color: (smartFlyerBarcode != null && smartFlyerBarcode!.isNotEmpty) 
+                              ? const Color(0xFFFF9800)  // Orange color for assigned
+                              : Colors.grey,             // Grey color for null
                         ),
                       ),
                     ],

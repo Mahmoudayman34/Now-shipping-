@@ -301,7 +301,6 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
   
   // Form controllers
   late final TextEditingController _nameController;
-  late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
   late final TextEditingController _businessNameController;
   late final TextEditingController _addressController;
@@ -322,7 +321,6 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
     super.initState();
     // Initialize controllers with empty strings first
     _nameController = TextEditingController();
-    _emailController = TextEditingController();
     _phoneController = TextEditingController();
     _businessNameController = TextEditingController();
     _addressController = TextEditingController();
@@ -348,7 +346,6 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
         if (user != null) {
           setState(() {
             _nameController.text = user.name;
-            _emailController.text = user.email;
             _phoneController.text = user.phoneNumber;
             _businessNameController.text = user.brandInfo.brandName;
             _addressController.text = user.pickUpAddress.addressDetails;
@@ -372,7 +369,6 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
     _phoneController.dispose();
     _businessNameController.dispose();
     _addressController.dispose();
@@ -466,7 +462,6 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
           phoneNumber: _phoneController.text,
           brandName: _businessNameController.text,
           profileImage: _profileImageUrl,
-          email: _emailController.text,
         );
         
         if (success) {
@@ -619,24 +614,6 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return AppLocalizations.of(context).pleaseEnterYourName;
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context).email,
-                    border: const OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return AppLocalizations.of(context).pleaseEnterYourEmail;
-                    }
-                    if (!value.contains('@')) {
-                      return AppLocalizations.of(context).pleaseEnterValidEmail;
                     }
                     return null;
                   },

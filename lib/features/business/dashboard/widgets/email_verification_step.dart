@@ -120,13 +120,18 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
       if (mounted) {
         setState(() {
           _isVerified = stats.isEmailVerified;
-          
-          // Save to form data for persistence
-          final currentData = ref.read(profileFormDataProvider);
-          ref.read(profileFormDataProvider.notifier).state = {
-            ...currentData,
-            'emailVerified': _isVerified,
-          };
+        });
+        
+        // Delay provider modification until after build
+        Future.microtask(() {
+          if (mounted) {
+            // Save to form data for persistence
+            final currentData = ref.read(profileFormDataProvider);
+            ref.read(profileFormDataProvider.notifier).state = {
+              ...currentData,
+              'emailVerified': _isVerified,
+            };
+          }
         });
       }
     });
@@ -295,6 +300,7 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
                         child: Lottie.asset(
                           'assets/animations/email_verfication.json',
                           animate: true,
+                          repeat: false,
                         ),
                       ),
                     ],

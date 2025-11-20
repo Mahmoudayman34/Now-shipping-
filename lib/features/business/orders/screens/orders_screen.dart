@@ -10,9 +10,11 @@ import 'package:now_shipping/features/business/orders/screens/create_order/creat
 import 'package:now_shipping/features/business/orders/widgets/order_item.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_tab.dart';
 import 'package:now_shipping/features/common/widgets/shimmer_loading.dart';
+import 'package:now_shipping/features/common/widgets/scanner_modal.dart';
 import 'package:now_shipping/features/auth/services/auth_service.dart';
 import 'package:now_shipping/core/widgets/toast_.dart';
 import '../../../../core/mixins/refreshable_screen_mixin.dart';
+import 'package:now_shipping/core/utils/order_status_helper.dart';
 import '../../../../core/utils/responsive_utils.dart';
 
 // Provider to keep track of the selected delivery type filter
@@ -250,7 +252,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
           ref.read(orderSearchQueryProvider.notifier).state = value;
         },
         decoration: InputDecoration(
-          hintText: 'Search by Order ID or Customer Name',
+          hintText: AppLocalizations.of(context).searchByOrderIdOrCustomerName,
           hintStyle: TextStyle(
             color: Colors.grey.shade500,
             fontSize: ResponsiveUtils.getResponsiveFontSize(
@@ -328,6 +330,15 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
           ),
           backgroundColor: Colors.white,
           actions: [
+            // Scan icon
+            IconButton(
+              icon: Icon(
+                Icons.qr_code_scanner,
+                color: const Color(0xff2F2F2F),
+                size: ResponsiveUtils.getResponsiveIconSize(context),
+              ),
+              onPressed: _scanBarcode,
+            ),
             // Search icon
             IconButton(
               icon: Icon(
@@ -440,6 +451,11 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
       ),
     );
   }
+
+  double _fabBottomPadding(BuildContext context) {
+    final baseSpacing = ResponsiveUtils.getResponsiveSpacing(context);
+    return MediaQuery.of(context).padding.bottom + baseSpacing * 6;
+  }
   
   Widget _buildOrderContent(OrderLoadingState state, List<Map<String, dynamic>> orders, String selectedTab) {
     switch (state) {
@@ -451,7 +467,13 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
         if (orders.isEmpty) {
           return _buildEmptyState(selectedTab);
         } else {
+          final bottomPadding = _fabBottomPadding(context);
+          final verticalSpacing = ResponsiveUtils.getResponsiveSpacing(context);
           return ListView.builder(
+            padding: EdgeInsets.only(
+              bottom: bottomPadding,
+              top: verticalSpacing,
+            ),
             itemCount: orders.length,
                   itemBuilder: (context, index) {
               final order = orders[index];
@@ -464,6 +486,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
                       orderType: order['deliveryType'] ?? 'Deliver',
                       attempts: order['attempts'] ?? 0,
                       phoneNumber: order['phoneNumber'] ?? '',
+                      smartFlyerBarcode: order['smartFlyerBarcode'],
                       onTap: () => _navigateToOrderDetails(order),
                     );
                   }
@@ -476,7 +499,9 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
   }
   
   Widget _buildLoadingState() {
+    final bottomPadding = _fabBottomPadding(context);
     return ListView.builder(
+      padding: EdgeInsets.only(bottom: bottomPadding),
       itemCount: 8,
       itemBuilder: (context, index) {
         return const ShimmerListItem(
@@ -525,9 +550,14 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
       builder: (context, constraints) {
         final spacing = ResponsiveUtils.getResponsiveSpacing(context);
         final imageSize = ResponsiveUtils.getResponsiveImageSize(context) * 2.5;
+        final localizedStatus = selectedTab == 'All'
+            ? ''
+            : OrderStatusHelper.getLocalizedStatus(context, selectedTab);
         
-        return Center(
-          child: Column(
+        return Padding(
+          padding: EdgeInsets.only(bottom: _fabBottomPadding(context)),
+          child: Center(
+            child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Empty illustration
@@ -546,7 +576,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
               Text(
                 selectedTab == 'All' 
                     ? AppLocalizations.of(context).noOrdersYet
-                    : "${AppLocalizations.of(context).noOrdersWithStatus} \"$selectedTab\"",
+                    : "${AppLocalizations.of(context).noOrdersWithStatus} \"$localizedStatus\"",
                 style: TextStyle(
                   fontSize: ResponsiveUtils.getResponsiveFontSize(context, mobile: 16, tablet: 18, desktop: 20),
                   color: Colors.grey[600],
@@ -625,6 +655,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
           ),
             ],
           ),
+          ),
         );
       },
     );
@@ -665,38 +696,38 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
               
               // NEW Category
               _buildTabItem(AppLocalizations.of(context).newStatus, 'New', selectedTab),
-              _buildTabItem('Pending Pickup', 'Pending Pickup', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).pendingPickup, 'Pending Pickup', selectedTab),
               
               // PROCESSING Category
               _buildTabItem(AppLocalizations.of(context).pickedUpStatus, 'Picked Up', selectedTab),
               _buildTabItem(AppLocalizations.of(context).inStockStatus, 'In Stock', selectedTab),
-              _buildTabItem('In Return Stock', 'In Return Stock', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).inReturnStock, 'In Return Stock', selectedTab),
               _buildTabItem(AppLocalizations.of(context).inProgressStatus, 'In Progress', selectedTab),
               _buildTabItem(AppLocalizations.of(context).headingToCustomerStatus, 'Heading to Customer', selectedTab),
-              _buildTabItem('Return to Warehouse', 'Return to Warehouse', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).returnToWarehouse, 'Return to Warehouse', selectedTab),
               _buildTabItem(AppLocalizations.of(context).headingToYouStatus, 'Heading to You', selectedTab),
-              _buildTabItem('Rescheduled', 'Rescheduled', selectedTab),
-              _buildTabItem('Return Initiated', 'Return Initiated', selectedTab),
-              _buildTabItem('Return Assigned', 'Return Assigned', selectedTab),
-              _buildTabItem('Return Picked Up', 'Return Picked Up', selectedTab),
-              _buildTabItem('Return at Warehouse', 'Return at Warehouse', selectedTab),
-              _buildTabItem('Return to Business', 'Return to Business', selectedTab),
-              _buildTabItem('Return Linked', 'Return Linked', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).rescheduled, 'Rescheduled', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).returnInitiated, 'Return Initiated', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).returnAssigned, 'Return Assigned', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).returnPickedUp, 'Return Picked Up', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).returnAtWarehouse, 'Return at Warehouse', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).returnToBusiness, 'Return to Business', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).returnLinked, 'Return Linked', selectedTab),
               
               // PAUSED Category
-              _buildTabItem('Waiting Action', 'Waiting Action', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).waitingAction, 'Waiting Action', selectedTab),
               _buildTabItem(AppLocalizations.of(context).rejectedStatus, 'Rejected', selectedTab),
               
               // SUCCESSFUL Category
               _buildTabItem(AppLocalizations.of(context).completedStatus, 'Completed', selectedTab),
-              _buildTabItem('Return Completed', 'Return Completed', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).returnCompleted, 'Return Completed', selectedTab),
               
               // UNSUCCESSFUL Category
               _buildTabItem(AppLocalizations.of(context).canceledStatus, 'Canceled', selectedTab),
               _buildTabItem(AppLocalizations.of(context).returnedStatus, 'Returned', selectedTab),
               _buildTabItem(AppLocalizations.of(context).terminatedStatus, 'Terminated', selectedTab),
-              _buildTabItem('Delivery Failed', 'Delivery Failed', selectedTab),
-              _buildTabItem('Auto Return Initiated', 'Auto Return Initiated', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).deliveryFailed, 'Delivery Failed', selectedTab),
+              _buildTabItem(AppLocalizations.of(context).autoReturnInitiated, 'Auto Return Initiated', selectedTab),
             ],
           ),
         );
@@ -742,8 +773,85 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
       // Profile is not complete, show toast message
       ToastService.show(
         context,
-        'Please complete and activate your account first',
+        AppLocalizations.of(context).pleaseCompleteAndActivateAccount,
         type: ToastType.warning,
+      );
+    }
+  }
+
+  // Method to scan a barcode
+  Future<void> _scanBarcode() async {
+    try {
+      // Show a modal dialog with the scanner
+      final String? barcodeScanRes = await showModalBottomSheet<String>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => ScannerModal(
+          title: AppLocalizations.of(context).scanQrCode,
+          onScanResult: (result) {
+            Navigator.pop(context, result);
+          },
+        ),
+      );
+
+      if (barcodeScanRes != null && barcodeScanRes.isNotEmpty) {
+        // Handle the scanned result - search for the order
+        await _handleScanResult(barcodeScanRes);
+      }
+    } catch (e) {
+      print('Error scanning barcode: $e');
+      ToastService.show(
+        context,
+        'Error scanning barcode. Please try again.',
+        type: ToastType.error,
+      );
+    }
+  }
+
+  // Handle the scan result
+  Future<void> _handleScanResult(String scannedCode) async {
+    try {
+      // Show loading indicator
+      ToastService.show(
+        context,
+        'Searching for order...',
+        type: ToastType.info,
+      );
+
+      // Search for the order using the new API
+      final orderService = ref.read(orderServiceProvider);
+      final orderDetails = await orderService.searchOrderByBarcode(scannedCode);
+
+      if (orderDetails.isNotEmpty) {
+        // Extract order number and status from the response
+        final orderNumber = orderDetails['orderNumber'] ?? orderDetails['id'] ?? '';
+        final orderStatus = orderDetails['orderStatus'] ?? orderDetails['status'] ?? 'New';
+        
+        // Navigate to the order details screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OrderDetailsScreenRefactored(
+              orderId: orderNumber,
+              status: orderStatus,
+            ),
+          ),
+        ).then((_) => _fetchOrders());
+      } else {
+        // Show error message if order not found
+        ToastService.show(
+          context,
+          'Order not found. Please check the QR code and try again.',
+          type: ToastType.warning,
+        );
+      }
+    } catch (e) {
+      print('Error searching for order: $e');
+      ToastService.show(
+        context,
+        'Error searching for order. Please try again.',
+        type: ToastType.error,
       );
     }
   }

@@ -16,6 +16,7 @@ class UserModel {
   final String profileImage;
   final BrandInfo brandInfo;
   final PickUpAddress pickUpAddress;
+  final List<PickUpAddressItem>? pickUpAddresses; // Array of pickup addresses
   final String role;
 
   UserModel({
@@ -30,10 +31,18 @@ class UserModel {
     required this.profileImage,
     required this.brandInfo,
     required this.pickUpAddress,
+    this.pickUpAddresses,
     required this.role,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    List<PickUpAddressItem>? addresses;
+    if (json['pickUpAddresses'] != null && json['pickUpAddresses'] is List) {
+      addresses = (json['pickUpAddresses'] as List)
+          .map((addr) => PickUpAddressItem.fromJson(addr as Map<String, dynamic>))
+          .toList();
+    }
+    
     return UserModel(
       id: json['_id'] ?? '',
       name: json['name'] ?? '',
@@ -46,6 +55,7 @@ class UserModel {
       profileImage: json['profileImage'] ?? '',
       brandInfo: BrandInfo.fromJson(json['brandInfo'] ?? {}),
       pickUpAddress: PickUpAddress.fromJson(json['pickUpAdress'] ?? {}),
+      pickUpAddresses: addresses,
       role: json['role'] ?? '',
     );
   }
@@ -99,6 +109,53 @@ class PickUpAddress {
       addressDetails: json['adressDetails'] ?? '',
       nearbyLandmark: json['nearbyLandmark'] ?? '',
       pickupPhone: json['pickupPhone'] ?? '',
+      pickUpPointInMaps: json['pickUpPointInMaps'] ?? '',
+      coordinates: json['coordinates'],
+    );
+  }
+}
+
+class PickUpAddressItem {
+  final String addressId;
+  final String addressName;
+  final bool isDefault;
+  final String country;
+  final String city;
+  final String? zone;
+  final String adressDetails;
+  final String? nearbyLandmark;
+  final String pickupPhone;
+  final String? otherPickupPhone;
+  final String pickUpPointInMaps;
+  final Map<String, dynamic>? coordinates;
+
+  PickUpAddressItem({
+    required this.addressId,
+    required this.addressName,
+    required this.isDefault,
+    required this.country,
+    required this.city,
+    this.zone,
+    required this.adressDetails,
+    this.nearbyLandmark,
+    required this.pickupPhone,
+    this.otherPickupPhone,
+    required this.pickUpPointInMaps,
+    this.coordinates,
+  });
+
+  factory PickUpAddressItem.fromJson(Map<String, dynamic> json) {
+    return PickUpAddressItem(
+      addressId: json['addressId'] ?? json['_id'] ?? '',
+      addressName: json['addressName'] ?? '',
+      isDefault: json['isDefault'] ?? false,
+      country: json['country'] ?? '',
+      city: json['city'] ?? '',
+      zone: json['zone'],
+      adressDetails: json['adressDetails'] ?? '',
+      nearbyLandmark: json['nearbyLandmark'],
+      pickupPhone: json['pickupPhone'] ?? '',
+      otherPickupPhone: json['otherPickupPhone'],
       pickUpPointInMaps: json['pickUpPointInMaps'] ?? '',
       coordinates: json['coordinates'],
     );

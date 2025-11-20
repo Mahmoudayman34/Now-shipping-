@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:now_shipping/features/business/orders/providers/order_details_provider.dart';
 import 'package:now_shipping/features/business/orders/screens/edit_order_screen.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/action_item.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/tracking_tab.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/details_tab.dart';
 import 'package:now_shipping/features/business/orders/widgets/print_selection_dialog.dart';
+import 'package:now_shipping/features/common/widgets/scanner_modal.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../../core/widgets/app_dialog.dart';
@@ -125,72 +125,56 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (context) => Container(
-          height: MediaQuery.of(context).size.height * 0.8,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
-            ),
-          ),
-          child: Column(
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text(
-                  'Scan QR Code',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-              Expanded(
-                child: MobileScanner(
-                  controller: MobileScannerController(
-                    detectionSpeed: DetectionSpeed.normal,
-                    facing: CameraFacing.back,
-                  ),
-                  onDetect: (capture) {
-                    final List<Barcode> barcodes = capture.barcodes;
-                    if (barcodes.isNotEmpty && barcodes[0].rawValue != null) {
-                      String code = barcodes[0].rawValue!;
-                      Navigator.pop(context, code);
-                    }
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF26A2B9),
-                    minimumSize: const Size.fromHeight(50),
-                  ),
-                  onPressed: () => Navigator.pop(context, null),
-                  child: const Text('Cancel'),
-                ),
-              ),
-            ],
-          ),
+        builder: (context) => ScannerModal(
+          title: 'Scan Smart Sticker',
+          onScanResult: (result) {
+            Navigator.pop(context, result);
+          },
         ),
       );
 
-      if (barcodeScanRes != null) {
-        ref.read(orderDetailsProvider(widget.orderId).notifier).updateWithStickerInfo(barcodeScanRes);
-        
+      if (barcodeScanRes != null && barcodeScanRes.isNotEmpty) {
+        // Show loading indicator
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Smart sticker scanned: $barcodeScanRes'),
-              backgroundColor: Colors.green,
+            const SnackBar(
+              content: Text('Scanning smart sticker...'),
+              backgroundColor: Colors.blue,
+              duration: Duration(seconds: 2),
             ),
           );
         }
+
+        try {
+          // Call the API to scan the smart sticker
+          await ref.read(orderDetailsProvider(widget.orderId).notifier).updateWithStickerInfo(barcodeScanRes);
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Smart sticker scanned successfully: $barcodeScanRes'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } catch (e) {
+          print('Error scanning smart sticker: $e');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to scan smart sticker: ${e.toString()}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
       }
     } catch (e) {
+      print('Error in scan barcode: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Failed to scan barcode'),
+            content: Text('Failed to open scanner'),
             backgroundColor: Colors.red,
           ),
         );
@@ -284,6 +268,7 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
       body: Scaffold(
         backgroundColor: const Color(0xFFF7F7F9),
         appBar: AppBar(
+          centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 0,
           title: Text(

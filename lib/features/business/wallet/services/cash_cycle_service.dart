@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:now_shipping/core/constants/api_constants.dart';
 import 'package:now_shipping/data/services/api_service.dart';
 import 'package:now_shipping/features/business/wallet/models/cash_cycle_model.dart';
+import 'package:now_shipping/core/services/permission_service.dart';
+import 'package:flutter/material.dart';
 
 class CashCycleService {
   final ApiService _apiService;
@@ -94,14 +96,27 @@ class CashCycleService {
   /// [dateFrom] and [dateTo] are optional for custom date range
   /// [orderStatus] filters by order status (default: 'completed')
   /// [token] is the authentication token
+  /// [context] is required for permission requests
   Future<Map<String, dynamic>> exportCashCyclesToExcel({
     required String timePeriod,
     String? dateFrom,
     String? dateTo,
     String orderStatus = 'completed',
     required String token,
+    BuildContext? context,
   }) async {
     try {
+      // Request storage permissions before downloading
+      if (context != null) {
+        final hasPermissions = await PermissionService.hasStoragePermissions();
+        if (!hasPermissions) {
+          final permissionGranted = await PermissionService.requestStoragePermissions(context);
+          if (!permissionGranted) {
+            throw Exception('Storage permission is required to download Excel files');
+          }
+        }
+      }
+      
       final queryParams = <String, dynamic>{
         'timePeriod': timePeriod,
         'orderStatus': orderStatus,

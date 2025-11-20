@@ -1,6 +1,6 @@
 class ApiConstants {
   // Base URL for the API
-  static const String baseUrl = '{{base_url}}';
+  static const String baseUrl = 'https://nowshipping.co/api/v1';
   
   // API endpoints
   static const String login = '/auth/login';
@@ -10,6 +10,8 @@ class ApiConstants {
   static const String transactions = '/business/transactions';
   static const String cashCycles = '/business/cash-cycles';
   static const String exportCashCycles = '/business/wallet/export-cash-cycles';
+  static const String scanSmartSticker = '/business/orders/scan-smart-flyer-barcode';
+  static const String searchOrder = '/business/orders/search';
   
   // API response keys
   static const String token = 'token';

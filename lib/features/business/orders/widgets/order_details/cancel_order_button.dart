@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/l10n/app_localizations.dart';
 
 class CancelOrderButton extends StatelessWidget {
   final String orderId;
@@ -19,7 +20,7 @@ class CancelOrderButton extends StatelessWidget {
         child: ElevatedButton.icon(
           onPressed: onCancel,
           icon: const Icon(Icons.cancel_outlined, size: 20),
-          label: const Text('Cancel Order'),
+          label: Text(AppLocalizations.of(context).cancelOrder),
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFFE74C3C),
             foregroundColor: Colors.white,

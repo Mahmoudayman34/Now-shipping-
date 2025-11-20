@@ -29,8 +29,15 @@ class MainLayout extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedIndex = ref.watch(selectedTabIndexProvider);
     
-    // Preload user data when layout is built
-    ref.watch(layoutUserProvider);
+    // Watch user data reactively - this will rebuild when user data changes
+    final userAsync = ref.watch(layoutUserProvider);
+    
+    // Check if profile is complete - use when to handle all states properly
+    final isProfileComplete = userAsync.when(
+      data: (user) => user?.isProfileComplete ?? false,
+      loading: () => false, // Don't show FAB while loading
+      error: (_, __) => false, // Don't show FAB on error
+    );
     
     return Scaffold(
       body: IndexedStack(
@@ -38,7 +45,7 @@ class MainLayout extends ConsumerWidget {
         children: screens,
       ),
       bottomNavigationBar: _buildBottomNavigationBar(context, selectedIndex, ref),
-      floatingActionButton: _shouldShowFAB(selectedIndex) 
+      floatingActionButton: _shouldShowFAB(selectedIndex, isProfileComplete) 
           ? FloatingActionButton(
               heroTag: 'main_layout_fab',
               onPressed: () {
@@ -51,10 +58,10 @@ class MainLayout extends ConsumerWidget {
     );
   }
   
-  // Determine if the FAB should be shown based on the selected tab
-  bool _shouldShowFAB(int index) {
-    // Show FAB only on Home (0), Orders (1), and Pickups (2) screens
-    return index == 0 || index == 1 || index == 2;
+  // Determine if the FAB should be shown based on the selected tab and profile completion
+  bool _shouldShowFAB(int index, bool isProfileComplete) {
+    // Show FAB only on Home (0), Orders (1), and Pickups (2) screens AND if profile is complete
+    return (index == 0 || index == 1 || index == 2) && isProfileComplete;
   }
   
   Widget _buildBottomNavigationBar(BuildContext context, int selectedIndex, WidgetRef ref) {

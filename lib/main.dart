@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'dart:io';  
+import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/l10n/app_localizations.dart';
+import 'core/services/firebase_messaging_service.dart';
 import 'features/initial/screens/initial_screen.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/signup_screen.dart';
@@ -13,6 +16,32 @@ import 'features/business/home/screens/home_container.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase with proper platform options
+  bool firebaseInitialized = false;
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    firebaseInitialized = true;
+    debugPrint('✅ Firebase initialized successfully');
+  } catch (e) {
+    debugPrint('❌ Error initializing Firebase: $e');
+    debugPrint('⚠️  App will continue without Firebase features');
+  }
+  
+  // Initialize Firebase Messaging service only if Firebase initialized successfully
+  if (firebaseInitialized) {
+    try {
+      final firebaseMessagingService = FirebaseMessagingService();
+      await firebaseMessagingService.initialize();
+      debugPrint('✅ Firebase Messaging initialized successfully');
+    } catch (e) {
+      debugPrint('❌ Error initializing Firebase Messaging: $e');
+    }
+  } else {
+    debugPrint('⚠️  Skipping Firebase Messaging initialization');
+  }
   
   // Suppress OpenGL ES debug logs on Android
   if (Platform.isAndroid) {

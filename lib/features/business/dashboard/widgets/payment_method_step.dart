@@ -29,16 +29,6 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
   String? _selectedPaymentMethod;
   final paymentMethods = [
     {
-      'id': 'instapay',
-      'title': 'InstaPay',
-      'icon': Icons.smartphone_outlined,
-    },
-    {
-      'id': 'wallet',
-      'title': 'Mobile Wallet',
-      'icon': Icons.account_balance_wallet_outlined,
-    },
-    {
       'id': 'bank',
       'title': 'Bank Transfer',
       'icon': Icons.account_balance_outlined,
@@ -46,25 +36,47 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
   ];
   
   // Add controllers for payment method details
-  final TextEditingController _ipaAddressController = TextEditingController();
-  final TextEditingController _mobileNumberController = TextEditingController();
   final TextEditingController _ibanController = TextEditingController();
   final TextEditingController _accountNameController = TextEditingController();
   String? _selectedBank;
   
-  // List of sample banks
-  final List<String> banks = [
-    'Bank A',
-    'Bank B',
-    'Bank C',
-    'Bank D',
-    'Bank E',
+  // List of available banks with value and label
+  final List<Map<String, String>> banks = [
+    {"value": "nbe", "label": "National Bank of Egypt / البنك الأهلي المصري"},
+    {"value": "banque-misr", "label": "Banque Misr / بنك مصر"},
+    {"value": "cib", "label": "CIB (Commercial International Bank) / البنك التجاري الدولي"},
+    {"value": "qnb", "label": "QNB Alahli / QNB الأهلي"},
+    {"value": "aaib", "label": "Arab African International Bank (AAIB) / البنك العربي الأفريقي الدولي"},
+    {"value": "adib", "label": "Abu Dhabi Islamic Bank - Egypt (ADIB) / بنك أبوظبي الإسلامي - مصر"},
+    {"value": "abk", "label": "Al Ahli Bank of Kuwait - Egypt (ABK) / بنك الأهلي الكويتي - مصر"},
+    {"value": "aib", "label": "Arab Investment Bank (AIB) / البنك العربي للاستثمار"},
+    {"value": "attijariwafa", "label": "Attijariwafa Bank Egypt / بنك التجاري وفا مصر"},
+    {"value": "bank-of-alexandria", "label": "Bank of Alexandria / بنك الإسكندرية"},
+    {"value": "bank-audi", "label": "Bank Audi - Egypt / بنك عوده - مصر"},
+    {"value": "banque-du-caire", "label": "Banque du Caire / بنك القاهرة"},
+    {"value": "blom", "label": "BLOM Bank Egypt / بنك بلوم مصر"},
+    {"value": "credit-agricole", "label": "Crédit Agricole Egypt / كريديت أجريكول مصر"},
+    {"value": "egb", "label": "Egyptian Gulf Bank (EGB) / البنك المصري الخليجي"},
+    {"value": "emirates-nbd", "label": "Emirates NBD Egypt / بنك الإمارات دبي الوطني مصر"},
+    {"value": "ebbe", "label": "Export Development Bank of Egypt (EBBE) / بنك تنمية الصادرات"},
+    {"value": "fab", "label": "First Abu Dhabi Bank Egypt (FAB) / بنك أبوظبي الأول مصر"},
+    {"value": "faisal-islamic", "label": "Faisal Islamic Bank of Egypt / بنك فيصل الإسلامي المصري"},
+    {"value": "hdb", "label": "Housing and Development Bank (HDB) / بنك الإسكان والتنمية"},
+    {"value": "hsbc", "label": "HSBC Bank Egypt / بنك HSBC مصر"},
+    {"value": "idb", "label": "Industrial Development Bank (IDB) / بنك التنمية الصناعية"},
+    {"value": "nbk", "label": "National Bank of Kuwait - Egypt (NBK) / البنك الوطني الكويتي - مصر"},
+    {"value": "saib", "label": "SAIB Bank / بنك SAIB"},
+    {"value": "united-bank", "label": "United Bank of Egypt / البنك المتحد"},
+    {"value": "alexbank", "label": "Bank of Alexandria (AlexBank) / بنك الإسكندرية (أليكس بنك)"},
+    {"value": "al-baraka", "label": "Al Baraka Bank Egypt / بنك البركة مصر"},
+    {"value": "adcb", "label": "Abu Dhabi Commercial Bank Egypt (ADCB) / بنك أبوظبي التجاري مصر"},
+    {"value": "suez-canal-bank", "label": "Suez Canal Bank / بنك قناة السويس"},
+    {"value": "mashreq", "label": "Mashreq Bank Egypt / بنك المشرق مصر"},
+    {"value": "bank-ei", "label": "Bank of Egypt International (BEI) / بنك مصر الدولي"},
   ];
   
   @override
   void dispose() {
-    _ipaAddressController.dispose();
-    _mobileNumberController.dispose();
     _ibanController.dispose();
     _accountNameController.dispose();
     super.dispose();
@@ -73,9 +85,19 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
   @override
   void initState() {
     super.initState();
+    // Auto-select bank transfer as it's the only option
+    _selectedPaymentMethod = 'bank';
+    
     // Load existing data if available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadExistingData();
+      // Ensure bank is selected if no existing data
+      if (_selectedPaymentMethod == null) {
+        setState(() {
+          _selectedPaymentMethod = 'bank';
+        });
+      }
+      _saveFormData();
     });
     
     // Register save callback
@@ -96,18 +118,10 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
       };
       
       // Add specific payment method details based on selection
-      switch (_selectedPaymentMethod) {
-        case 'instapay':
-          formData['ipaAddress'] = _ipaAddressController.text;
-          break;
-        case 'wallet':
-          formData['mobileNumber'] = _mobileNumberController.text;
-          break;
-        case 'bank':
-          formData['bankName'] = _selectedBank;
-          formData['iban'] = _ibanController.text;
-          formData['accountName'] = _accountNameController.text;
-          break;
+      if (_selectedPaymentMethod == 'bank') {
+        formData['bankName'] = _selectedBank;
+        formData['iban'] = _ibanController.text;
+        formData['accountName'] = _accountNameController.text;
       }
       
       try {
@@ -136,30 +150,18 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
       });
       
       // Load specific payment method details based on type
-      switch (_selectedPaymentMethod) {
-        case 'instapay':
-          if (data.containsKey('ipaAddress')) {
-            _ipaAddressController.text = data['ipaAddress'] ?? '';
-          }
-          break;
-        case 'wallet':
-          if (data.containsKey('mobileNumber')) {
-            _mobileNumberController.text = data['mobileNumber'] ?? '';
-          }
-          break;
-        case 'bank':
-          if (data.containsKey('bankName')) {
-            setState(() {
-              _selectedBank = data['bankName'] as String?;
-            });
-          }
-          if (data.containsKey('iban')) {
-            _ibanController.text = data['iban'] ?? '';
-          }
-          if (data.containsKey('accountName')) {
-            _accountNameController.text = data['accountName'] ?? '';
-          }
-          break;
+      if (_selectedPaymentMethod == 'bank') {
+        if (data.containsKey('bankName')) {
+          setState(() {
+            _selectedBank = data['bankName'] as String?;
+          });
+        }
+        if (data.containsKey('iban')) {
+          _ibanController.text = data['iban'] ?? '';
+        }
+        if (data.containsKey('accountName')) {
+          _accountNameController.text = data['accountName'] ?? '';
+        }
       }
     }
   }
@@ -181,7 +183,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: Color(0xffF29620),
               ),
             ),
             const SizedBox(height: 4),
@@ -196,33 +198,16 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
             const SizedBox(height: 24),
 
             // Payment method option cards
-            Row(
-              children: [
-                Expanded(
-                  child: _buildPaymentCard(
-                    'instapay',
-                    'InstaPay',
-                    Icons.smartphone_outlined,
-                    theme,
-                  ),
+            Center(
+              child: SizedBox(
+                width: 200,
+                child: _buildPaymentCard(
+                  'bank',
+                  'Bank Transfer',
+                  Icons.account_balance_outlined,
+                  theme,
                 ),
-                Expanded(
-                  child: _buildPaymentCard(
-                    'wallet',
-                    'Mobile Wallet',
-                    Icons.account_balance_wallet_outlined,
-                    theme,
-                  ),
-                ),
-                Expanded(
-                  child: _buildPaymentCard(
-                    'bank',
-                    'Bank Transfer',
-                    Icons.account_balance_outlined,
-                    theme,
-                  ),
-                ),
-              ],
+              ),
             ),
 
             const SizedBox(height: 32),
@@ -261,11 +246,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
                   )
                 : Container(
                     key: ValueKey(_selectedPaymentMethod),
-                    child: _selectedPaymentMethod == 'instapay'
-                      ? _buildInstapayFields(theme)
-                      : _selectedPaymentMethod == 'wallet'
-                        ? _buildWalletFields(theme)
-                        : _buildBankFields(theme),
+                    child: _buildBankFields(theme),
                   ),
             ),
 
@@ -411,107 +392,6 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
     );
   }
 
-  Widget _buildInstapayFields(ThemeData theme) {
-    const orangeColor = Colors.orange; // Define orange color
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Enter your IPA Address:',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _ipaAddressController,
-          decoration: InputDecoration(
-            hintText: 'Example: ABCD1234',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: orangeColor),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            prefixIcon: Icon(Icons.smartphone, color: Colors.grey.shade500),
-            focusColor: orangeColor,
-          ),
-          cursorColor: orangeColor,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter your IPA address';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildWalletFields(ThemeData theme) {
-    const orangeColor = Colors.orange; // Define orange color
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Enter your Mobile Number:',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _mobileNumberController,
-          maxLength: 11,
-          decoration: InputDecoration(
-            hintText: 'Example: +201234567890',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: orangeColor),
-            ),
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            prefixIcon: Icon(Icons.phone_android, color: Colors.grey.shade500),
-            focusColor: orangeColor,
-            counterText: '', // Hide the character counter
-          ),
-          cursorColor: orangeColor,
-          keyboardType: TextInputType.phone,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter your mobile number';
-            }
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildBankFields(ThemeData theme) {
     const orangeColor = Colors.orange; // Define orange color
     
@@ -550,16 +430,21 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
           icon: const Icon(Icons.arrow_drop_down, color: orangeColor),
           isExpanded: true,
           dropdownColor: Colors.white,
-          items: banks.map((String bank) {
+          items: banks.map((Map<String, String> bank) {
             return DropdownMenuItem(
-              value: bank,
-              child: Text(bank),
+              value: bank['value'],
+              child: Text(
+                bank['label'] ?? '',
+                style: const TextStyle(fontSize: 14),
+                overflow: TextOverflow.ellipsis,
+              ),
             );
           }).toList(),
           onChanged: (String? newValue) {
             setState(() {
               _selectedBank = newValue;
             });
+            _saveFormData();
           },
           validator: (value) {
             if (value == null || value.isEmpty) {
@@ -599,7 +484,6 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            prefixIcon: Icon(Icons.account_balance, color: Colors.grey.shade500),
             focusColor: orangeColor,
           ),
           cursorColor: orangeColor,
@@ -641,7 +525,6 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
             filled: true,
             fillColor: Colors.white,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            prefixIcon: Icon(Icons.person, color: Colors.grey.shade500),
             focusColor: orangeColor,
           ),
           cursorColor: orangeColor,

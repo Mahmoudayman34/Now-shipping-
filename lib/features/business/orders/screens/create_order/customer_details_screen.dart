@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/l10n/app_localizations.dart';
+import '../../../../../core/services/regions_service.dart';
+import '../../../../../core/providers/locale_provider.dart';
 
-class CustomerDetailsScreen extends StatefulWidget {
+class CustomerDetailsScreen extends ConsumerStatefulWidget {
   final Map<String, dynamic>? initialData;
   final Function(Map<String, dynamic>)? onCustomerDataSaved;
 
@@ -12,10 +15,10 @@ class CustomerDetailsScreen extends StatefulWidget {
   });
 
   @override
-  _CustomerDetailsScreenState createState() => _CustomerDetailsScreenState();
+  ConsumerState<CustomerDetailsScreen> createState() => _CustomerDetailsScreenState();
 }
 
-class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
+class _CustomerDetailsScreenState extends ConsumerState<CustomerDetailsScreen> {
   final _formKey = GlobalKey<FormState>();
   
   // Form controllers
@@ -29,26 +32,32 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
   final TextEditingController _landmarkController = TextEditingController();
   
   String _selectedCountryCode = '+20';
+  String _selectedSecondaryCountryCode = '+20';
   String? _selectedCity;
+  String? _selectedZone;
   bool _isWorkingAddress = false;
-  bool _showSecondaryPhone = false;
   
-  // City options for dropdown (English keys for API)
-  final List<String> _cities = [
-    'Cairo', 
-    'Alexandria', 
-    'Giza', 
-    'Port Said', 
-    'Suez',
-    'Luxor',
-    'Aswan',
-    'Hurghada',
-    'Sharm El Sheikh'
-  ];
+  // Get localized city name based on current locale
+  String _getLocalizedCityName(String locale) {
+    return locale == 'ar' ? 'القاهره' : 'Cairo';
+  }
+  
+  // Get governorate name for API calls (always use localized version)
+  String _getGovernorateNameForApi(String locale) {
+    return locale == 'ar' ? 'القاهره' : 'Cairo';
+  }
 
   @override
   void initState() {
     super.initState();
+    
+    // Default to localized Cairo name
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final locale = ref.read(localeProvider).languageCode;
+      setState(() {
+        _selectedCity = _getLocalizedCityName(locale);
+      });
+    });
     
     // Load initial data if provided (for editing existing customer)
     if (widget.initialData != null) {
@@ -82,13 +91,31 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
     
     // Secondary phone
     if (data['secondaryPhone'] != null && data['secondaryPhone'].toString().isNotEmpty) {
-      _secondaryPhoneController.text = data['secondaryPhone'];
-      _showSecondaryPhone = true;
+      final secondaryPhone = data['secondaryPhone'] as String;
+      
+      // Extract country code and phone number for secondary phone
+      if (secondaryPhone.startsWith('+20')) {
+        _selectedSecondaryCountryCode = '+20';
+        _secondaryPhoneController.text = secondaryPhone.substring(3);
+      } else if (secondaryPhone.startsWith('+')) {
+        _selectedSecondaryCountryCode = '+20';
+        _secondaryPhoneController.text = secondaryPhone.substring(1);
+      } else {
+        _secondaryPhoneController.text = secondaryPhone;
+      }
     }
     
     // Other fields
     _nameController.text = data['name'] ?? '';
-    _selectedCity = data['city'];
+    final locale = ref.read(localeProvider).languageCode;
+    // If city is provided, use it; otherwise default to localized Cairo
+    final cityFromData = data['city'];
+    if (cityFromData != null && cityFromData.toString().isNotEmpty) {
+      _selectedCity = cityFromData.toString();
+    } else {
+      _selectedCity = _getLocalizedCityName(locale);
+    }
+    _selectedZone = data['zone'];
     _addressDetailsController.text = data['addressDetails'] ?? '';
     _buildingController.text = data['building'] ?? '';
     _floorController.text = data['floor'] ?? '';
@@ -115,9 +142,12 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
       // Create customer data object
       final customerData = {
         'phoneNumber': '$_selectedCountryCode${_phoneController.text}',
-        'secondaryPhone': _showSecondaryPhone ? _secondaryPhoneController.text : null,
+        'secondaryPhone': _secondaryPhoneController.text.isNotEmpty 
+            ? '$_selectedSecondaryCountryCode${_secondaryPhoneController.text}' 
+            : null,
         'name': _nameController.text,
-        'city': _selectedCity,
+        'city': _selectedCity ?? 'Cairo',
+        'zone': _selectedZone,
         'addressDetails': _addressDetailsController.text,
         'building': _buildingController.text,
         'floor': _floorController.text,
@@ -197,31 +227,10 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 
                 // Phone number field
                 _buildPhoneNumberField(),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 
-                // "Add secondary number" button/link
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _showSecondaryPhone = !_showSecondaryPhone;
-                    });
-                  },
-                  child: Text(
-                    _showSecondaryPhone 
-                        ? 'Hide secondary number' 
-                        : AppLocalizations.of(context).addSecondaryNumber,
-                    style: TextStyle(
-                      color: Colors.teal.shade400,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                
-                // Secondary phone field (conditionally shown)
-                if (_showSecondaryPhone) ...[
-                  const SizedBox(height: 16),
-                  _buildPhoneNumberField(isSecondary: true),
-                ],
+                // Secondary phone field (always visible)
+                _buildPhoneNumberField(isSecondary: true),
                 
                 const SizedBox(height: 16),
                 
@@ -241,7 +250,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter a name';
+                      return AppLocalizations.of(context).pleaseEnterYourName;
                     }
                     return null;
                   },
@@ -260,9 +269,13 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 ),
                 const SizedBox(height: 16),
                 
-                // City dropdown
+                // City dropdown (Cairo only)
                 _buildCityDropdown(),
                 const SizedBox(height: 16),
+                
+                // Zone dropdown (shown when Cairo is selected - check both localized names)
+                if (_selectedCity == 'Cairo' || _selectedCity == 'القاهره') _buildZoneDropdown(),
+                if (_selectedCity == 'Cairo' || _selectedCity == 'القاهره') const SizedBox(height: 16),
                 
                 // Address details
                 TextFormField(
@@ -280,7 +293,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter address details';
+                      return AppLocalizations.of(context).pleaseEnterAddressDetails;
                     }
                     return null;
                   },
@@ -430,25 +443,23 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Country code section
-          if (!isSecondary) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Text(
-                _selectedCountryCode,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+          // Country code section (shown for both primary and secondary)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              isSecondary ? _selectedSecondaryCountryCode : _selectedCountryCode,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            // Add a vertical divider
-            Container(
-              height: 30,
-              width: 1,
-              color: Colors.grey.shade300,
-            ),
-          ],
+          ),
+          // Add a vertical divider
+          Container(
+            height: 30,
+            width: 1,
+            color: Colors.grey.shade300,
+          ),
           
           // Phone number input
           Expanded(
@@ -457,7 +468,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
               keyboardType: TextInputType.phone,
               maxLength: 11,
               decoration: InputDecoration(
-                hintText: isSecondary ? 'Secondary Phone Number' : AppLocalizations.of(context).phoneNumber,
+                hintText: isSecondary ? AppLocalizations.of(context).secondaryPhoneNumber : AppLocalizations.of(context).phoneNumber,
                 border: InputBorder.none,
                 enabledBorder: InputBorder.none,
                 focusedBorder: InputBorder.none,
@@ -468,7 +479,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                   ? null // Secondary phone is optional
                   : (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Please enter a phone number';
+                        return AppLocalizations.of(context).pleaseEnterYourPhoneNumber;
                       }
                       return null;
                     },
@@ -486,37 +497,234 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: DropdownButtonFormField<String>(
-        value: _selectedCity,
-        decoration: InputDecoration(
-          hintText: AppLocalizations.of(context).cityArea,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16),
-        ),
-        icon: const Icon(Icons.arrow_drop_down),
-        isExpanded: true,
-        items: _cities.map((String city) {
-          return DropdownMenuItem<String>(
-            value: city,
-            child: Text(_getLocalizedCityName(context, city)),
+      child: Consumer(
+        builder: (context, ref, child) {
+          final locale = ref.watch(localeProvider).languageCode;
+          final localizedCityName = _getLocalizedCityName(locale);
+          
+          return DropdownButtonFormField<String>(
+            value: _selectedCity ?? localizedCityName,
+            decoration: InputDecoration(
+              hintText: AppLocalizations.of(context).cityArea,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            icon: const Icon(Icons.arrow_drop_down),
+            isExpanded: true,
+            items: [localizedCityName].map((String city) {
+              return DropdownMenuItem<String>(
+                value: city,
+                child: Text(city),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedCity = newValue ?? localizedCityName;
+                _selectedZone = null; // Reset zone when city changes
+              });
+            },
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return AppLocalizations.of(context).pleaseSelectCity;
+              }
+              return null;
+            },
           );
-        }).toList(),
-        onChanged: (String? newValue) {
-          setState(() {
-            _selectedCity = newValue;
-          });
-        },
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Please select a city';
-          }
-          return null;
         },
       ),
     );
   }
+  
+  Widget _buildZoneDropdown() {
+    final locale = ref.watch(localeProvider).languageCode;
+    final governorateName = _getGovernorateNameForApi(locale);
+    
+    return ref.watch(zonesForGovernorateProvider(governorateName)).when(
+      data: (availableZones) {
+        if (availableZones.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        return InkWell(
+          onTap: () => _showZoneSearchDialog(availableZones),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    _selectedZone ?? 'Zone',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: _selectedZone != null ? Colors.black87 : Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.arrow_drop_down, color: Colors.grey),
+              ],
+            ),
+          ),
+        );
+      },
+      loading: () => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      ),
+      error: (error, stack) => const SizedBox.shrink(),
+    );
+  }
+  
+  void _showZoneSearchDialog(List<String> zones) {
+    final TextEditingController searchController = TextEditingController();
+    List<String> filteredZones = List.from(zones);
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.7,
+                  maxWidth: MediaQuery.of(context).size.width * 0.9,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Select Zone',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    // Search field
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextField(
+                        controller: searchController,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          hintText: 'Search zone...',
+                          prefixIcon: const Icon(Icons.search),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.orange, width: 2),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                        onChanged: (value) {
+                          setDialogState(() {
+                            if (value.isEmpty) {
+                              filteredZones = List.from(zones);
+                            } else {
+                              filteredZones = zones
+                                  .where((zone) => zone.toLowerCase().contains(value.toLowerCase()))
+                                  .toList();
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                    // Zones list
+                    Flexible(
+                      child: filteredZones.isEmpty
+                          ? const Padding(
+                              padding: EdgeInsets.all(32.0),
+                              child: Text(
+                                'No zones found',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              shrinkWrap: true,
+                              itemCount: filteredZones.length,
+                              itemBuilder: (context, index) {
+                                final zone = filteredZones[index];
+                                final isSelected = zone == _selectedZone;
+                                return InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedZone = zone;
+                                    });
+                                    Navigator.of(dialogContext).pop();
+                                  },
+                                  child: Container(
+                                    color: isSelected ? Colors.orange.shade50 : Colors.transparent,
+                                    child: ListTile(
+                                      title: Text(
+                                        zone,
+                                        style: TextStyle(
+                                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                          color: isSelected ? Colors.orange.shade900 : Colors.black87,
+                                        ),
+                                      ),
+                                      trailing: isSelected
+                                          ? const Icon(Icons.check, color: Colors.orange)
+                                          : null,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                    if (filteredZones.isNotEmpty)
+                      const Divider(height: 1),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
-  String _getLocalizedCityName(BuildContext context, String englishCityName) {
+  // This method is kept for backward compatibility but not used in this screen
+  String _getLocalizedCityNameFromEnglish(BuildContext context, String englishCityName) {
     final l10n = AppLocalizations.of(context);
     switch (englishCityName) {
       case 'Cairo':

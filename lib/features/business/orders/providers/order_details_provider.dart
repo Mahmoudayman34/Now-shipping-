@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:now_shipping/core/l10n/app_localizations.dart';
 import 'package:now_shipping/features/business/orders/providers/orders_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -243,10 +245,35 @@ class OrderDetailsNotifier extends StateNotifier<OrderDetailsModel?> {
   }
 
   // Update order details after scanning a smart sticker
-  void updateWithStickerInfo(String stickerId) {
-    // In a real app, you would update the order with the sticker information
-    // This would involve an API call
-    print('Order updated with sticker: $stickerId');
+  Future<void> updateWithStickerInfo(String stickerId) async {
+    try {
+      if (state == null) {
+        print('DEBUG PROVIDER: No order state available for sticker update');
+        return;
+      }
+      
+      print('DEBUG PROVIDER: Updating order ${state!.orderId} with sticker: $stickerId');
+      
+      // Get order service to make the API call
+      final orderService = _ref.read(orderServiceProvider);
+      
+      // Call the scan smart sticker API
+      final response = await orderService.scanSmartSticker(state!.orderId, stickerId);
+      
+      print('DEBUG PROVIDER: Smart sticker scan response: $response');
+      
+      // Handle the response - you might want to update the order state or show a message
+      // For now, we'll just log the success
+      if (response.containsKey('status') && response['status'] == 'success') {
+        print('DEBUG PROVIDER: Smart sticker scanned successfully');
+      } else {
+        print('DEBUG PROVIDER: Smart sticker scan failed: $response');
+      }
+    } catch (e) {
+      print('DEBUG PROVIDER: Error updating with sticker info: $e');
+      // Re-throw to let the UI handle the error
+      rethrow;
+    }
   }
 }
 
@@ -555,4 +582,84 @@ String _getStageDefaultDescription(String stageName) {
   };
   
   return stageDefaultDescriptions[stageName] ?? '';
+}
+
+/// Get localized display name for stage
+String _getLocalizedStageDisplayName(String stageName, BuildContext context) {
+  final l10n = AppLocalizations.of(context);
+  
+  switch (stageName) {
+    case 'orderPlaced':
+      return l10n.orderPlaced;
+    case 'packed':
+      return l10n.packed;
+    case 'shipping':
+      return l10n.shipping;
+    case 'inProgress':
+      return l10n.inProgress;
+    case 'outForDelivery':
+      return l10n.outForDelivery;
+    case 'delivered':
+      return l10n.delivered;
+    case 'returnInitiated':
+      return l10n.returnInitiated;
+    case 'returnAssigned':
+      return l10n.returnAssigned;
+    case 'returnPickedUp':
+      return l10n.returnPickedUp;
+    case 'returnAtWarehouse':
+      return l10n.returnAtWarehouse;
+    case 'returnInspection':
+      return l10n.returnInspection;
+    case 'returnProcessing':
+      return l10n.returnProcessing;
+    case 'returnToBusiness':
+      return l10n.returnToBusiness;
+    case 'returnCompleted':
+      return l10n.returnCompleted;
+    case 'returned':
+      return l10n.returnedStatus;
+    default:
+      return stageName;
+  }
+}
+
+/// Get localized default description for stage
+String _getLocalizedStageDefaultDescription(String stageName, BuildContext context) {
+  final l10n = AppLocalizations.of(context);
+  
+  switch (stageName) {
+    case 'orderPlaced':
+      return l10n.orderHasBeenCreated;
+    case 'packed':
+      return l10n.fastShippingMarkedCompleted;
+    case 'shipping':
+      return l10n.fastShippingMarkedCompleted;
+    case 'inProgress':
+      return l10n.fastShippingAssignedToCourier;
+    case 'outForDelivery':
+      return l10n.fastShippingReadyForDelivery;
+    case 'delivered':
+      return l10n.orderCompletedByCourier;
+    case 'returnInitiated':
+      return l10n.returnInitiated;
+    case 'returnAssigned':
+      return l10n.returnAssigned;
+    case 'returnPickedUp':
+      return l10n.returnPickedUp;
+    case 'returnAtWarehouse':
+      return l10n.returnAtWarehouse;
+    case 'returnInspection':
+      return l10n.returnInspection;
+    case 'returnProcessing':
+      return l10n.returnProcessing;
+    case 'returnToBusiness':
+      return l10n.returnToBusiness;
+    case 'returnCompleted':
+      return l10n.returnCompleted;
+    case 'returned':
+      return l10n.returnedStatus;
+    default:
+      return '';
+  }
 }

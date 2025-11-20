@@ -127,6 +127,23 @@ class CustomerSectionWidget extends ConsumerWidget {
             ),
           ],
         ),
+        // Secondary phone number (if available)
+        if (customerData['secondaryPhone'] != null && customerData['secondaryPhone'].toString().isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.phone, size: 16, color: Colors.grey),
+              const SizedBox(width: 8),
+              Text(
+                customerData['secondaryPhone'] ?? '',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ],
         const SizedBox(height: 8),
         
         // Address

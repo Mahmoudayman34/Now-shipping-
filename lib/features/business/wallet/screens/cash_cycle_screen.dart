@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:now_shipping/features/business/wallet/providers/cash_cycle_provider.dart';
 import 'package:now_shipping/features/business/wallet/models/cash_cycle_model.dart';
+import 'package:now_shipping/core/services/permission_service.dart';
+import 'package:now_shipping/core/l10n/app_localizations.dart';
 
 class CashCycleScreen extends ConsumerWidget {
   const CashCycleScreen({super.key});
@@ -18,8 +21,8 @@ class CashCycleScreen extends ConsumerWidget {
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: _buildAppBar(context),
       body: cashCycleAsync.when(
-        loading: () => _buildLoadingState(),
-        error: (error, stack) => _buildErrorState(error, ref, selectedTimePeriod),
+        loading: () => _buildLoadingState(context),
+        error: (error, stack) => _buildErrorState(error, ref, selectedTimePeriod, context),
         data: (cashCycleData) => _buildContent(context, ref, cashCycleData, selectedTimePeriod),
       ),
     );
@@ -45,20 +48,20 @@ class CashCycleScreen extends ConsumerWidget {
         ),
           onPressed: () => Navigator.pop(context),
       ),
-      title: const Text(
-        'Cash Cycle',
+      title: Text(
+        AppLocalizations.of(context).cashCycleTitle,
         style: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
           color: Color(0xFF1E293B),
         ),
       ),
-      centerTitle: false,
+      centerTitle: true,
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
+  Widget _buildLoadingState(BuildContext context) {
+    return Center(
         child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -68,7 +71,7 @@ class CashCycleScreen extends ConsumerWidget {
           ),
           SizedBox(height: 16),
           Text(
-            'Loading financial data...',
+            AppLocalizations.of(context).loadingFinancialData,
             style: TextStyle(
               color: Color(0xFF64748B),
               fontSize: 16,
@@ -76,7 +79,7 @@ class CashCycleScreen extends ConsumerWidget {
           ),
           SizedBox(height: 8),
           Text(
-            'This may take a moment for large datasets',
+            AppLocalizations.of(context).loadingLargeDatasetNote,
             style: TextStyle(
               color: Color(0xFF94A3B8),
               fontSize: 14,
@@ -87,7 +90,7 @@ class CashCycleScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildErrorState(dynamic error, WidgetRef ref, String selectedTimePeriod) {
+  Widget _buildErrorState(dynamic error, WidgetRef ref, String selectedTimePeriod, BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -108,8 +111,8 @@ class CashCycleScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Unable to Load Data',
+            Text(
+              AppLocalizations.of(context).unableToLoadData,
                 style: TextStyle(
                 fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -118,7 +121,7 @@ class CashCycleScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-              'We encountered an issue while fetching your financial data.',
+              AppLocalizations.of(context).fetchFinancialDataIssue,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                 color: const Color(0xFF64748B),
@@ -129,7 +132,7 @@ class CashCycleScreen extends ConsumerWidget {
             ElevatedButton.icon(
               onPressed: () => ref.refresh(cashCycleDataProvider(selectedTimePeriod)),
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try Again'),
+              label: Text(AppLocalizations.of(context).tryAgain),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF97316),
                 foregroundColor: Colors.white,
@@ -150,13 +153,13 @@ class CashCycleScreen extends ConsumerWidget {
           child: Column(
             children: [
           // Hero Section
-          _buildHeroSection(cashCycleData),
+          _buildHeroSection(context, cashCycleData),
           
           // Time Period Selector
-              _buildTimePeriodSelector(ref),
+              _buildTimePeriodSelector(context, ref),
           
           // Statistics Cards
-          _buildStatisticsSection(cashCycleData),
+          _buildStatisticsSection(context, cashCycleData),
           
           // Transaction History Section
           _buildTransactionHistorySection(context, ref, selectedTimePeriod, cashCycleData),
@@ -165,7 +168,7 @@ class CashCycleScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeroSection(dynamic cashCycleData) {
+  Widget _buildHeroSection(BuildContext context, dynamic cashCycleData) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -183,8 +186,8 @@ class CashCycleScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-              'Financial Overview',
+                Text(
+              AppLocalizations.of(context).financialOverview,
                   style: TextStyle(
                 color: Colors.white,
                 fontSize: 28,
@@ -193,7 +196,7 @@ class CashCycleScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Track your earnings and manage your cash flow',
+              AppLocalizations.of(context).trackEarnings,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.9),
                 fontSize: 16,
@@ -204,7 +207,7 @@ class CashCycleScreen extends ConsumerWidget {
                 children: [
                   Expanded(
                   child: _buildHeroStatCard(
-                    'Net Earnings',
+                    AppLocalizations.of(context).netEarnings,
                     cashCycleData.formattedNetTotal,
                     Icons.trending_up_rounded,
                     const Color(0xFF10B981),
@@ -213,7 +216,7 @@ class CashCycleScreen extends ConsumerWidget {
                 const SizedBox(width: 16),
                   Expanded(
                   child: _buildHeroStatCard(
-                    'Total Orders',
+                    AppLocalizations.of(context).totalOrders,
                     '${cashCycleData.completedOrdersCount + cashCycleData.returnedOrdersCount + cashCycleData.canceledOrdersCount + cashCycleData.returnCompletedOrdersCount}',
                     Icons.shopping_bag_rounded,
                     const Color(0xFF8B5CF6),
@@ -273,7 +276,7 @@ class CashCycleScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTimePeriodSelector(WidgetRef ref) {
+  Widget _buildTimePeriodSelector(BuildContext context, WidgetRef ref) {
     final selectedTimePeriod = ref.watch(selectedTimePeriodProvider);
     final availablePeriods = ref.watch(availableTimePeriodsProvider);
     final displayNames = ref.watch(timePeriodDisplayNamesProvider);
@@ -295,8 +298,8 @@ class CashCycleScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Time Period',
+          Text(
+            AppLocalizations.of(context).timePeriod,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -328,7 +331,7 @@ class CashCycleScreen extends ConsumerWidget {
                         ),
                         ),
                         child: Text(
-                          displayNames[index],
+                          _localizedPeriodLabel(context, period, displayNames[index]),
                           style: TextStyle(
                           color: isSelected ? Colors.white : const Color(0xFF64748B),
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
@@ -346,7 +349,7 @@ class CashCycleScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatisticsSection(dynamic cashCycleData) {
+  Widget _buildStatisticsSection(BuildContext context, dynamic cashCycleData) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -355,7 +358,7 @@ class CashCycleScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: _buildStatCard(
-                  'Total Income',
+                  AppLocalizations.of(context).totalIncome,
                   cashCycleData.formattedTotalIncome,
                   Icons.arrow_upward_rounded,
                   const Color(0xFF10B981),
@@ -365,7 +368,7 @@ class CashCycleScreen extends ConsumerWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _buildStatCard(
-                  'Total Fees',
+                  AppLocalizations.of(context).totalFees,
                   cashCycleData.formattedTotalFees,
                   Icons.arrow_downward_rounded,
                   const Color(0xFFEF4444),
@@ -464,8 +467,8 @@ class CashCycleScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Transaction History',
+                          Text(
+                            AppLocalizations.of(context).transactionHistory,
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -474,7 +477,7 @@ class CashCycleScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Detailed view of all your order earnings and fees',
+                            AppLocalizations.of(context).transactionHistoryDetailed,
                             style: TextStyle(
                               color: const Color(0xFF64748B),
                               fontSize: 14,
@@ -487,7 +490,7 @@ class CashCycleScreen extends ConsumerWidget {
                     ElevatedButton.icon(
                       onPressed: () => _exportToExcel(ref, selectedTimePeriod, context),
                       icon: const Icon(Icons.download_rounded, size: 18),
-                      label: const Text('Export'),
+                      label: Text(AppLocalizations.of(context).export),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFF97316),
                         foregroundColor: Colors.white,
@@ -500,7 +503,7 @@ class CashCycleScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                ...cashCycleData.orders.map((order) => _buildOrderCard(order)),
+                ...cashCycleData.orders.map((order) => _buildOrderCard(context, order)),
               ],
             ),
           ),
@@ -509,7 +512,7 @@ class CashCycleScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildOrderCard(CashCycleOrder order) {
+  Widget _buildOrderCard(BuildContext context, CashCycleOrder order) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -552,7 +555,7 @@ class CashCycleScreen extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    order.statusDisplay,
+                    _localizeOrderStatus(context, order.statusDisplay),
                     style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
@@ -568,7 +571,7 @@ class CashCycleScreen extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                              order.orderShipping.orderType,
+                              _localizeOrderType(context, order.orderShipping.orderType),
                 style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 11,
@@ -587,25 +590,25 @@ class CashCycleScreen extends ConsumerWidget {
           // Details - More compact layout
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: _buildCompactDetails(order),
+            child: _buildCompactDetails(context, order),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCompactDetails(CashCycleOrder order) {
+  Widget _buildCompactDetails(BuildContext context, CashCycleOrder order) {
     return Column(
       children: [
         // First row - Order Date and Order Value
         Row(
               children: [
             Expanded(
-              child: _buildCompactDetailItem("Order Date", order.formattedOrderDate, Icons.calendar_today_rounded),
+              child: _buildCompactDetailItem(AppLocalizations.of(context).orderDate, order.formattedOrderDate, Icons.calendar_today_rounded),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildCompactDetailItem("Order Value", order.formattedOrderValue, Icons.attach_money_rounded),
+              child: _buildCompactDetailItem(AppLocalizations.of(context).orderValue, order.formattedOrderValue, Icons.attach_money_rounded),
             ),
           ],
         ),
@@ -614,17 +617,17 @@ class CashCycleScreen extends ConsumerWidget {
         Row(
           children: [
             Expanded(
-              child: _buildCompactDetailItem("Service Fee", '${order.formattedOrderFees} ${_getFeeDescription(order)}', Icons.receipt_rounded),
+              child: _buildCompactDetailItem(AppLocalizations.of(context).serviceFee, '${order.formattedOrderFees} ${_getFeeDescriptionLocalized(context, order)}', Icons.receipt_rounded),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _buildCompactDetailItem("Payment Date", _formatPaymentReleaseDate(order), Icons.payment_rounded),
+              child: _buildCompactDetailItem(AppLocalizations.of(context).paymentDate, _formatPaymentReleaseDateLocalized(context, order), Icons.payment_rounded),
             ),
           ],
         ),
                 const SizedBox(height: 8),
         // Delivery Location - Full width
-        _buildCompactDetailItem("Delivery Location", order.orderCustomer.displayLocation, Icons.location_on_rounded),
+        _buildCompactDetailItem(AppLocalizations.of(context).deliveryLocation, order.orderCustomer.displayLocation, Icons.location_on_rounded),
       ],
     );
   }
@@ -677,6 +680,45 @@ class CashCycleScreen extends ConsumerWidget {
     );
   }
   
+  String _localizedPeriodLabel(BuildContext context, String key, String fallback) {
+    final l10n = AppLocalizations.of(context);
+    switch (key) {
+      case 'all':
+        return l10n.allTime;
+      case 'today':
+        return l10n.today;
+      case 'week':
+        return l10n.thisWeek;
+      case 'month':
+        return l10n.thisMonth;
+      case 'year':
+        return l10n.thisYear;
+      default:
+        return fallback;
+    }
+  }
+
+  String _localizeOrderStatus(BuildContext context, String status) {
+    final l10n = AppLocalizations.of(context);
+    final s = status.toLowerCase();
+    if (s.contains('completed')) return l10n.completedStatus; // fallback to status label if exists
+    if (s.contains('pending')) return l10n.pendingLower;
+    if (s.contains('canceled') || s.contains('cancelled')) return l10n.canceledStatus;
+    if (s.contains('returned')) return l10n.returnedStatus;
+    if (s.contains('in stock')) return l10n.inStockStatus;
+    return status;
+  }
+
+  String _localizeOrderType(BuildContext context, String type) {
+    final l10n = AppLocalizations.of(context);
+    final t = type.toLowerCase();
+    if (t.contains('deliver')) return l10n.deliver;
+    if (t.contains('exchange')) return l10n.exchangeType;
+    if (t.contains('return')) return l10n.returnType;
+    if (t.contains('cash')) return l10n.cashCollectionType;
+    return type;
+  }
+  
   Color _getStatusColor(String status) {
     switch (status) {
       case 'completed':
@@ -694,22 +736,24 @@ class CashCycleScreen extends ConsumerWidget {
     }
   }
 
-  String _getFeeDescription(CashCycleOrder order) {
+  String _getFeeDescriptionLocalized(BuildContext context, CashCycleOrder order) {
+    final l10n = AppLocalizations.of(context);
     switch (order.orderStatus) {
       case 'canceled':
-        return 'Cancellation Fees';
+        return l10n.cancellationFees;
       case 'returned':
-        return 'Return Fees';
+        return l10n.returnFees;
       case 'returnCompleted':
-        return 'Return Completed Fees';
+        return l10n.returnCompletedFees;
       default:
-        return 'Platform Fee';
+        return l10n.platformFee;
     }
   }
 
-  String _formatPaymentReleaseDate(CashCycleOrder order) {
+  String _formatPaymentReleaseDateLocalized(BuildContext context, CashCycleOrder order) {
+    final l10n = AppLocalizations.of(context);
     if (order.moneyReleaseDate == null) {
-      return 'Payment Pending';
+      return l10n.paymentPending;
     }
     
     final date = order.moneyReleaseDate!;
@@ -727,6 +771,33 @@ class CashCycleScreen extends ConsumerWidget {
 
   Future<void> _exportToExcel(WidgetRef ref, String timePeriod, BuildContext context) async {
     try {
+      // Request storage permissions before downloading
+      final hasPermissions = await PermissionService.hasStoragePermissions();
+      if (!hasPermissions) {
+        final permissionGranted = await PermissionService.requestStoragePermissions(context);
+        if (!permissionGranted) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.error_rounded, color: Colors.white),
+                    SizedBox(width: 8),
+                    Text(AppLocalizations.of(context).storagePermissionExcel),
+                  ],
+                ),
+                backgroundColor: const Color(0xFFEF4444),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            );
+          }
+          return;
+        }
+      }
+      
       // Show loading indicator
       showDialog(
         context: context,
@@ -752,11 +823,11 @@ class CashCycleScreen extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Row(
+              content: Row(
                 children: [
                   Icon(Icons.check_circle_rounded, color: Colors.white),
                   SizedBox(width: 8),
-                  Text('Excel file opened for saving'),
+                  Text(AppLocalizations.of(context).excelReadyToSave),
                 ],
               ),
               backgroundColor: const Color(0xFF10B981),
@@ -768,7 +839,7 @@ class CashCycleScreen extends ConsumerWidget {
           );
         }
       } else {
-        throw Exception('Invalid export response');
+        throw Exception(AppLocalizations.of(context).invalidExportResponse);
       }
     } catch (e) {
       // Close loading dialog if still open
@@ -783,7 +854,7 @@ class CashCycleScreen extends ConsumerWidget {
               children: [
                 const Icon(Icons.error_rounded, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Export failed: $e')),
+                Expanded(child: Text('${AppLocalizations.of(context).exportFailedPrefix}$e')),
               ],
             ),
             backgroundColor: const Color(0xFFEF4444),
@@ -803,21 +874,40 @@ class CashCycleScreen extends ConsumerWidget {
       final binaryData = result['data'] as List<int>;
       final filename = result['filename'] as String? ?? 'cash_cycles_export.xlsx';
       
-      // Get temporary directory for the file
-      final tempDir = await getTemporaryDirectory();
-      final filePath = '${tempDir.path}/$filename';
+      // Get app documents directory (most reliable)
+      final appDocDir = await getApplicationDocumentsDirectory();
+      final filePath = '${appDocDir.path}/$filename';
       final file = File(filePath);
       
-      // Write the binary data to the temporary file
+      // Write the binary data to app documents directory
       await file.writeAsBytes(binaryData);
       
-      print('Excel file created: $filePath (${binaryData.length} bytes)');
+      print('Excel file saved to app documents: $filePath (${binaryData.length} bytes)');
       
-      // Open the file directly for the user to save
-      await _openExcelFile(filePath);
+      // Share the file so user can save it to Downloads
+      await _shareExcelFile(file, filename);
       
     } catch (e) {
       throw Exception('Failed to prepare Excel file: $e');
+    }
+  }
+  
+  /// Share Excel file so user can save it to Downloads
+  Future<void> _shareExcelFile(File file, String filename) async {
+    try {
+      // Use share_plus to share the file
+      // This will open the system share dialog where user can save to Downloads
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Excel file: $filename',
+        subject: 'Cash Cycle Export - $filename',
+      );
+      
+      print('Excel file shared successfully');
+    } catch (e) {
+      print('Error sharing Excel file: $e');
+      // Fallback: try to open the file directly
+      await _openExcelFile(file.path);
     }
   }
 

@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../business/notifications/screens/notifications_screen.dart';
+import '../../../business/notifications/services/notification_service.dart';
 
-class DashboardHeader extends StatelessWidget {
+final unreadCountProvider = FutureProvider.autoDispose<int>((ref) async {
+  final service = NotificationService();
+  return await service.getUnreadCount();
+});
+
+class DashboardHeader extends ConsumerWidget {
   final String userName;
   
   const DashboardHeader({
@@ -10,7 +18,7 @@ class DashboardHeader extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final padding = ResponsiveUtils.getResponsiveHorizontalPadding(context);
@@ -67,39 +75,85 @@ class DashboardHeader extends StatelessWidget {
                   SizedBox(width: spacing / 2),
                 ],
               ),
-              // Row(
-              //   children: [
-              //     Container(
-              //       padding: const EdgeInsets.all(4),
-              //       decoration: BoxDecoration(
-              //         color: Colors.red.withOpacity(0.1),
-              //         borderRadius: BorderRadius.circular(20),
-              //       ),
-              //       child: Image.asset('assets/icons/receipt.png', width: 16, height: 16),
-              //     ),
-              //     const SizedBox(width: 12),
-              //     Container(
-              //       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              //       decoration: BoxDecoration(
-              //         color: Colors.grey.shade500.withOpacity(0.1),
-              //         borderRadius: BorderRadius.circular(20),
-              //       ),
-              //       child: Row(
-
-              //         children: [
-              //           Image.asset('assets/icons/support.png', width: 24, height: 24,
-              //             color: Colors.teal),
-              //           const SizedBox(width: 4),
-              //           const Text('Support', style: TextStyle(color: Colors.teal)),
-              //         ],
-              //       ),
-              //     ),
-              //   ],
-              // ),
+              // Notification Icon with Badge
+              _buildNotificationIcon(context, ref),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildNotificationIcon(BuildContext context, WidgetRef ref) {
+    final unreadCountAsync = ref.watch(unreadCountProvider);
+
+    return InkWell(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const NotificationsScreen(),
+          ),
+        );
+        // Refresh unread count after returning from notifications screen
+        ref.invalidate(unreadCountProvider);
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.grey.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            const Icon(
+              Icons.notifications_outlined,
+              color: Color(0xfff29620),
+              size: 24,
+            ),
+            // Badge
+            unreadCountAsync.when(
+              data: (count) {
+                if (count == 0) return const SizedBox.shrink();
+                
+                return Positioned(
+                  right: -4,
+                  top: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        count > 9 ? '9+' : count.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

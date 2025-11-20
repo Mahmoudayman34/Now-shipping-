@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
 import '../../../../core/l10n/app_localizations.dart';
+import 'pickup_address_selector_widget.dart';
 
 class DeliveryDetailsWidget extends ConsumerStatefulWidget {
   const DeliveryDetailsWidget({super.key});
@@ -277,6 +278,12 @@ class _DeliveryDetailsWidgetState extends ConsumerState<DeliveryDetailsWidget> {
               ),
             ],
           ),
+          
+          // Show pickup address selector when express shipping is enabled
+          if (order.expressShipping == true) ...[
+            const SizedBox(height: 16),
+            const PickupAddressSelectorWidget(),
+          ],
         ],
       ),
     );

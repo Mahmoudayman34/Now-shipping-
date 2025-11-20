@@ -10,6 +10,9 @@ import '../services/auth_service.dart';
 import '../screens/signup_screen.dart';
 import '../screens/forgot_password_screen.dart';
 import '../../../../core/layout/main_layout.dart'; // Add this import for the selectedTabIndexProvider
+import 'package:now_shipping/features/auth/services/auth_service.dart' show currentUserProvider;
+import 'package:now_shipping/features/business/dashboard/providers/profile_form_provider.dart';
+import 'package:now_shipping/features/business/services/user_service.dart' show userDataProvider;
 
 class LoginForm extends HookConsumerWidget {
   const LoginForm({super.key});
@@ -313,8 +316,15 @@ class LoginForm extends HookConsumerWidget {
       ref.read(loginProvider.notifier).state = false;
       
       if (user != null) {
-        // Refresh the user provider
-        ref.refresh(currentUserProvider);
+        // Invalidate and refresh all user-related providers to clear cache
+        ref.invalidate(currentUserProvider);
+        ref.invalidate(layoutUserProvider);
+        ref.invalidate(userDataProvider);
+        
+        // Reset profile form state when switching accounts
+        ref.read(profileFormDataProvider.notifier).state = {};
+        ref.read(currentStepProvider.notifier).state = 0;
+        ref.read(formSubmittedProvider.notifier).state = false;
         
         // Reset the selected tab index to 0 (Home)
         ref.read(selectedTabIndexProvider.notifier).state = 0;

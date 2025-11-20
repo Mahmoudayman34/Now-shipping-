@@ -15,6 +15,9 @@ class AdditionalDetailsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizedStatus = OrderStatusHelper.getLocalizedStatus(context, orderDetails.status);
+    final localizedStatusDescription = OrderStatusHelper.getLocalizedStatusDescription(context, orderDetails.status);
+
     return SectionContainer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,17 +31,18 @@ class AdditionalDetailsSection extends StatelessWidget {
           // Order Status with description
           DetailRow(
             label: AppLocalizations.of(context).status,
-            value: orderDetails.statusLabel ?? OrderStatusHelper.getLocalizedStatus(context, orderDetails.status),
+            value: localizedStatus,
             valueColor: StatusColors.getTextColorFromStatus(orderDetails.status),
           ),
           
           // Status Description if available
-          if (orderDetails.statusDescription != null && orderDetails.statusDescription!.isNotEmpty) ...[
+          if ((localizedStatusDescription != null && localizedStatusDescription.isNotEmpty) ||
+              (orderDetails.statusDescription != null && orderDetails.statusDescription!.isNotEmpty)) ...[
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.only(left: 16.0),
               child: Text(
-                orderDetails.statusDescription!,
+                localizedStatusDescription ?? orderDetails.statusDescription!,
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey.shade600,
@@ -52,7 +56,7 @@ class AdditionalDetailsSection extends StatelessWidget {
           
           // Order Fees
           DetailRow(
-            label: 'Order Fees',
+            label: AppLocalizations.of(context).orderFees,
             value: '${orderDetails.orderFees.toStringAsFixed(2)} EGP',
           ),
           
@@ -68,7 +72,7 @@ class AdditionalDetailsSection extends StatelessWidget {
           if (orderDetails.completedDate != null) ...[
             const SizedBox(height: 12),
             DetailRow(
-              label: 'Completed Date',
+              label: AppLocalizations.of(context).completedDate,
               value: orderDetails.completedDate!,
               valueColor: Colors.green.shade700,
             ),
@@ -78,7 +82,7 @@ class AdditionalDetailsSection extends StatelessWidget {
           if (orderDetails.deliveryManName != null) ...[
             const SizedBox(height: 12),
             DetailRow(
-              label: 'Delivery Person',
+              label: AppLocalizations.of(context).deliveryPerson,
               value: orderDetails.deliveryManName!,
             ),
           ],
@@ -87,7 +91,7 @@ class AdditionalDetailsSection extends StatelessWidget {
           if (orderDetails.progressPercentage != null) ...[
             const SizedBox(height: 12),
             DetailRow(
-              label: 'Progress',
+              label: AppLocalizations.of(context).progress,
               value: '${orderDetails.progressPercentage}%',
             ),
           ],
@@ -97,7 +101,7 @@ class AdditionalDetailsSection extends StatelessWidget {
             if (orderDetails.originalOrderNumber != null) ...[
               const SizedBox(height: 12),
               DetailRow(
-                label: 'Original Order',
+                label: AppLocalizations.of(context).originalOrderNumber,
                 value: orderDetails.originalOrderNumber!,
                 valueColor: Colors.blue.shade700,
               ),
@@ -105,7 +109,7 @@ class AdditionalDetailsSection extends StatelessWidget {
             if (orderDetails.returnReason != null && orderDetails.returnReason!.isNotEmpty) ...[
               const SizedBox(height: 12),
               DetailRow(
-                label: 'Return Reason',
+                label: AppLocalizations.of(context).returnReason,
                 value: orderDetails.returnReason!,
                 maxLines: 2,
               ),
@@ -113,7 +117,7 @@ class AdditionalDetailsSection extends StatelessWidget {
             if (orderDetails.returnNotes != null && orderDetails.returnNotes!.isNotEmpty) ...[
               const SizedBox(height: 12),
               DetailRow(
-                label: 'Return Notes',
+                label: AppLocalizations.of(context).returnNotes,
                 value: orderDetails.returnNotes!,
                 maxLines: 3,
               ),
@@ -121,8 +125,8 @@ class AdditionalDetailsSection extends StatelessWidget {
             if (orderDetails.isPartialReturn == true) ...[
               const SizedBox(height: 12),
               DetailRow(
-                label: 'Return Type',
-                value: 'Partial Return (${orderDetails.partialReturnItemCount ?? 0} items)',
+                label: AppLocalizations.of(context).returnType,
+                value: '${AppLocalizations.of(context).returnType} (${orderDetails.partialReturnItemCount ?? 0})',
                 valueColor: Colors.orange.shade700,
               ),
             ],

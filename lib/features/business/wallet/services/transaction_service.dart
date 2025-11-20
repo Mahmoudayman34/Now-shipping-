@@ -1,9 +1,12 @@
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:now_shipping/data/services/api_service.dart';
 import 'package:now_shipping/features/business/wallet/models/transaction_model.dart';
 import 'package:now_shipping/features/business/wallet/models/wallet_model.dart';
+import 'package:now_shipping/core/services/permission_service.dart';
+import 'package:flutter/material.dart';
 
 class TransactionService {
   final ApiService _apiService;
@@ -93,8 +96,20 @@ class TransactionService {
     DateTime? dateFrom,
     DateTime? dateTo,
     String? token,
+    BuildContext? context,
   }) async {
     try {
+      // Request storage permissions before downloading
+      if (context != null) {
+        final hasPermissions = await PermissionService.hasStoragePermissions();
+        if (!hasPermissions) {
+          final permissionGranted = await PermissionService.requestStoragePermissions(context);
+          if (!permissionGranted) {
+            throw Exception('Storage permission is required to download Excel files');
+          }
+        }
+      }
+      
       print('DEBUG TRANSACTION SERVICE: Exporting transactions with filters:');
       print('  - timePeriod: $timePeriod');
       print('  - statusFilter: $statusFilter');
@@ -142,39 +157,48 @@ class TransactionService {
     }
   }
 
-  /// Open file directly without saving to device storage
+  /// Save file and share it for user to save to Downloads
   Future<void> _openFileDirectly(Map<String, dynamic> fileData) async {
     try {
       final bytes = fileData['data'] as List<int>;
       final filename = fileData['filename'] as String? ?? 'transactions_export.xlsx';
       
-      // Create a temporary file in the app's cache directory
-      final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/$filename');
+      // Get app documents directory (most reliable)
+      final appDocDir = await getApplicationDocumentsDirectory();
+      final filePath = '${appDocDir.path}/$filename';
+      final file = File(filePath);
       
-      // Write the file to temporary location
-      await tempFile.writeAsBytes(bytes);
+      // Write the file to app documents directory
+      await file.writeAsBytes(bytes);
       
-      print('DEBUG TRANSACTION SERVICE: Temporary file created: ${tempFile.path}');
+      print('DEBUG TRANSACTION SERVICE: File saved to app documents: $filePath');
       print('DEBUG TRANSACTION SERVICE: File size: ${bytes.length} bytes');
       
-      // Open the temporary file directly
-      await _openFile(tempFile.path);
+      // Share the file so user can save it to Downloads
+      await _shareFile(file, filename);
       
-      // Clean up temporary file after a delay (in case user needs time to save)
-      Future.delayed(const Duration(minutes: 5), () async {
-        try {
-          if (await tempFile.exists()) {
-            await tempFile.delete();
-            print('DEBUG TRANSACTION SERVICE: Temporary file cleaned up');
-          }
-        } catch (e) {
-          print('DEBUG TRANSACTION SERVICE: Error cleaning up temporary file: $e');
-        }
-      });
     } catch (e) {
-      print('DEBUG TRANSACTION SERVICE: Error opening file directly: $e');
+      print('DEBUG TRANSACTION SERVICE: Error saving and sharing file: $e');
       rethrow;
+    }
+  }
+  
+  /// Share file so user can save it to Downloads
+  Future<void> _shareFile(File file, String filename) async {
+    try {
+      // Use share_plus to share the file
+      // This will open the system share dialog where user can save to Downloads
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Excel file: $filename',
+        subject: 'Transaction Export - $filename',
+      );
+      
+      print('DEBUG TRANSACTION SERVICE: File shared successfully');
+    } catch (e) {
+      print('DEBUG TRANSACTION SERVICE: Error sharing file: $e');
+      // Fallback: try to open the file directly
+      await _openFile(file.path);
     }
   }
 

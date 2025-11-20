@@ -14,14 +14,17 @@ class ProfileCompletionModel {
   final String city; // Required
   final String adressDetails; // Required
   final String? pickupPhone; // Optional
+  final String? otherPickupPhone; // Optional
   final String? nearbyLandmark; // Optional
   final String paymentMethod; // Required - "instaPay", "mobileWallet", or "bankTransfer"
   final String? nationalId; // Required if brandType is personal
   final List<String> photosOfBrandType; // Required
   final String? taxNumber; // Required if brandType is company
   final String? zone; // Optional
-  final String? pickUpPointInMaps; // Optional - points
-  final String? coordinates; // Optional - coordinates
+  final String? pickUpPointInMaps; // Optional - Google Maps link
+  final String? coordinates; // Optional - coordinates string "lat,lng"
+  final Map<String, dynamic>? pickUpPointCoordinates; // Optional - coordinates object {lat, lng}
+  final List<Map<String, dynamic>>? pickupAddresses; // Optional - array of pickup addresses
 
   ProfileCompletionModel({
     this.ipaoPhoneNumber,
@@ -39,6 +42,7 @@ class ProfileCompletionModel {
     required this.city,
     required this.adressDetails,
     this.pickupPhone,
+    this.otherPickupPhone,
     this.nearbyLandmark,
     required this.paymentMethod,
     this.nationalId,
@@ -47,6 +51,8 @@ class ProfileCompletionModel {
     this.zone,
     this.pickUpPointInMaps,
     this.coordinates,
+    this.pickUpPointCoordinates,
+    this.pickupAddresses,
   });
 
   Map<String, dynamic> toJson() {
@@ -66,14 +72,17 @@ class ProfileCompletionModel {
       'city': city,
       'adressDetails': adressDetails,
       if (pickupPhone != null) 'pickupPhone': pickupPhone,
+      if (otherPickupPhone != null) 'otherPickupPhone': otherPickupPhone,
       if (nearbyLandmark != null) 'nearbyLandmark': nearbyLandmark,
       'paymentMethod': paymentMethod,
       if (nationalId != null) 'nationalId': nationalId,
       'photosOfBrandType': photosOfBrandType,
-      if (taxNumber != null) 'taxNumber': taxNumber,
+      if (taxNumber != null && taxNumber!.isNotEmpty) 'taxNumber': taxNumber,
       if (zone != null) 'zone': zone,
       if (pickUpPointInMaps != null) 'pickUpPointInMaps': pickUpPointInMaps,
       if (coordinates != null) 'coordinates': coordinates,
+      if (pickUpPointCoordinates != null) 'pickUpPointCoordinates': pickUpPointCoordinates,
+      if (pickupAddresses != null && pickupAddresses!.isNotEmpty) 'pickupAddresses': pickupAddresses,
     };
   }
 
@@ -137,6 +146,57 @@ class ProfileCompletionModel {
       paymentMethod = 'bankTransfer'; // Convert to expected API value
     }
 
+    // Get first address data for backward compatibility
+    final firstAddress = formData.containsKey('pickupAddresses') && formData['pickupAddresses'] is List && (formData['pickupAddresses'] as List).isNotEmpty
+        ? (formData['pickupAddresses'] as List).first
+        : null;
+    
+    // Extract coordinates for main address
+    double? mainLat = formData['latitude']?.toDouble();
+    double? mainLng = formData['longitude']?.toDouble();
+    if (mainLat == null && firstAddress != null && firstAddress['latitude'] != null) {
+      mainLat = firstAddress['latitude']?.toDouble();
+      mainLng = firstAddress['longitude']?.toDouble();
+    }
+    
+    // Generate Google Maps link if coordinates exist
+    String? googleMapsLink;
+    if (mainLat != null && mainLng != null) {
+      googleMapsLink = 'https://www.google.com/maps?q=$mainLat,$mainLng';
+    } else if (formData['pickupLocationString'] != null) {
+      googleMapsLink = formData['pickupLocationString'] as String;
+    } else if (formData['formattedAddress'] != null) {
+      googleMapsLink = formData['formattedAddress'] as String;
+    }
+    
+    // Build coordinates object
+    Map<String, dynamic>? coordinatesObj;
+    if (mainLat != null && mainLng != null) {
+      coordinatesObj = {
+        'lat': mainLat,
+        'lng': mainLng,
+      };
+    }
+    
+    // Process pickup addresses array
+    List<Map<String, dynamic>>? pickupAddressesList;
+    if (formData.containsKey('pickupAddresses') && formData['pickupAddresses'] is List) {
+      final addresses = formData['pickupAddresses'] as List;
+      pickupAddressesList = addresses.map((addr) {
+        if (addr is Map<String, dynamic>) {
+          // Convert PickupAddress to API format
+          return _convertPickupAddressToApiFormat(addr);
+        }
+        return addr as Map<String, dynamic>;
+      }).toList();
+    }
+    
+    // Get other pickup phone
+    String? otherPickupPhone = formData['otherPhoneNumber'] ?? formData['otherPickupPhone'];
+    if (otherPickupPhone == null && firstAddress != null) {
+      otherPickupPhone = firstAddress['otherPhoneNumber'] ?? firstAddress['otherPickupPhone'];
+    }
+
     return ProfileCompletionModel(
       ipaoPhoneNumber: formData['ipaAddress'],
       mobileWalletNumber: formData['mobileNumber'],
@@ -149,18 +209,21 @@ class ProfileCompletionModel {
       monthlyOrders: monthlyOrders,
       sellingPoints: sellingPoints,
       socialLinks: socialLinks,
-      country: formData['country'] ?? '',
-      city: formData['city'] ?? formData['region'] ?? '',
-      adressDetails: addressDetails,
-      pickupPhone: formData['phoneNumber'] ?? formData['pickupPhone'],
-      nearbyLandmark: formData['nearbyLandmark'],
+      country: formData['country'] ?? firstAddress?['country'] ?? '',
+      city: formData['city'] ?? formData['region'] ?? firstAddress?['region'] ?? firstAddress?['city'] ?? '',
+      adressDetails: addressDetails.isNotEmpty ? addressDetails : (firstAddress?['addressDetails'] ?? firstAddress?['adressDetails'] ?? ''),
+      pickupPhone: formData['phoneNumber'] ?? formData['pickupPhone'] ?? firstAddress?['phoneNumber'] ?? firstAddress?['pickupPhone'],
+      otherPickupPhone: otherPickupPhone,
+      nearbyLandmark: formData['nearbyLandmark'] ?? firstAddress?['nearbyLandmark'],
       paymentMethod: paymentMethod,
       nationalId: formData['nationalIdNumber'],
       photosOfBrandType: documentPhotos,
       taxNumber: formData['taxNumber'],
-      zone: formData['zone'],
-      pickUpPointInMaps: formData['pickupLocationString'] ?? formData['formattedAddress'],
-      coordinates: _formatCoordinates(formData['latitude'], formData['longitude']) ?? formData['pickupCoordinates'],
+      zone: formData['zone'] ?? firstAddress?['zone'],
+      pickUpPointInMaps: googleMapsLink,
+      coordinates: _formatCoordinates(mainLat, mainLng) ?? formData['pickupCoordinates'],
+      pickUpPointCoordinates: coordinatesObj,
+      pickupAddresses: pickupAddressesList,
     );
   }
   
@@ -169,5 +232,44 @@ class ProfileCompletionModel {
       return '$lat,$lng';
     }
     return null;
+  }
+  
+  /// Convert PickupAddress from form data to API format
+  static Map<String, dynamic> _convertPickupAddressToApiFormat(Map<String, dynamic> addr) {
+    final double? lat = addr['latitude']?.toDouble();
+    final double? lng = addr['longitude']?.toDouble();
+    
+    // Generate Google Maps link
+    String? googleMapsLink;
+    if (lat != null && lng != null) {
+      googleMapsLink = 'https://www.google.com/maps?q=$lat,$lng';
+    } else if (addr['formattedAddress'] != null) {
+      googleMapsLink = addr['formattedAddress'] as String;
+    } else if (addr['pickupLocationString'] != null) {
+      googleMapsLink = addr['pickupLocationString'] as String;
+    }
+    
+    // Build coordinates object
+    Map<String, dynamic>? coordinatesObj;
+    if (lat != null && lng != null) {
+      coordinatesObj = {
+        'lat': lat,
+        'lng': lng,
+      };
+    }
+    
+    return {
+      'addressName': addr['addressName'] ?? 'Main Address',
+      'isDefault': addr['isDefault'] ?? (addr['addressName'] == 'Main Address' || addr['addressName'] == null),
+      'country': addr['country'] ?? 'Egypt',
+      'city': addr['city'] ?? addr['region'] ?? 'Cairo',
+      'zone': addr['zone'],
+      'adressDetails': addr['adressDetails'] ?? addr['addressDetails'],
+      'nearbyLandmark': addr['nearbyLandmark'],
+      'pickupPhone': addr['pickupPhone'] ?? addr['phoneNumber'],
+      'otherPickupPhone': addr['otherPickupPhone'] ?? addr['otherPhoneNumber'],
+      'pickUpPointInMaps': googleMapsLink,
+      if (coordinatesObj != null) 'coordinates': coordinatesObj,
+    };
   }
 }

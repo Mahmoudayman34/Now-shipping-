@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
+import 'package:now_shipping/core/l10n/app_localizations.dart';
+import 'pickup_address_selector_widget.dart';
 
 class CashCollectionDetailsWidget extends ConsumerStatefulWidget {
   const CashCollectionDetailsWidget({super.key});
@@ -75,9 +77,9 @@ class _CashCollectionDetailsWidgetState extends ConsumerState<CashCollectionDeta
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Cash Collection Details Header
-          const Text(
-            'Cash Collection Details',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).cashCollectionDetails,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Color(0xff2F2F2F),
@@ -87,9 +89,9 @@ class _CashCollectionDetailsWidgetState extends ConsumerState<CashCollectionDeta
           const SizedBox(height: 16),
           
           // Amount to Collect
-          const Text(
-            'Amount to Collect',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).amountToCollect,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Color(0xff2F2F2F),
@@ -129,8 +131,8 @@ class _CashCollectionDetailsWidgetState extends ConsumerState<CashCollectionDeta
                 FilteringTextInputFormatter.digitsOnly,
               ],
             decoration: InputDecoration(
-              hintText: 'Enter the amount to collect in EGP',
-                prefixText: 'EGP ',
+              hintText: AppLocalizations.of(context).enterAmountToCollect,
+                prefixText: '${AppLocalizations.of(context).egp} ',
                 prefixStyle: const TextStyle(color: Colors.black87),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -143,9 +145,9 @@ class _CashCollectionDetailsWidgetState extends ConsumerState<CashCollectionDeta
               ),
               ),
             const SizedBox(height: 8),
-            const Text(
-              'Enter whole numbers only (no decimal points)',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context).enterWholeNumbersOnly,
+              style: const TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
                 fontStyle: FontStyle.italic,
@@ -170,9 +172,9 @@ class _CashCollectionDetailsWidgetState extends ConsumerState<CashCollectionDeta
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              const Text(
-                'Express Shipping',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).expressShipping,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Color(0xff2F2F2F),
@@ -180,6 +182,12 @@ class _CashCollectionDetailsWidgetState extends ConsumerState<CashCollectionDeta
               ),
             ],
           ),
+          
+          // Show pickup address selector when express shipping is enabled
+          if (ref.watch(orderModelProvider).expressShipping == true) ...[
+            const SizedBox(height: 16),
+            const PickupAddressSelectorWidget(),
+          ],
         ],
         ),
       ),

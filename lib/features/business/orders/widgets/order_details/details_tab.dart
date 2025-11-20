@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:now_shipping/core/l10n/app_localizations.dart';
 import 'package:now_shipping/features/business/orders/providers/order_details_provider.dart';
 import 'package:now_shipping/features/business/orders/providers/orders_provider.dart' hide orderDetailsProvider;
 import 'package:now_shipping/features/business/orders/widgets/order_details/customer_section.dart';
@@ -188,21 +189,21 @@ class DetailsTab extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.calendar_today_rounded, color: Color(0xFFFF6B35)),
-            SizedBox(width: 12),
-            Text('Retry Tomorrow'),
+            const Icon(Icons.calendar_today_rounded, color: Color(0xFFFF6B35)),
+            const SizedBox(width: 12),
+            Text(AppLocalizations.of(context).retryTomorrow),
           ],
         ),
         content: Text(
-          'Are you sure you want to schedule this order for automatic retry tomorrow?',
+          AppLocalizations.of(context).retryTomorrowConfirmation,
           style: TextStyle(fontSize: 15, color: Colors.grey[700]),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
+            child: Text(AppLocalizations.of(context).cancel, style: TextStyle(color: Colors.grey[600])),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -228,17 +229,17 @@ class DetailsTab extends ConsumerWidget {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Column(
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            CircularProgressIndicator(
+                            const CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6B35)),
                               strokeWidth: 3,
                             ),
-                            SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             Text(
-                              'Processing...',
-                              style: TextStyle(
+                              AppLocalizations.of(context).processing,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF2C3E50),
@@ -302,7 +303,7 @@ class DetailsTab extends ConsumerWidget {
               backgroundColor: const Color(0xFFFF6B35),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Confirm'),
+            child: Text(AppLocalizations.of(context).confirm),
           ),
         ],
       ),
@@ -339,11 +340,11 @@ class DetailsTab extends ConsumerWidget {
         context: context,
         builder: (context) => AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.schedule_rounded, color: Color(0xFF3498DB)),
-              SizedBox(width: 12),
-              Text('Confirm Schedule'),
+              const Icon(Icons.schedule_rounded, color: Color(0xFF3498DB)),
+              const SizedBox(width: 12),
+              Text(AppLocalizations.of(context).confirmSchedule),
             ],
           ),
           content: Column(
@@ -351,7 +352,7 @@ class DetailsTab extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Schedule retry for:',
+                AppLocalizations.of(context).scheduleRetryFor,
                 style: TextStyle(fontSize: 15, color: Colors.grey[700]),
               ),
               const SizedBox(height: 12),
@@ -384,7 +385,7 @@ class DetailsTab extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
+              child: Text(AppLocalizations.of(context).cancel, style: TextStyle(color: Colors.grey[600])),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -410,17 +411,17 @@ class DetailsTab extends ConsumerWidget {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Column(
+                          child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              CircularProgressIndicator(
+                              const CircularProgressIndicator(
                                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3498DB)),
                                 strokeWidth: 3,
                               ),
-                              SizedBox(height: 16),
+                              const SizedBox(height: 16),
                               Text(
-                                'Processing...',
-                                style: TextStyle(
+                                AppLocalizations.of(context).processing,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   color: Color(0xFF2C3E50),
@@ -484,7 +485,7 @@ class DetailsTab extends ConsumerWidget {
                 backgroundColor: const Color(0xFF3498DB),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
-              child: const Text('Confirm'),
+              child: Text(AppLocalizations.of(context).confirm),
             ),
           ],
         ),
@@ -503,21 +504,21 @@ class DetailsTab extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warehouse_rounded, color: Color(0xFFE74C3C)),
-            SizedBox(width: 12),
-            Text('Return to Warehouse'),
+            const Icon(Icons.warehouse_rounded, color: Color(0xFFE74C3C)),
+            const SizedBox(width: 12),
+            Text(AppLocalizations.of(context).returnToWarehouse),
           ],
         ),
         content: Text(
-          'Are you sure you want to return this order to the warehouse? This action cannot be undone.',
+          AppLocalizations.of(context).returnToWarehouseConfirmation,
           style: TextStyle(fontSize: 15, color: Colors.grey[700]),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
+            child: Text(AppLocalizations.of(context).cancel, style: TextStyle(color: Colors.grey[600])),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -543,17 +544,17 @@ class DetailsTab extends ConsumerWidget {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: const Column(
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            CircularProgressIndicator(
+                            const CircularProgressIndicator(
                               valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFE74C3C)),
                               strokeWidth: 3,
                             ),
-                            SizedBox(height: 16),
+                            const SizedBox(height: 16),
                             Text(
-                              'Processing...',
-                              style: TextStyle(
+                              AppLocalizations.of(context).processing,
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                                 color: Color(0xFF2C3E50),
@@ -617,7 +618,7 @@ class DetailsTab extends ConsumerWidget {
               backgroundColor: const Color(0xFFE74C3C),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Confirm Return'),
+            child: Text(AppLocalizations.of(context).confirmReturn),
           ),
         ],
       ),
@@ -630,21 +631,21 @@ class DetailsTab extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: Color(0xFFE74C3C), size: 28),
-            SizedBox(width: 12),
-            Text('Cancel Order'),
+            const Icon(Icons.warning_amber_rounded, color: Color(0xFFE74C3C), size: 28),
+            const SizedBox(width: 12),
+            Text(AppLocalizations.of(context).cancelOrder),
           ],
         ),
-        content: const Text(
-          'Are you sure you want to cancel this order? This action cannot be undone.',
-          style: TextStyle(fontSize: 16),
+        content: Text(
+          AppLocalizations.of(context).cancelOrderConfirmation,
+          style: const TextStyle(fontSize: 16),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Keep Order', style: TextStyle(color: Colors.grey[600])),
+            child: Text(AppLocalizations.of(context).keepOrder, style: TextStyle(color: Colors.grey[600])),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -744,7 +745,7 @@ class DetailsTab extends ConsumerWidget {
               backgroundColor: const Color(0xFFE74C3C),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Cancel Order'),
+            child: Text(AppLocalizations.of(context).cancelOrder),
           ),
         ],
       ),

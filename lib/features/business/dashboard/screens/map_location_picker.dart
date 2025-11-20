@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/location_model.dart';
+
+// Theme colors
+const Color _primaryOrange = Color(0xfff29620);
+const Color _white = Colors.white;
+const Color _lightGrey = Color(0xFFF5F5F5);
+const Color _darkGrey = Color(0xFF757575);
 
 class MapLocationPicker extends StatefulWidget {
   final double? initialLatitude;
@@ -11,8 +21,8 @@ class MapLocationPicker extends StatefulWidget {
 
   const MapLocationPicker({
     super.key,
-    this.initialLatitude = 30.0444, // Default to Cairo
-    this.initialLongitude = 31.2357,
+    this.initialLatitude,
+    this.initialLongitude,
   });
 
   @override
@@ -24,31 +34,42 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
   LatLng? _selectedPosition;
   Set<Marker> _markers = {};
   bool _isLoading = false;
-  final bool _locationPermissionDenied = false;
+  String? _mapError;
+  String? _currentAddress;
   
   // Search variables
   final TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
   bool _isSearching = false;
-  final String _apiKey = 'AIzaSyCGxSkL--7poxqkFZJg9c3v_0Y3czMIiOI';
+  final String _apiKey = 'AIzaSyBg4oV-yrhIkatEh2fVvzOXmFaDmJ-h7Aw';
   
   // Focus node to handle keyboard interactions
   final FocusNode _searchFocusNode = FocusNode();
   bool _showSearchResults = false;
 
+  // Default location: Cairo, Egypt
+  static const LatLng _defaultLocation = LatLng(30.0444, 31.2357);
+  static const double _defaultZoom = 14.0;
+
   @override
   void initState() {
     super.initState();
-    _selectedPosition = LatLng(
-      widget.initialLatitude ?? 30.0444, // Default to Cairo
-      widget.initialLongitude ?? 31.2357,
-    );
+    // Set initial position - use provided coordinates or default to Cairo, Egypt
+    _selectedPosition = widget.initialLatitude != null && widget.initialLongitude != null
+        ? LatLng(widget.initialLatitude!, widget.initialLongitude!)
+        : _defaultLocation;
+    
     _setMarker(_selectedPosition!);
+    _loadAddressForPosition(_selectedPosition!);
     
     _searchFocusNode.addListener(() {
       setState(() {
         _showSearchResults = _searchFocusNode.hasFocus && _searchResults.isNotEmpty;
       });
+    });
+    
+    _searchController.addListener(() {
+      setState(() {}); // Rebuild to show/hide clear button
     });
   }
   
@@ -67,52 +88,171 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
           markerId: const MarkerId('selectedLocation'),
           position: position,
           draggable: true,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
           onDragEnd: (newPosition) {
             setState(() {
               _selectedPosition = newPosition;
+              _setMarker(newPosition);
             });
+            _loadAddressForPosition(newPosition);
           },
         ),
       };
     });
   }
 
-  // Clean region name to match dropdown options
+  // Load address for a given position
+  Future<void> _loadAddressForPosition(LatLng position) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks.first;
+        String formattedAddress = [
+          place.thoroughfare,
+          place.subLocality,
+          place.locality,
+          place.administrativeArea,
+          place.country,
+        ].where((component) => component != null && component.isNotEmpty).join(', ');
+        
+        setState(() {
+          _currentAddress = formattedAddress;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading address: $e');
+    }
+  }
+
+  // Normalize region name to match dropdown options
   String _normalizeRegionName(String? regionName) {
     if (regionName == null) return '';
     
-    // List of mappings for region names
     final Map<String, String> regionMappings = {
       'cairo governorate': 'Cairo',
       'giza governorate': 'Giza',
       'alexandria governorate': 'Alexandria',
     };
     
-    // Normalize by removing "Governorate" and matching to known regions
     String normalized = regionName.toLowerCase();
     
-    // Try direct mapping first
     if (regionMappings.containsKey(normalized)) {
       return regionMappings[normalized]!;
     }
     
-    // Try to match substring of known regions
     for (var entry in regionMappings.entries) {
-      if (normalized.contains(entry.key.split(' ')[0])) { // Match first word
+      if (normalized.contains(entry.key.split(' ')[0])) {
         return entry.value;
       }
     }
     
-    // If Cairo/Giza/Alexandria is in the string, use that
     if (normalized.contains('cairo')) return 'Cairo';
     if (normalized.contains('giza')) return 'Giza';
     if (normalized.contains('alexandria') || normalized.contains('alex')) return 'Alexandria';
     
-    // Return original if no match found
     return regionName;
   }
 
-  // Search for places using Google Places API
+  // Get current GPS location
+  Future<void> _getCurrentLocation() async {
+    try {
+      final permission = await Permission.location.request();
+      if (permission.isDenied || permission.isPermanentlyDenied) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location permission is required'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      bool serviceEnabled = false;
+      try {
+        serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      } catch (e) {
+        debugPrint('Geolocator not available: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location services not available. Please restart the app.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      if (!serviceEnabled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please enable location services'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      setState(() {
+        _isLoading = true;
+      });
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final latLng = LatLng(position.latitude, position.longitude);
+      
+      setState(() {
+        _selectedPosition = latLng;
+        _setMarker(latLng);
+      });
+      
+      _mapController?.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: latLng, zoom: 16),
+        ),
+      );
+      
+      await _loadAddressForPosition(latLng);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location updated'),
+            backgroundColor: _primaryOrange,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error getting current location: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to get location: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // Search for places using Google Places API (limited to Egypt)
   Future<void> _searchPlaces(String query) async {
     if (query.isEmpty) {
       setState(() {
@@ -131,7 +271,7 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
       final response = await http.get(
         Uri.parse(
           'https://maps.googleapis.com/maps/api/place/autocomplete/json?'
-          'input=$query&key=$_apiKey&language=en'
+          'input=${Uri.encodeComponent(query)}&key=$_apiKey&language=en'
           '&components=country:eg' // Limit to Egypt
         ),
       );
@@ -139,7 +279,7 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
-          _searchResults = data['predictions'];
+          _searchResults = data['predictions'] ?? [];
           _isSearching = false;
         });
       } else {
@@ -162,6 +302,7 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
     setState(() {
       _isLoading = true;
       _showSearchResults = false;
+      _searchFocusNode.unfocus();
     });
 
     try {
@@ -178,20 +319,22 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
           final location = data['result']['geometry']['location'];
           final latLng = LatLng(location['lat'], location['lng']);
           
-          // Update selected position and move camera
           setState(() {
             _selectedPosition = latLng;
             _setMarker(latLng);
+            if (data['result']['formatted_address'] != null) {
+              _currentAddress = data['result']['formatted_address'];
+              _searchController.text = data['result']['formatted_address'];
+            }
           });
           
-          _mapController?.animateCamera(CameraUpdate.newCameraPosition(
-            CameraPosition(target: latLng, zoom: 15),
-          ));
+          _mapController?.animateCamera(
+            CameraUpdate.newCameraPosition(
+              CameraPosition(target: latLng, zoom: 16),
+            ),
+          );
           
-          // Update search box with formatted address if available
-          if (data['result']['formatted_address'] != null) {
-            _searchController.text = data['result']['formatted_address'];
-          }
+          await _loadAddressForPosition(latLng);
         }
       }
     } catch (e) {
@@ -203,6 +346,7 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
     }
   }
 
+  // Get address from coordinates
   Future<LocationData?> _getAddressFromLatLng(LatLng position) async {
     setState(() {
       _isLoading = true;
@@ -217,7 +361,6 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks.first;
         
-        // Extract location details
         String? country = place.country;
         String? rawRegion = place.administrativeArea;
         String region = _normalizeRegionName(rawRegion);
@@ -236,13 +379,26 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
           country,
         ].where((component) => component != null && component.isNotEmpty).join(', ');
 
+        // Format address details (street-level address for the form)
+        String addressDetails = [
+          street,
+          district,
+          city,
+        ].where((component) => component != null && component.isNotEmpty).join(', ');
+        
+        // If no street-level details, use formatted address as fallback
+        if (addressDetails.isEmpty) {
+          addressDetails = formattedAddress.isNotEmpty ? formattedAddress : 'Selected location';
+        }
+
         return LocationData(
           latitude: position.latitude,
           longitude: position.longitude,
           formattedAddress: formattedAddress,
+          addressDetails: addressDetails,
           country: country,
           city: city,
-          region: region, // Use normalized region name
+          region: region,
           zone: zone ?? district,
         );
       }
@@ -260,84 +416,203 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
     }
   }
 
+  // Move camera to default location
+  void _moveToDefaultLocation() {
+    if (_mapController != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+            target: _defaultLocation,
+            zoom: _defaultZoom,
+          ),
+        ),
+      );
+      setState(() {
+        _selectedPosition = _defaultLocation;
+        _setMarker(_defaultLocation);
+      });
+      _loadAddressForPosition(_defaultLocation);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false, // Prevent keyboard from pushing up content
+      resizeToAvoidBottomInset: false,
+      backgroundColor: _white,
       appBar: AppBar(
-        title: const Text('Select Location'),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        title: const Text(
+          'Select Location',
+          style: TextStyle(
+            color: _white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: _primaryOrange,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: _white),
+        actions: [
+          // Current location button
+          IconButton(
+            icon: const Icon(Icons.my_location, color: _white),
+            tooltip: 'Get Current Location',
+            onPressed: _isLoading ? null : _getCurrentLocation,
+          ),
+          // Reset to default location
+          IconButton(
+            icon: const Icon(Icons.home, color: _white),
+            tooltip: 'Center on Cairo',
+            onPressed: _isLoading ? null : _moveToDefaultLocation,
+          ),
+        ],
       ),
-      body: Stack(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          debugPrint('🗺️ MapLocationPicker building with size: ${constraints.maxWidth}x${constraints.maxHeight}');
+          return Stack(
+            fit: StackFit.expand,
         children: [
-          GoogleMap(
+              // Google Map - fills entire screen - MUST be first in stack (bottom layer)
+              Container(
+                width: constraints.maxWidth,
+                height: constraints.maxHeight,
+                color: _lightGrey, // Background color while map loads
+                child: RepaintBoundary(
+                  child: GoogleMap(
+                    key: const ValueKey('google_map_widget'),
             initialCameraPosition: CameraPosition(
-              target: _selectedPosition ?? const LatLng(30.0444, 31.2357),
-              zoom: 14,
+                      target: _defaultLocation,
+                      zoom: _defaultZoom,
             ),
             markers: _markers,
-            onMapCreated: (controller) {
+                    onMapCreated: (controller) async {
+                debugPrint('🗺️ GoogleMap onMapCreated called');
               _mapController = controller;
+                setState(() {
+                  _mapError = null;
+                });
+                
+                // Move to initial position if provided
+                if (widget.initialLatitude != null && widget.initialLongitude != null) {
+                  final initialPos = LatLng(widget.initialLatitude!, widget.initialLongitude!);
+                  await controller.animateCamera(
+                    CameraUpdate.newLatLngZoom(initialPos, _defaultZoom),
+                  );
+                  setState(() {
+                    _selectedPosition = initialPos;
+                    _setMarker(initialPos);
+                  });
+                  _loadAddressForPosition(initialPos);
+                } else {
+                  setState(() {
+                    _selectedPosition = _defaultLocation;
+                    _setMarker(_defaultLocation);
+                  });
+                  _loadAddressForPosition(_defaultLocation);
+                }
+                
+                debugPrint('✅ Google Map initialized successfully');
             },
             onTap: (position) {
+                debugPrint('🗺️ Map tapped at: $position');
               setState(() {
                 _selectedPosition = position;
                 _setMarker(position);
                 _showSearchResults = false;
                 _searchFocusNode.unfocus();
               });
+                _loadAddressForPosition(position);
             },
-            // Disable myLocationEnabled to prevent errors about missing permissions
-            myLocationEnabled: false,
+              myLocationEnabled: true,
             myLocationButtonEnabled: false,
-            zoomControlsEnabled: true,
-            mapToolbarEnabled: true,
-          ),
-          if (_isLoading)
-            Container(
-              color: Colors.black54,
-              child: const Center(
-                child: CircularProgressIndicator(),
+              zoomControlsEnabled: false,
+              mapToolbarEnabled: false,
+              mapType: MapType.normal,
+              compassEnabled: true,
+              rotateGesturesEnabled: true,
+              scrollGesturesEnabled: true,
+              tiltGesturesEnabled: true,
+              zoomGesturesEnabled: true,
+                  minMaxZoomPreference: const MinMaxZoomPreference(5, 20),
+                  buildingsEnabled: true,
+                  trafficEnabled: false,
+                  gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
+                    Factory<OneSequenceGestureRecognizer>(
+                      () => EagerGestureRecognizer(),
+                    ),
+                  },
+                ),
               ),
             ),
             
-          // Location permission message if needed
-          if (_locationPermissionDenied)
-            Positioned(
-              top: 16, 
-              left: 16, 
-              right: 16,
+            // Error message overlay
+          if (_mapError != null)
+            Positioned.fill(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        'Location permissions not granted. You can still select a location manually.',
-                        style: TextStyle(fontSize: 12),
+                color: _white,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.red[300],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Map failed to load',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: _darkGrey,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Text(
+                          _mapError!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: _darkGrey,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _mapError = null;
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _primaryOrange,
+                          foregroundColor: _white,
+                        ),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          
+          // Loading overlay
+          if (_isLoading)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black54,
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(_primaryOrange),
+                      ),
                 ),
               ),
             ),
             
-          // Custom map search bar
+          // Search bar at the top
           Positioned(
             top: 16,
             left: 16,
@@ -348,14 +623,14 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                 // Search bar
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
+                    color: _white,
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
+                        color: Colors.black.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
@@ -363,11 +638,12 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                     controller: _searchController,
                     focusNode: _searchFocusNode,
                     decoration: InputDecoration(
-                      hintText: 'Search for a location',
-                      prefixIcon: const Icon(Icons.search),
+                      hintText: 'Search for a location...',
+                      hintStyle: const TextStyle(color: _darkGrey),
+                      prefixIcon: const Icon(Icons.search, color: _primaryOrange),
                       suffixIcon: _searchController.text.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear),
+                              icon: const Icon(Icons.clear, size: 20, color: _darkGrey),
                               onPressed: () {
                                 setState(() {
                                   _searchController.clear();
@@ -378,10 +654,11 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                             )
                           : null,
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                     ),
                     onChanged: (value) {
-                      if (value.length > 2) { // Start search after 2 characters
+                      setState(() {}); // Rebuild to show/hide clear button
+                      if (value.length > 2) {
                         _searchPlaces(value);
                       } else if (value.isEmpty) {
                         setState(() {
@@ -396,17 +673,17 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                 // Search results dropdown
                 if (_showSearchResults)
                   Container(
-                    margin: const EdgeInsets.only(top: 4),
-                    constraints: const BoxConstraints(maxHeight: 200),
+                    margin: const EdgeInsets.only(top: 8),
+                    constraints: const BoxConstraints(maxHeight: 250),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
+                      color: _white,
+                      borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 2,
-                          blurRadius: 5,
-                          offset: const Offset(0, 3),
+                          color: Colors.black.withOpacity(0.1),
+                          spreadRadius: 1,
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
@@ -414,13 +691,18 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                         ? const Center(
                             child: Padding(
                               padding: EdgeInsets.all(16.0),
-                              child: CircularProgressIndicator(),
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(_primaryOrange),
+                              ),
                             ),
                           )
                         : _searchResults.isEmpty
                             ? const Padding(
                                 padding: EdgeInsets.all(16.0),
-                                child: Text('No results found'),
+                                child: Text(
+                                  'No results found',
+                                  style: TextStyle(color: _darkGrey),
+                                ),
                               )
                             : ListView.builder(
                                 shrinkWrap: true,
@@ -428,12 +710,31 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                                 itemCount: _searchResults.length,
                                 itemBuilder: (context, index) {
                                   final result = _searchResults[index];
-                                  return ListTile(
-                                    dense: true,
-                                    title: Text(result['description'] ?? 'Unknown location'),
-                                    onTap: () {
-                                      _getPlaceDetails(result['place_id']);
-                                    },
+                                  return InkWell(
+                                    onTap: () => _getPlaceDetails(result['place_id']),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            color: _lightGrey,
+                                            width: 0.5,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.place, size: 20, color: _primaryOrange),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              result['description'] ?? 'Unknown location',
+                                              style: const TextStyle(fontSize: 14, color: Colors.black87),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   );
                                 },
                               ),
@@ -442,17 +743,74 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
             ),
           ),
           
-          // Confirm button at the bottom
+          // Address display card
+          if (_currentAddress != null && !_showSearchResults)
           Positioned(
-            bottom: 16,
+              top: 100,
             left: 16,
             right: 16,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on, color: _primaryOrange, size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _currentAddress!,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          
+          // Confirm button at the bottom
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  color: _white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    backgroundColor: _primaryOrange,
+                    foregroundColor: _white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
               ),
               onPressed: _selectedPosition == null || _isLoading
                   ? null
@@ -463,14 +821,29 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                         Navigator.pop(context, locationData);
                       }
                     },
-              child: const Text(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.check_circle, size: 22),
+                      const SizedBox(width: 8),
+                      const Text(
                 'Confirm Location',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
         ],
+        );
+        },
       ),
     );
   }
 }
+

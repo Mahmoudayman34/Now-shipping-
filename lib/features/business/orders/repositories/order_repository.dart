@@ -1,5 +1,6 @@
 import 'package:now_shipping/data/services/api_service.dart';
 import 'package:now_shipping/features/auth/services/auth_service.dart';
+import 'package:now_shipping/core/constants/api_constants.dart';
 import 'dart:convert';
 
 class OrderRepository {
@@ -118,18 +119,7 @@ class OrderRepository {
   Future<Map<String, dynamic>> createOrder(Map<String, dynamic> orderData) async {
     try {
       print('DEBUG REPO: Creating order with data: $orderData');
-      print('DEBUG EXPRESS REPO: expressShipping in repository: ${orderData['expressShipping']}');
-      
-      // Rename expressShipping to isExpressShipping for API compatibility
-      if (orderData.containsKey('expressShipping')) {
-        // Store the value and remove the old key
-        bool expressValue = orderData['expressShipping'];
-        orderData.remove('expressShipping');
-        
-        // Add with the correct key name that matches the API response format
-        orderData['isExpressShipping'] = expressValue;
-        print('DEBUG EXPRESS REPO: Renamed parameter to isExpressShipping: ${orderData['isExpressShipping']}');
-      }
+      print('DEBUG EXPRESS REPO: isExpressShipping in repository: ${orderData['isExpressShipping']}');
       
       // Special handling for Cash Collection orders
       if (orderData['orderType'] == 'Cash Collection') {
@@ -204,17 +194,7 @@ class OrderRepository {
   Future<Map<String, dynamic>> updateOrder(String orderId, Map<String, dynamic> orderData) async {
     try {
       print('DEBUG REPO: Updating order $orderId with data: $orderData');
-      
-      // Rename expressShipping to isExpressShipping for API compatibility
-      if (orderData.containsKey('expressShipping')) {
-        // Store the value and remove the old key
-        bool expressValue = orderData['expressShipping'];
-        orderData.remove('expressShipping');
-        
-        // Add with the correct key name that matches the API response format
-        orderData['isExpressShipping'] = expressValue;
-        print('DEBUG EXPRESS REPO: Renamed parameter to isExpressShipping: ${orderData['isExpressShipping']}');
-      }
+      print('DEBUG EXPRESS REPO: isExpressShipping in repository: ${orderData['isExpressShipping']}');
       
       // Get authentication token
       final token = await _authService.getToken();
@@ -442,6 +422,71 @@ class OrderRepository {
     } catch (e) {
       print('DEBUG REPO: Exception in validateOriginalOrder: $e');
       throw Exception('Failed to validate original order: $e');
+    }
+  }
+
+  // Scan smart sticker
+  Future<Map<String, dynamic>> scanSmartSticker(String orderNumber, String smartFlyerBarcode) async {
+    try {
+      print('DEBUG REPO: Scanning smart sticker for order: $orderNumber, barcode: $smartFlyerBarcode');
+      
+      // Get authentication token
+      final token = await _authService.getToken();
+      if (token == null) {
+        print('DEBUG REPO: Auth token is null');
+        throw Exception('Authentication token not found');
+      }
+      
+      // Send scan smart sticker request to API
+      final response = await _apiService.post(
+        '/business/orders/scan-smart-flyer-barcode',
+        token: token,
+        body: {
+          'orderNumber': orderNumber,
+          'smartFlyerBarcode': smartFlyerBarcode,
+        },
+      );
+      
+      print('DEBUG REPO: Scan smart sticker response: $response');
+      
+      // Return the response
+      return response;
+    } catch (e) {
+      print('DEBUG REPO: Exception in scanSmartSticker: $e');
+      throw Exception('Failed to scan smart sticker: $e');
+    }
+  }
+
+  // Search order by barcode or order number
+  Future<Map<String, dynamic>> searchOrderByBarcode(String barcodeOrOrderNumber) async {
+    try {
+      print('DEBUG REPO: Searching order by barcode/order number: $barcodeOrOrderNumber');
+      
+      // Get authentication token
+      final token = await _authService.getToken();
+      if (token == null) {
+        print('DEBUG REPO: Auth token is null');
+        throw Exception('Authentication token not found');
+      }
+      
+      // Search order by barcode or order number
+      final response = await _apiService.get(
+        '${ApiConstants.searchOrder}/$barcodeOrOrderNumber',
+        token: token,
+      );
+      
+      print('DEBUG REPO: Search order response: $response');
+      
+      // Return the response
+      if (response is Map<String, dynamic>) {
+        return response;
+      } else {
+        print('DEBUG REPO: Response is not a map: $response');
+        return {};
+      }
+    } catch (e) {
+      print('DEBUG REPO: Exception in searchOrderByBarcode: $e');
+      throw Exception('Failed to search order: $e');
     }
   }
 }

@@ -7,16 +7,20 @@ class OrderStatusHelper {
   /// Get localized status string based on the status and context
   static String getLocalizedStatus(BuildContext context, String status) {
     final l10n = AppLocalizations.of(context);
-    
-    // Normalize status for comparison
-    final normalizedStatus = status.toLowerCase().replaceAll(' ', '');
-    
-    switch (normalizedStatus) {
+
+    // Normalize incoming status: remove spaces/underscores and lowercase
+    final normalized = status.replaceAll(' ', '').replaceAll('_', '').toLowerCase();
+
+    // Debug: Print the actual status being passed
+    print('DEBUG OrderStatusHelper: Received status: "$status" -> normalized: "$normalized"');
+
+    // Match on normalized form only
+    switch (normalized) {
       // NEW Category
       case 'new':
         return l10n.newStatus;
       case 'pendingpickup':
-        return 'Pending Pickup'; // Add to localization if needed
+        return l10n.pendingPickup;
       
       // PROCESSING Category
       case 'pickedup':
@@ -24,33 +28,33 @@ class OrderStatusHelper {
       case 'instock':
         return l10n.inStockStatus;
       case 'inreturnstock':
-        return 'In Return Stock'; // Add to localization if needed
+        return l10n.inReturnStock;
       case 'inprogress':
         return l10n.inProgressStatus;
       case 'headingtocustomer':
         return l10n.headingToCustomerStatus;
       case 'returntowarehouse':
-        return 'Return to Warehouse'; // Add to localization if needed
+        return l10n.returnToWarehouse;
       case 'headingtoyou':
         return l10n.headingToYouStatus;
       case 'rescheduled':
-        return 'Rescheduled'; // Add to localization if needed
+        return l10n.rescheduled;
       case 'returninitiated':
-        return 'Return Initiated'; // Add to localization if needed
+        return l10n.returnInitiated;
       case 'returnassigned':
-        return 'Return Assigned'; // Add to localization if needed
+        return l10n.returnAssigned;
       case 'returnpickedup':
-        return 'Return Picked Up'; // Add to localization if needed
+        return l10n.returnPickedUp;
       case 'returnatwarehouse':
-        return 'Return at Warehouse'; // Add to localization if needed
+        return l10n.returnAtWarehouse;
       case 'returntobusiness':
-        return 'Return to Business'; // Add to localization if needed
+        return l10n.returnToBusiness;
       case 'returnlinked':
-        return 'Return Linked'; // Add to localization if needed
+        return l10n.returnLinked;
       
       // PAUSED Category
       case 'waitingaction':
-        return 'Waiting Action'; // Add to localization if needed
+        return l10n.waitingAction;
       case 'rejected':
         return l10n.rejectedStatus;
       
@@ -58,7 +62,7 @@ class OrderStatusHelper {
       case 'completed':
         return l10n.completedStatus;
       case 'returncompleted':
-        return 'Return Completed'; // Add to localization if needed
+        return l10n.returnCompleted;
       
       // UNSUCCESSFUL Category
       case 'canceled':
@@ -69,29 +73,86 @@ class OrderStatusHelper {
       case 'terminated':
         return l10n.terminatedStatus;
       case 'deliveryfailed':
-        return 'Delivery Failed'; // Add to localization if needed
+        return l10n.deliveryFailed;
       case 'autoreturninitiated':
-        return 'Auto Return Initiated'; // Add to localization if needed
+        return l10n.autoReturnInitiated;
+      
+      // Handle status category keys
+      case 'successfulStatus':
+      case 'successfulstatus':
+        return l10n.successfulStatus;
+      case 'processingStatus':
+      case 'processingstatus':
+        return l10n.processingStatus;
+      case 'pausedStatus':
+      case 'pausedstatus':
+        return l10n.pausedStatus;
+      case 'unsuccessfulStatus':
+      case 'unsuccessfulstatus':
+        return l10n.unsuccessfulStatus;
       
       // Legacy/Unknown
       default:
+        // Try to find a translation key that matches the status
+        final statusKey = normalized;
+        if (statusKey.contains('successful')) {
+          return l10n.successfulStatus;
+        } else if (statusKey.contains('processing')) {
+          return l10n.processingStatus;
+        } else if (statusKey.contains('paused')) {
+          return l10n.pausedStatus;
+        } else if (statusKey.contains('unsuccessful')) {
+          return l10n.unsuccessfulStatus;
+        } else if (statusKey.contains('pending') && statusKey.contains('pickup')) {
+          return l10n.pendingPickup;
+        } else if (statusKey.contains('return') && statusKey.contains('warehouse')) {
+          return l10n.returnToWarehouse;
+        } else if (statusKey.contains('return') && statusKey.contains('completed')) {
+          return l10n.returnCompleted;
+        } else if (statusKey.contains('delivery') && statusKey.contains('failed')) {
+          return l10n.deliveryFailed;
+        } else if (statusKey.contains('auto') && statusKey.contains('return')) {
+          return l10n.autoReturnInitiated;
+        }
+        
+        print('DEBUG OrderStatusHelper: No translation found for status: "$status"');
         return OrderStatus.getDisplayName(status);
     }
   }
 
+  static String? getLocalizedStatusDescription(BuildContext context, String status) {
+    final l10n = AppLocalizations.of(context);
+    final normalized = status.replaceAll(' ', '').replaceAll('_', '').toLowerCase();
+
+    switch (normalized) {
+      case 'pickedup':
+        return l10n.pickedUpDescription;
+      case 'instock':
+        return l10n.inStockDescription;
+      case 'headingtocustomer':
+        return l10n.headingToCustomerDescription;
+      case 'completed':
+        return l10n.successfulDescription;
+      default:
+        return null;
+    }
+  }
+
   /// Get status category display name
-  static String getCategoryDisplayName(OrderStatusCategory category) {
+  static String getCategoryDisplayName(BuildContext context, OrderStatusCategory category) {
+    final l10n = AppLocalizations.of(context);
+    
     switch (category) {
       case OrderStatusCategory.newOrder:
-        return 'New';
+        return l10n.newStatus;
       case OrderStatusCategory.processing:
-        return 'Processing';
+        return l10n.processingStatus;
       case OrderStatusCategory.paused:
-        return 'Paused';
+        return l10n.pausedStatus;
       case OrderStatusCategory.successful:
-        return 'Successful';
+        return l10n.successfulStatus;
       case OrderStatusCategory.unsuccessful:
-        return 'Unsuccessful';
+        return l10n.unsuccessfulStatus;
     }
   }
 

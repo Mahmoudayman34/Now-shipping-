@@ -5,6 +5,7 @@ import '../models/pickup_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../screens/pickup_details_tabbed_screen.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class PickupCard extends StatelessWidget {
   final PickupModel pickup;
@@ -49,12 +50,12 @@ class PickupCard extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Pickup'),
-          content: Text('Are you sure you want to delete pickup #${pickup.pickupNumber}? This action cannot be undone.'),
+          title: Text(AppLocalizations.of(context).deletePickup),
+          content: Text(AppLocalizations.of(context).deletePickupConfirmation.replaceAll('#{number}', '#${pickup.pickupNumber}')),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context).cancel),
             ),
             TextButton(
               onPressed: () {
@@ -64,7 +65,7 @@ class PickupCard extends StatelessWidget {
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
-              child: const Text('Delete'),
+              child: Text(AppLocalizations.of(context).yesDelete),
             ),
           ],
         );
@@ -79,11 +80,25 @@ class PickupCard extends StatelessWidget {
     } else {
       // Fallback if no callback is provided
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Delete functionality not available'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).deleteFunctionalityNotAvailable),
           backgroundColor: Colors.orange,
         ),
       );
+    }
+  }
+
+  // Get localized status
+  String _getLocalizedStatus(BuildContext context, String status) {
+    final l10n = AppLocalizations.of(context);
+    
+    switch (status) {
+      case 'Upcoming':
+        return l10n.upcoming;
+      case 'Picked Up':
+        return l10n.pickedUpStatus;
+      default:
+        return status; // Fallback to original status if not found
     }
   }
 
@@ -93,6 +108,9 @@ class PickupCard extends StatelessWidget {
     final bool isPickedUp = pickup.status == 'Picked Up';
     final Color statusColor = isPickedUp ? Colors.green : const Color(0xFFF89C29);
     final String formattedDate = DateFormat('EEE, MMM d, y').format(pickup.pickupDate);
+    
+    // Get localized status
+    final String localizedStatus = _getLocalizedStatus(context, pickup.status);
     
     // Responsive values
     final spacing = ResponsiveUtils.getResponsiveSpacing(context);
@@ -126,7 +144,7 @@ class PickupCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Pickup ',
+                    '${AppLocalizations.of(context).pickups} ',
                     style: TextStyle(
                       fontSize: ResponsiveUtils.getResponsiveFontSize(
                         context,
@@ -148,7 +166,7 @@ class PickupCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(borderRadius * 0.5),
                     ),
                     child: Text(
-                      pickup.status,
+                      localizedStatus,
                       style: TextStyle(
                         color: statusColor,
                         fontWeight: FontWeight.w500,
@@ -167,7 +185,7 @@ class PickupCard extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'Pickup #${pickup.pickupNumber}',
+                    '${AppLocalizations.of(context).pickupNumber}${pickup.pickupNumber}',
                     style: TextStyle(
                       color: const Color(0xff2F2F2F),
                       fontSize: ResponsiveUtils.getResponsiveFontSize(
@@ -207,7 +225,7 @@ class PickupCard extends StatelessWidget {
                   SizedBox(width: spacing * 0.67),
                   Expanded(
                     child: Text(
-                      'Contact: ${pickup.contactNumber}',
+                      '${AppLocalizations.of(context).contact}: ${pickup.contactNumber}',
                       style: TextStyle(
                         fontSize: ResponsiveUtils.getResponsiveFontSize(
                           context,
@@ -284,9 +302,9 @@ class PickupCard extends StatelessWidget {
                              spacing: spacing * 0.67,
                              children: [
                                if (pickup.isFragileItem)
-                                 _buildTag('Fragile', Colors.red, context),
+                                 _buildTag(AppLocalizations.of(context).fragile, Colors.red, context),
                                if (pickup.isLargeItem)
-                                 _buildTag('Large Item', Colors.blue, context),
+                                 _buildTag(AppLocalizations.of(context).largeItem, Colors.blue, context),
                              ],
                            ),
                          ),

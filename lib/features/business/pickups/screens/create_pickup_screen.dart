@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
 import 'package:now_shipping/features/business/pickups/widgets/special_requirement_card.dart';
-import 'package:now_shipping/features/business/services/user_service.dart';
+import 'package:now_shipping/features/business/services/user_service.dart' show PickUpAddressItem, userDataProvider;
 import 'package:now_shipping/data/services/api_service.dart';
 import 'package:now_shipping/features/auth/services/auth_service.dart';
 import 'package:now_shipping/core/widgets/toast_.dart';
@@ -32,10 +32,15 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
   final _contactNumberController = TextEditingController();
   final _notesController = TextEditingController();
 
+  // Address selection
+  PickUpAddressItem? _selectedAddress;
+  List<PickUpAddressItem> _availableAddresses = [];
+
   // Initialize directly instead of using late initialization
+  // Start from tomorrow (second day), not today
   final List<DateTime> _quickSelectDates = List.generate(
     5,
-    (index) => DateTime.now().add(Duration(days: index)),
+    (index) => DateTime.now().add(Duration(days: index + 1)), // +1 to start from tomorrow
   );
 
   @override
@@ -48,8 +53,8 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
           widget.pickupToEdit!.contactNumber.replaceAll('+20', ''); // Remove country code
       _notesController.text = widget.pickupToEdit!.notes ?? '';
       _selectedDate = widget.pickupToEdit!.pickupDate;
-      _isFragileItem = widget.pickupToEdit!.isFragileItem ?? false;
-      _isLargeItem = widget.pickupToEdit!.isLargeItem ?? false;
+      _isFragileItem = widget.pickupToEdit!.isFragileItem == true;
+      _isLargeItem = widget.pickupToEdit!.isLargeItem == true;
       // Assuming 1 order for now, in a real app you might want to store this in the pickup model
       _ordersController.text = '1';
     }
@@ -59,23 +64,120 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
 
   void _loadUserAddress() async {
     try {
-      final userService = ref.read(userServiceProvider);
-      final userData = await userService.getUserData();
+      final userDataAsync = ref.read(userDataProvider);
       
-      if (userData != null && userData.pickUpAddress.addressDetails.isNotEmpty) {
-        final address = userData.pickUpAddress;
-        final fullAddress = '${address.addressDetails}, ${address.city}, ${address.country}';
-        if (address.nearbyLandmark.isNotEmpty) {
-          _pickupAddressController.text = '$fullAddress (Near: ${address.nearbyLandmark})';
-        } else {
-          _pickupAddressController.text = fullAddress;
-        }
+      userDataAsync.when(
+        data: (user) {
+          if (user == null) {
+            setState(() {
+              _pickupAddressController.text = 'No user data found';
+            });
+            return;
+          }
+
+          // Get pickup addresses - prefer pickUpAddresses array, fallback to single pickUpAddress
+          List<PickUpAddressItem> addresses = [];
+          
+          if (user.pickUpAddresses != null && user.pickUpAddresses!.isNotEmpty) {
+            addresses = user.pickUpAddresses!;
       } else {
-        _pickupAddressController.text = 'No registered pickup address found';
-      }
+            // Convert single pickUpAddress to PickUpAddressItem format
+            addresses = [
+              PickUpAddressItem(
+                addressId: 'default',
+                addressName: 'Main Address',
+                isDefault: true,
+                country: user.pickUpAddress.country,
+                city: user.pickUpAddress.city,
+                adressDetails: user.pickUpAddress.addressDetails,
+                nearbyLandmark: user.pickUpAddress.nearbyLandmark,
+                pickupPhone: user.pickUpAddress.pickupPhone,
+                pickUpPointInMaps: user.pickUpAddress.pickUpPointInMaps,
+                coordinates: user.pickUpAddress.coordinates,
+              ),
+            ];
+          }
+
+          setState(() {
+            _availableAddresses = addresses;
+            
+            // Select default address or first address
+            _selectedAddress = addresses.firstWhere(
+              (addr) => addr.isDefault,
+              orElse: () => addresses.first,
+            );
+            
+            // Update address display
+            _updateAddressDisplay();
+            
+            // Set initial phone number
+            if (_selectedAddress != null) {
+              final phone = _selectedAddress!.pickupPhone.replaceAll('+20', '').replaceAll('+', '');
+              _contactNumberController.text = phone;
+            }
+          });
+        },
+        loading: () {
+          setState(() {
+            _pickupAddressController.text = 'Loading addresses...';
+          });
+        },
+        error: (error, stack) {
+          setState(() {
+            _pickupAddressController.text = 'Error loading addresses';
+          });
+        },
+      );
     } catch (e) {
+      setState(() {
       _pickupAddressController.text = 'Error loading address';
+      });
     }
+  }
+
+  void _updateAddressDisplay() {
+    if (_selectedAddress == null) {
+      _pickupAddressController.text = 'No address selected';
+      return;
+    }
+
+    final address = _selectedAddress!;
+    final List<String> addressParts = [];
+    
+    if (address.adressDetails.isNotEmpty) {
+      addressParts.add(address.adressDetails);
+    }
+    
+    if (address.zone != null && address.zone!.isNotEmpty) {
+      addressParts.add(address.zone!);
+    }
+    
+    if (address.city.isNotEmpty) {
+      addressParts.add(address.city);
+    }
+    
+    if (address.country.isNotEmpty) {
+      addressParts.add(address.country);
+    }
+    
+    if (address.nearbyLandmark != null && address.nearbyLandmark!.isNotEmpty) {
+      addressParts.add('(Near: ${address.nearbyLandmark})');
+    }
+    
+    _pickupAddressController.text = addressParts.join(', ');
+  }
+
+  void _onAddressSelected(PickUpAddressItem? address) {
+    setState(() {
+      _selectedAddress = address;
+      _updateAddressDisplay();
+      
+      // Update phone number when address changes
+      if (address != null) {
+        final phone = address.pickupPhone.replaceAll('+20', '').replaceAll('+', '');
+        _contactNumberController.text = phone;
+      }
+    });
   }
 
   @override
@@ -95,13 +197,10 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
       body: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 0,
-          title: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(width: spacing * 0.67),
-              Text(
+          title: Text(
                 _isEditing ? AppLocalizations.of(context).editPickup : AppLocalizations.of(context).createPickup,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -114,9 +213,6 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
                   ),
                 ),
               ),
-            ],
-          ),
-          centerTitle: true,
           leading: IconButton(
             icon: Icon(
               Icons.close,
@@ -157,12 +253,9 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Place of Pickup
+              // Place of Pickup - Address Selector
               _buildFieldLabel(AppLocalizations.of(context).placeOfPickup, isRequired: true),
-              _buildAddressField(
-                controller: _pickupAddressController,
-                hintText: 'Enter pickup address',
-              ),
+              _buildAddressSelector(),
               _buildInfoText(AppLocalizations.of(context).pickupAddressHelper),
               const SizedBox(height: 24),
 
@@ -357,9 +450,10 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
 
   // Individual date card for quick select
   Widget _buildDateCard(DateTime date, bool isSelected) {
-    final bool isToday = date.year == DateTime.now().year &&
-        date.month == DateTime.now().month &&
-        date.day == DateTime.now().day;
+    final DateTime tomorrow = DateTime.now().add(const Duration(days: 1));
+    final bool isTomorrowDate = date.year == tomorrow.year &&
+        date.month == tomorrow.month &&
+        date.day == tomorrow.day;
 
     final dayName = DateFormat('E').format(date); // Mon, Tue, etc.
     final dayNumber = date.day.toString();
@@ -423,7 +517,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
                 height: 1.2, // Reduce line height
               ),
             ),
-            if (isToday)
+            if (isTomorrowDate)
               Container(
                 margin: const EdgeInsets.only(top: 4),
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1), // Reduced vertical padding
@@ -434,7 +528,7 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  'Today',
+                  'Tomorrow',
                   style: TextStyle(
                     color: isSelected ? Colors.white : const Color(0xFFF89C29),
                     fontSize: 10,
@@ -485,10 +579,11 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
 
   // Open the standard date picker dialog
   Future<void> _openDatePickerDialog() async {
+    final DateTime tomorrow = DateTime.now().add(const Duration(days: 1));
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now(),
-      firstDate: DateTime.now(),
+      initialDate: _selectedDate ?? tomorrow,
+      firstDate: tomorrow, // Start from tomorrow (second day)
       lastDate: DateTime.now().add(const Duration(days: 30)),
       builder: (context, child) {
         return Theme(
@@ -568,41 +663,182 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
     );
   }
 
-  Widget _buildAddressField({
-    required TextEditingController controller,
-    required String hintText,
-  }) {
+  Widget _buildAddressSelector() {
+    if (_availableAddresses.isEmpty) {
     return Container(
+        padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.grey.shade50, // Light background to indicate it's read-only
+          color: Colors.orange.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.orange.shade200),
       ),
       child: Row(
         children: [
+            Icon(Icons.info_outline, color: Colors.orange.shade700),
+            const SizedBox(width: 12),
           Expanded(
-            child: TextFormField(
-              controller: controller,
-              enabled: false, // Make the field non-editable
-              decoration: InputDecoration(
-                hintText: hintText,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                disabledBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                prefixIcon: Icon(Icons.location_on, color: Colors.grey.shade600),
+              child: Text(
+                'No pickup addresses found. Please add an address in your profile.',
+                style: TextStyle(
+                  color: Colors.orange.shade900,
+                  fontSize: 14,
+                ),
               ),
-              style: TextStyle(color: Colors.grey.shade700), // Darker text for better readability
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Registered pickup address is required';
-                }
-                return null;
-              },
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.location_on, color: Colors.orange.shade300, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Select Pickup Address',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade800,
             ),
           ),
         ],
+          ),
+          const SizedBox(height: 12),
+          ..._availableAddresses.map((address) {
+            final isSelected = _selectedAddress?.addressId == address.addressId;
+            return _buildAddressCard(
+              address,
+              isSelected,
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddressCard(PickUpAddressItem address, bool isSelected) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: isSelected ? Colors.orange.shade50 : Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isSelected ? Colors.orange.shade300 : Colors.grey.shade300,
+          width: isSelected ? 2 : 1,
+        ),
+      ),
+      child: InkWell(
+        onTap: () => _onAddressSelected(address),
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.location_on,
+                          size: 18,
+                          color: isSelected ? Colors.orange.shade700 : Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            address.addressName,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected ? Colors.orange.shade900 : Colors.grey.shade800,
+                            ),
+                          ),
+                        ),
+                        if (address.isDefault)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade200,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'Default',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.orange.shade900,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (isSelected)
+                    Icon(
+                      Icons.check_circle,
+                      color: Colors.orange.shade700,
+                      size: 20,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                address.adressDetails,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+              if (address.zone != null && address.zone!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  '${address.city}, ${address.zone}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+              if (address.nearbyLandmark != null && address.nearbyLandmark!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Icon(Icons.place, size: 14, color: Colors.grey.shade500),
+                    const SizedBox(width: 4),
+                    Text(
+                      address.nearbyLandmark!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -700,6 +936,15 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
         return;
       }
 
+      if (_selectedAddress == null) {
+        ToastService.show(
+          context,
+          'Please select a pickup address',
+          type: ToastType.error,
+        );
+        return;
+      }
+
       setState(() {
         _isSubmitting = true;
       });
@@ -722,6 +967,25 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
           "isLargeItems": _isLargeItem.toString(),
           "pickupNotes": _notesController.text.trim(),
         };
+
+        // Add selected pickup address ID if available
+        if (_selectedAddress != null) {
+          requestBody['pickupAddressId'] = _selectedAddress!.addressId;
+          print('DEBUG PICKUP: Selected address ID: ${_selectedAddress!.addressId}');
+        } else {
+          // If no address selected, show error
+          setState(() {
+            _isSubmitting = false;
+          });
+          ToastService.show(
+            context,
+            'Please select a pickup address',
+            type: ToastType.error,
+          );
+          return;
+        }
+
+        print('DEBUG PICKUP: Request body: $requestBody');
 
         // Create API service instance
         final apiService = ApiService();

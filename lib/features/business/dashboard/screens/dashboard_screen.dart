@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../auth/services/auth_service.dart';
+import '../../../../core/layout/main_layout.dart' show layoutUserProvider;
+import '../../../../features/business/services/user_service.dart' show userDataProvider;
 import '../providers/dashboard_provider.dart';
 import '../widgets/dashboard_header.dart';
 import '../widgets/welcome_message.dart';
@@ -13,6 +15,7 @@ import '../widgets/profile_completion_form.dart';
 import '../../../../core/utils/responsive_utils.dart';
 import '../../../common/widgets/shimmer_loading.dart';
 import '../../../../core/mixins/refreshable_screen_mixin.dart';
+import '../../../../core/services/notification_permission_helper.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -39,10 +42,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkProfileStatus();
+      // Invalidate user providers to ensure fresh data on screen load
+      ref.invalidate(currentUserProvider);
+      ref.invalidate(layoutUserProvider);
+      ref.invalidate(userDataProvider);
       // Initial data fetch
       _refreshDashboard();
       // Register refresh callback for tab tap refresh
       registerRefreshCallback(_refreshDashboard, 0);
+      // Check notification permissions
+      if (mounted) {
+        NotificationPermissionHelper.checkPermissions(context);
+      }
     });
   }
   
@@ -86,6 +97,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
         ref.refresh(dashboardStatsProvider.future),
         // Also refresh user data to get updated name and other user information  
         ref.refresh(currentUserProvider.future),
+        // Refresh layout user provider to update FAB visibility
+        ref.refresh(layoutUserProvider.future),
       ]);
       
       // Refresh completed successfully
@@ -158,10 +171,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
         final isProfileComplete = user.isProfileComplete;
         
         // Build dashboard with appropriate content based on profile completion
-        return ResponsiveUtils.wrapScreen(
-          body: isProfileComplete 
+        final bodyContent = isProfileComplete
             ? _buildCompleteDashboard(context, ref, user)
-            : _buildProfileCompletionDashboard(context, user),
+            : _buildProfileCompletionDashboard(context, user);
+
+        return ResponsiveUtils.wrapScreen(
+          body: bodyContent,
           // Removed bottomNavigationBar and floatingActionButton since they're now handled by MainLayout
         );
       },
@@ -212,7 +227,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
       ),
     );
   }
-  
+
+  double _fabBottomPadding(BuildContext context) {
+    final baseSpacing = ResponsiveUtils.getResponsiveSpacing(context);
+    return MediaQuery.of(context).padding.bottom + baseSpacing * 6;
+  }
+ 
   Widget _buildProfileCompletionDashboard(BuildContext context, UserModel user) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -260,8 +280,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
             ),
             
             // Profile completion form
-            const Expanded(
-              child: ProfileCompletionForm(),
+            Expanded(
+                child: const ProfileCompletionForm(),
             ),
           ],
         );
@@ -344,6 +364,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
                             ],
                           ),
                         ),
+                        SliverToBoxAdapter(
+                          child: SizedBox(height: _fabBottomPadding(context)),
+                        ),
                       ],
                     );
                   },
@@ -369,5 +392,4 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
         ),
       );
   }
-
 }

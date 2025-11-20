@@ -28,6 +28,7 @@ class DashboardBrandInfoStep extends ConsumerStatefulWidget {
 class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _brandNameController = TextEditingController();
+  final TextEditingController _otherIndustryController = TextEditingController();
   
   String? _selectedIndustry;
   String? _selectedVolume;
@@ -36,7 +37,14 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
   // Map to store channel links
   final Map<String, TextEditingController> _channelLinkControllers = {};
 
-  final industryOptions = ['Fashion', 'Electronics', 'Beauty', 'Food', 'Other'];
+  final industryOptions = [
+    'Books, Arts & Media',
+    'Fashion & Clothing',
+    'Electronics',
+    'Health & Beauty',
+    'Home & Furniture',
+    'Other'
+  ];
   final volumeOptions = ['< 50 orders/month', '50-100', '100-500', '500+'];
 
   final sellingChannels = [
@@ -83,9 +91,17 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
       .map((e) => e.value.text)
       .toList();
 
+    // Determine the actual industry value to save
+    String? industryToSave = _selectedIndustry;
+    if (_selectedIndustry == 'Other' && _otherIndustryController.text.isNotEmpty) {
+      industryToSave = _otherIndustryController.text;
+    }
+
     final formData = {
       'brandName': _brandNameController.text,
-      'industry': _selectedIndustry,
+      'industry': industryToSave,
+      'selectedIndustryOption': _selectedIndustry, // Store the selected option separately
+      'otherIndustry': _otherIndustryController.text, // Store the custom industry text
       'volume': _selectedVolume,
       'monthlyOrders': _selectedVolume, // Add monthlyOrders for API compatibility
       'channels': _selectedChannels.toList(),
@@ -110,10 +126,21 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
       _brandNameController.text = data['brandName'] as String;
     }
     
-    if (data.containsKey('industry') && data['industry'] != null) {
+    // Load the selected industry option (the dropdown value)
+    if (data.containsKey('selectedIndustryOption') && data['selectedIndustryOption'] != null) {
+      setState(() {
+        _selectedIndustry = data['selectedIndustryOption'] as String;
+      });
+    } else if (data.containsKey('industry') && data['industry'] != null) {
+      // Fallback to old format for backward compatibility
       setState(() {
         _selectedIndustry = data['industry'] as String;
       });
+    }
+    
+    // Load the custom "Other" industry text
+    if (data.containsKey('otherIndustry') && data['otherIndustry'] != null) {
+      _otherIndustryController.text = data['otherIndustry'] as String;
     }
     
     if (data.containsKey('volume') && data['volume'] != null) {
@@ -143,6 +170,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
   @override
   void dispose() {
     _brandNameController.dispose();
+    _otherIndustryController.dispose();
     // Dispose all channel link controllers
     for (var controller in _channelLinkControllers.values) {
       controller.dispose();
@@ -255,7 +283,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                     ),
                     child: DropdownButtonFormField<String>(
                       decoration: const InputDecoration(
-                        hintText: 'Select your industry',
+                        hintText: 'Select an industry...',
                         contentPadding: EdgeInsets.symmetric(horizontal: 16),
                         border: InputBorder.none,
                       ),
@@ -266,11 +294,42 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                       onChanged: (value) {
                         setState(() {
                           _selectedIndustry = value;
+                          // Clear the other industry text if not selecting "Other"
+                          if (value != 'Other') {
+                            _otherIndustryController.clear();
+                          }
                         });
                       },
                       validator: (value) => value == null ? 'Please select an industry' : null,
                     ),
                   ),
+                  
+                  // Show text field when "Other" is selected
+                  if (_selectedIndustry == 'Other') ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      'Specify Industry *',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: Colors.red.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    AppTextField(
+                      label: '',
+                      controller: _otherIndustryController,
+                      hintText: 'Enter your industry',
+                      validator: (value) {
+                        if (_selectedIndustry == 'Other' && (value == null || value.isEmpty)) {
+                          return 'Please specify your industry';
+                        }
+                        return null;
+                      },
+                      onChanged: (value) {
+                        // Could auto-save here, but we'll let the form handle it
+                      },
+                    ),
+                  ],
                 ],
               ),
             ),

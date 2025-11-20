@@ -46,6 +46,7 @@ class OrderService {
                           order['deliveryType'] ?? 'Deliver',
             'attempts': order['Attemps'] ?? 0,
             'phoneNumber': _extractPhoneNumber(order),
+            'smartFlyerBarcode': order['smartFlyerBarcode'], // Add smart flyer barcode
             'rawOrder': order, // Keep the raw order for additional data if needed
           };
           print('DEBUG SERVICE: Successfully mapped order: ${result['orderId']} - Status: ${result['status']} - Category: ${result['statusCategory']}');
@@ -375,6 +376,43 @@ class OrderService {
     } catch (e) {
       print('DEBUG SERVICE: Error in validateOriginalOrder: $e');
       throw Exception('Failed to validate original order: $e');
+    }
+  }
+
+  // Scan smart sticker
+  Future<Map<String, dynamic>> scanSmartSticker(String orderNumber, String smartFlyerBarcode) async {
+    try {
+      print('DEBUG SERVICE: Scanning smart sticker for order: $orderNumber, barcode: $smartFlyerBarcode');
+      return await _orderRepository.scanSmartSticker(orderNumber, smartFlyerBarcode);
+    } catch (e) {
+      print('DEBUG SERVICE: Error in scanSmartSticker: $e');
+      throw Exception('Failed to scan smart sticker: $e');
+    }
+  }
+
+  // Search order by barcode or order number
+  Future<Map<String, dynamic>> searchOrderByBarcode(String barcodeOrOrderNumber) async {
+    try {
+      print('DEBUG SERVICE: Searching order by barcode/order number: $barcodeOrOrderNumber');
+      final response = await _orderRepository.searchOrderByBarcode(barcodeOrOrderNumber);
+      
+      print('DEBUG SERVICE: Search order response received');
+      
+      // Check if the API call was successful
+      if (response.containsKey('status') && response['status'] == 'success' && response['order'] != null) {
+        print('DEBUG SERVICE: Found order in search response');
+        return response['order'];
+      } else if (response.containsKey('orderNumber') || response.containsKey('id')) {
+        // Direct order object
+        print('DEBUG SERVICE: Found direct order object in search response');
+        return response;
+      } else {
+        print('DEBUG SERVICE: Invalid search response format: $response');
+        throw Exception('Order not found or invalid response format');
+      }
+    } catch (e) {
+      print('DEBUG SERVICE: Exception in searchOrderByBarcode: $e');
+      throw Exception('Failed to search order: $e');
     }
   }
 }

@@ -307,7 +307,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                     'What type of seller are you?',
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.primary,
+                      color: Color(0xffF29620),
                     ),
                   ),
                   const SizedBox(height: 8),

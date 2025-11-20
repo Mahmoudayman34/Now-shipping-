@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:now_shipping/features/business/orders/providers/order_details_provider.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/section_utilities.dart';
+import '../../../../../core/l10n/app_localizations.dart';
 
 class ExchangeDetailsSection extends StatelessWidget {
   final OrderDetailsModel orderDetails;
@@ -101,8 +102,8 @@ class ExchangeDetailsSection extends StatelessWidget {
                 size: 20,
               ),
               const SizedBox(width: 8),
-              const Text(
-                'Allow customer to inspect package',
+              Text(
+                AppLocalizations.of(context).allowCustomerInspect,
                 style: TextStyle(
                   fontSize: 14,
                   color: Color(0xFF2F2F2F),

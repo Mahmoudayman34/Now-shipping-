@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../features/auth/services/auth_service.dart' hide UserModel;
+import '../../../../features/auth/services/auth_service.dart' show currentUserProvider;
 import '../../../../features/auth/screens/login_screen.dart';
+import '../../../../core/layout/main_layout.dart' show layoutUserProvider, selectedTabIndexProvider;
+import '../../../../features/business/dashboard/providers/profile_form_provider.dart';
 import '../../../../features/business/services/user_service.dart';
 import '../../../../core/providers/locale_provider.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/mixins/refreshable_screen_mixin.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/utils/responsive_utils.dart';
-import 'notifications_screen.dart';
 import 'personal_info_screen.dart';
 import 'language_screen.dart';
 import 'contact_us_screen.dart';
@@ -30,6 +32,10 @@ class _MoreScreenState extends ConsumerState<MoreScreen> with RefreshableScreenM
     super.initState();
     // Register refresh callback for tab tap refresh
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Invalidate user providers to ensure fresh data when screen loads
+      ref.invalidate(userDataProvider);
+      ref.invalidate(currentUserProvider);
+      ref.invalidate(layoutUserProvider);
       registerRefreshCallback(_refreshMore, 4);
     });
   }
@@ -42,8 +48,10 @@ class _MoreScreenState extends ConsumerState<MoreScreen> with RefreshableScreenM
   }
   
   void _refreshMore() {
-    // Refresh more screen data
+    // Refresh more screen data - invalidate all user-related providers
     ref.invalidate(userDataProvider);
+    ref.invalidate(currentUserProvider);
+    ref.invalidate(layoutUserProvider);
   }
 
   @override
@@ -56,6 +64,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> with RefreshableScreenM
     return ResponsiveUtils.wrapScreen(
       body: Scaffold(
         appBar: AppBar(
+          centerTitle: true,
           title: Text(
             l10n.more,
             style: TextStyle(
@@ -67,23 +76,6 @@ class _MoreScreenState extends ConsumerState<MoreScreen> with RefreshableScreenM
               ),
             ),
           ),
-          actions: [
-            IconButton(
-              icon: Icon(
-                Icons.notifications_outlined,
-                size: ResponsiveUtils.getResponsiveIconSize(context),
-              ),
-              onPressed: () {
-                // Navigate to notifications screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NotificationsScreen(),
-                  ),
-                );
-              },
-            ),
-          ],
         ),
         body: userData.when(
           data: (user) => SingleChildScrollView(
@@ -293,6 +285,20 @@ class _MoreScreenState extends ConsumerState<MoreScreen> with RefreshableScreenM
                       if (shouldLogout == true && context.mounted) {
                         // Perform logout
                         await authService.logout();
+                        
+                        // Clear all cached providers
+                        ref.invalidate(currentUserProvider);
+                        ref.invalidate(layoutUserProvider);
+                        ref.invalidate(userDataProvider);
+                        
+                        // Reset profile form state
+                        ref.read(profileFormDataProvider.notifier).state = {};
+                        ref.read(currentStepProvider.notifier).state = 0;
+                        ref.read(formSubmittedProvider.notifier).state = false;
+                        
+                        // Reset tab index
+                        ref.read(selectedTabIndexProvider.notifier).state = 0;
+                        
                         // Navigate to login screen and clear the navigation stack
                         if (context.mounted) {
                           Navigator.of(context).pushAndRemoveUntil(

@@ -67,6 +67,11 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
     ref.read(pickupsScreenUserProvider.notifier).state = user;
   }
   
+  double _fabBottomPadding(BuildContext context) {
+    final baseSpacing = ResponsiveUtils.getResponsiveSpacing(context);
+    return MediaQuery.of(context).padding.bottom + baseSpacing * 6;
+  }
+
   void _onRefresh() async {
     // Set refreshing state
     setState(() {
@@ -100,6 +105,7 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
     return ResponsiveUtils.wrapScreen(
       body: Scaffold(
         appBar: AppBar(
+          centerTitle: true,
           title: Text(
             AppLocalizations.of(context).pickups,
             style: TextStyle(
@@ -186,7 +192,13 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
                     }
                     
                     if (pickups.isNotEmpty) {
+                      final bottomPadding = _fabBottomPadding(context);
+                      final topPadding = ResponsiveUtils.getResponsiveSpacing(context);
                       return ListView.builder(
+                        padding: EdgeInsets.only(
+                          bottom: bottomPadding,
+                          top: topPadding,
+                        ),
                         itemCount: pickups.length,
                         itemBuilder: (context, index) {
                           final pickup = pickups[index];
@@ -217,7 +229,7 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
                         ),
                         SizedBox(height: ResponsiveUtils.getResponsiveSpacing(context)),
                         Text(
-                          'Failed to load pickups',
+                          AppLocalizations.of(context).failedToLoadPickups,
                           style: TextStyle(
                             fontSize: ResponsiveUtils.getResponsiveFontSize(
                               context,
@@ -258,7 +270,7 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
                             ),
                           ),
                           child: Text(
-                            'Retry',
+                            AppLocalizations.of(context).retry,
                             style: TextStyle(
                               fontSize: ResponsiveUtils.getResponsiveFontSize(
                                 context,
@@ -303,14 +315,14 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
         children: [
           Expanded(
             child: _buildPickupTab(
-              'Upcoming',
+              AppLocalizations.of(context).upcoming,
               _selectedTab == 'Upcoming',
             ),
           ),
           SizedBox(width: spacing * 0.67),
           Expanded(
             child: _buildPickupTab(
-              'History',
+              AppLocalizations.of(context).history,
               _selectedTab == 'History',
             ),
           ),
@@ -326,7 +338,8 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedTab = title == 'History' ? 'History' : 'Upcoming';
+          // Check if this is the history tab by comparing with localized text
+          _selectedTab = title == AppLocalizations.of(context).history ? 'History' : 'Upcoming';
         });
       },
       child: Container(
@@ -358,7 +371,9 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
   }
   
   Widget _buildLoadingState() {
+    final bottomPadding = _fabBottomPadding(context);
     return ListView.builder(
+      padding: EdgeInsets.only(bottom: bottomPadding),
       itemCount: 8,
       itemBuilder: (context, index) {
         return const ShimmerListItem(
@@ -377,10 +392,12 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
     final imageSize = ResponsiveUtils.getResponsiveImageSize(context) * 2;
     final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
     
-    return Center(
-      child: Padding(
-        padding: ResponsiveUtils.getResponsiveHorizontalPadding(context),
-        child: Column(
+    return Padding(
+      padding: EdgeInsets.only(bottom: _fabBottomPadding(context)),
+      child: Center(
+        child: Padding(
+          padding: ResponsiveUtils.getResponsiveHorizontalPadding(context),
+          child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
@@ -497,7 +514,7 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
                           ),
                           SizedBox(width: spacing * 0.67),
                           Text(
-                            'Create Pickup',
+                            AppLocalizations.of(context).createPickup,
                             style: TextStyle(
                               fontSize: ResponsiveUtils.getResponsiveFontSize(
                                 context,
@@ -516,6 +533,7 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
                 ),
               ),
           ],
+        ),
         ),
       ),
     );
@@ -544,7 +562,7 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
                 child: Row(
                   children: [
                     Text(
-                      'Pickup #${pickup.pickupNumber}',
+                      '${AppLocalizations.of(context).pickupNumber}${pickup.pickupNumber}',
                       style: TextStyle(
                         fontSize: ResponsiveUtils.getResponsiveFontSize(
                           context,
@@ -572,7 +590,7 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
               // Action items
               _buildActionItem(
                 icon: Icons.visibility_outlined,
-                title: 'View Details',
+                title: AppLocalizations.of(context).viewDetails,
                 onTap: () async {
                   Navigator.pop(context);
                   // Navigate to Pickup Details screen
@@ -591,7 +609,7 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
               if (pickup.status == 'Upcoming')
               _buildActionItem(
                 icon: Icons.edit_outlined,
-                title: 'Edit Pickup',
+                title: AppLocalizations.of(context).editPickup,
                 onTap: () async {
                   Navigator.pop(context);
                   // Navigate to CreatePickupScreen with the pickup data for editing
@@ -610,7 +628,7 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
               if (pickup.status == 'Upcoming')
               _buildActionItem(
                 icon: Icons.delete_outline,
-                  title: 'Cancel Pickup',
+                  title: AppLocalizations.of(context).cancelPickup,
                 titleColor: Colors.red,
                 backgroundColor: const Color(0xFFFEE8E8),
                 onTap: () {
@@ -628,16 +646,16 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
   void _showCancelConfirmation(BuildContext context, PickupModel pickup) {
     AppDialog.show(
       context,
-      title: 'Cancel Pickup',
-      message: 'Are you sure you want to cancel pickup #${pickup.pickupNumber}? This action cannot be undone.',
-      confirmText: 'Yes, Cancel',
-      cancelText: 'No',
+      title: AppLocalizations.of(context).cancelPickup,
+      message: AppLocalizations.of(context).cancelPickupConfirmation.replaceAll('#{number}', '#${pickup.pickupNumber}'),
+      confirmText: AppLocalizations.of(context).yesCancel,
+      cancelText: AppLocalizations.of(context).cancel,
       confirmColor: Colors.red,
     ).then((confirmed) {
       if (confirmed == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Pickup cancellation feature coming soon'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).pickupCancellationFeatureComingSoon),
           ),
         );
       }
@@ -647,10 +665,10 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
   void _deletePickup(BuildContext context, PickupModel pickup) {
     AppDialog.show(
       context,
-      title: 'Delete Pickup',
-      message: 'Are you sure you want to delete pickup #${pickup.pickupNumber}? This action cannot be undone.',
-      confirmText: 'Yes, Delete',
-      cancelText: 'No',
+      title: AppLocalizations.of(context).deletePickup,
+      message: AppLocalizations.of(context).deletePickupConfirmation.replaceAll('#{number}', '#${pickup.pickupNumber}'),
+      confirmText: AppLocalizations.of(context).yesDelete,
+      cancelText: AppLocalizations.of(context).cancel,
       confirmColor: Colors.red,
     ).then((confirmed) async {
       if (confirmed == true) {
@@ -665,9 +683,9 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
             // Show success message and refresh the list
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Pickup deleted successfully'),
-                  backgroundColor: Color(0xFF4CAF50),
+                SnackBar(
+                  content: Text(AppLocalizations.of(context).pickupDeletedSuccessfully),
+                  backgroundColor: const Color(0xFF4CAF50),
                 ),
               );
               // Refresh pickups list
@@ -677,9 +695,9 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
             // Show error message
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Failed to delete pickup. Please try again.'),
-                  backgroundColor: Color(0xFFE53E3E),
+                SnackBar(
+                  content: Text(AppLocalizations.of(context).failedToDeletePickup),
+                  backgroundColor: const Color(0xFFE53E3E),
                 ),
               );
             }
@@ -689,7 +707,7 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Error: ${e.toString()}'),
+                content: Text('${AppLocalizations.of(context).error}: ${e.toString()}'),
                 backgroundColor: const Color(0xFFE53E3E),
               ),
             );

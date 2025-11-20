@@ -32,8 +32,23 @@
 		<string>This app needs access to location for pickup address selection</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>This app needs access to location to show your current location on the map and select pickup points</string>
-		<key>NSPhotoLibraryUsageDescription</key>
-		<string>This app needs photos access to get QR code from photo library</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs photos access to get QR code from photo library</string>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>This app needs access to save Excel files to your device storage</string>
+	<key>NSDownloadsFolderUsageDescription</key>
+	<string>This app needs access to save downloaded Excel files to your Downloads folder</string>
+	<key>NSFileProviderDomainUsageDescription</key>
+	<string>This app needs access to save Excel files to your Downloads folder</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>This app needs to send you notifications about orders and deliveries</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 		<key>UILaunchStoryboardName</key>

@@ -191,6 +191,12 @@ class AppLocalizations {
       'orderValue': 'Order Value',
       'shippingFees': 'Shipping Fees',
       'totalAmount': 'Total Amount',
+      'noOrdersMatchingQuery': 'No orders found matching "{query}"',
+      'noOrdersPickedUpYet': 'No orders picked up yet',
+      'adjustSearchTerms': 'Try adjusting your search terms',
+      'ordersWillAppearAfterPickup': 'Orders will appear here once they are picked up',
+      'loadingOrders': 'Loading orders...',
+      'failedToLoadOrders': 'Failed to load orders',
       
       // Pickups
       'createPickup': 'Create PickUP',
@@ -366,10 +372,33 @@ class AppLocalizations {
       'deliveryFeeSummary': 'Delivery Fee Summary',
       'totalDeliveryFee': 'Total Delivery Fee',
       'confirmOrder': 'Confirm Order',
+      'returnReason': 'Return Reason',
+      'returnNotes': 'Return Notes',
+      // Cash Collection form
+      'cashCollectionDetails': 'Cash Collection Details',
+      'amountToCollect': 'Amount to Collect',
+      'enterAmountToCollect': 'Enter the amount to collect',
+      'enterWholeNumbersOnly': 'Enter whole numbers only (no decimal points)',
+      // Exchange form
+      'exchangeDetails': 'Exchange Details',
+      'currentProductDescription': 'Current Product Description',
+      'describeCurrentProductsPlaceholder': 'Describe the current products being exchanged',
+      'numberOfCurrentItems': 'Number of Current Items',
+      'newProductDescription': 'New Product Description',
+      'describeNewProductsPlaceholder': 'Describe the new products being exchanged',
+      'numberOfNewItems': 'Number of New Items',
+      'cashDifference': 'Cash Difference',
+      // Return form
+      'returnDetails': 'Return Details',
+      'originalOrderNumber': 'Original Order Number',
+      'enterOriginalOrderNumber': 'Enter original order number',
+      'describeItemsBeingReturnedPlaceholder': 'Describe the items being returned (e.g., Blue T-shirt, Size L, Wireless Headphones)',
       
       // Customer Details Screen
       'phoneNumber': 'Phone Number',
       'addSecondaryNumber': 'Add secondary number',
+      'hideSecondaryNumber': 'Hide secondary number',
+      'secondaryPhoneNumber': 'Secondary Phone Number',
       'namePlaceholder': 'name',
       'address': 'Address',
       'cityArea': 'City - Area',
@@ -379,6 +408,8 @@ class AppLocalizations {
       'building': 'Building',
       'landmark': 'Landmark',
       'thisIsWorkingAddress': 'This is working address',
+      'pleaseEnterAddressDetails': 'Please enter address details',
+      'pleaseSelectCity': 'Please select a city',
 
       // City names
       'cairo': 'Cairo',
@@ -511,6 +542,210 @@ class AppLocalizations {
       'website': 'Website',
       'legal': 'Legal',
       'allRightsReserved': 'Now Shipping. All rights reserved 2025 ©',
+      'pendingPickup': 'Pending Pickup',
+      'inReturnStock': 'In Return Stock',
+      'returnToWarehouse': 'Return to Warehouse',
+      'rescheduled': 'Rescheduled',
+      'returnInitiated': 'Return Initiated',
+      'returnAssigned': 'Return Assigned',
+      'returnPickedUp': 'Return Picked Up',
+      'returnAtWarehouse': 'Return at Warehouse',
+      'returnToBusiness': 'Return to Business',
+      'returnLinked': 'Return Linked',
+      'waitingAction': 'Waiting Action',
+      'returnCompleted': 'Return Completed',
+      'deliveryFailed': 'Delivery Failed',
+      'autoReturnInitiated': 'Auto Return Initiated',
+      'processingStatus': 'Processing',
+      'pausedStatus': 'Paused',
+      'successfulStatus': 'Successful',
+      'unsuccessfulStatus': 'Unsuccessful',
+      'loadingTrackingInformation': 'Loading tracking information...',
+      'currentStatus': 'Current',
+      'orderFees': 'Order Fees',
+      'progress': 'Progress',
+      'completedDate': 'Completed Date',
+      'deliveryPerson': 'Delivery Person',
+      'retryTomorrow': 'Retry Tomorrow',
+      'retryTomorrowConfirmation': 'Are you sure you want to schedule this order for automatic retry tomorrow?',
+      'confirmSchedule': 'Confirm Schedule',
+      'scheduleRetryFor': 'Schedule retry for:',
+      'returnToWarehouseConfirmation': 'Are you sure you want to return this order to the warehouse? This action cannot be undone.',
+      'confirmReturn': 'Confirm Return',
+      'cancelOrder': 'Cancel Order',
+      'cancelOrderConfirmation': 'Are you sure you want to cancel this order? This action cannot be undone.',
+      'keepOrder': 'Keep Order',
+      'cancellingOrder': 'Cancelling order...',
+      'processing': 'Processing...',
+      'searchByOrderIdOrCustomerName': 'Search by Order ID or Customer Name',
+      'pleaseCompleteAndActivateAccount': 'Please complete and activate your account first',
+      'scanQrCode': 'Scan QR Code',
+      'suggestionBox': 'Suggestion Box',
+      'newLabel': 'New',
+      'helpUsServeBetter': 'Help us serve you better',
+      'shareSuggestions': 'Share your suggestions',
+      'suggestNow': 'Suggest Now',
+      'youreAllSet': 'You\'re all set!',
+      'profileCompletedSuccess': 'Profile completed successfully',
+      'inHub': 'In Hub',
+      'viewAll': 'View All',
+      'statistics': 'Statistics',
+      'thisWeek': 'This Week',
+      'thisMonth': 'This Month',
+      'newOrdersCount': 'New Orders',
+      'completedOrdersCount': 'Completed Orders',
+      'revenue': 'Revenue',
+      'totalEarnings': 'Total Earnings',
+      'profileSummary': 'Profile Summary',
+      'brand': 'Brand',
+      'industry': 'Industry',
+      'location': 'Location',
+      'payment': 'Payment',
+      'finishSetup': 'Finish Setup',
+      'notProvided': 'Not Provided',
+      'city': 'City',
+      'country': 'Country',
+      'bankTransfer': 'Bank Transfer',
+      'digitalWallet': 'Digital Wallet',
+      'notSelected': 'Not Selected',
+      'orderPlaced': 'Order Placed',
+      'packed': 'Packed',
+      'shipping': 'Shipping',
+      'inProgress': 'In Progress',
+      'outForDelivery': 'Out for Delivery',
+      'delivered': 'Delivered',
+      'orderHasBeenCreated': 'Order has been created',
+      'fastShippingMarkedCompleted': 'Fast shipping - marked as completed after business pickup scan',
+      'fastShippingAssignedToCourier': 'Fast shipping order assigned to courier man1 - ready for pickup from business',
+      'fastShippingReadyForDelivery': 'Fast shipping - ready for delivery to customer',
+      'orderCompletedByCourier': 'Order completed by courier man1',
+      'returnInspection': 'Return Inspection',
+      'returnProcessing': 'Return Processing',
+      'failedToLoadPickups': 'Failed to load pickups',
+      'pickupNumber': 'Pickup #',
+      'contact': 'Contact',
+      'fragile': 'Fragile',
+      'deletePickup': 'Delete Pickup',
+      'deletePickupConfirmation': 'Are you sure you want to delete pickup #{number}? This action cannot be undone.',
+      'yesDelete': 'Yes, Delete',
+      'deleteFunctionalityNotAvailable': 'Delete functionality not available',
+      'pickupDeletedSuccessfully': 'Pickup deleted successfully',
+      'failedToDeletePickup': 'Failed to delete pickup. Please try again.',
+      'yesCancel': 'Yes, Cancel',
+      'pickupCancellationFeatureComingSoon': 'Pickup cancellation feature coming soon',
+      'enterPickupAddress': 'Enter pickup address',
+      'ordersPicked': 'Orders Picked',
+      'pickupTracking': 'Pickup Tracking',
+      'ofMilestonesCompleted': '{completed} of {total} milestones completed',
+      'pickupCreated': 'Pickup Created',
+      'pickupHasBeenCreated': 'Pickup has been created',
+      'driverAssigned': 'Driver Assigned',
+      'pickupAssignedTo': 'Pickup assigned to {driver}',
+      'itemsPickedUp': 'Items Picked Up',
+      'completed': 'Completed',
+      'pending': 'Pending',
+      'current': 'Current',
+      'pickupHasBeenCreatedDesc': 'Pickup has been created',
+      'pickupAssignedToDriverDesc': 'Pickup assigned to {driver}',
+      'orderPickedUpByCourierDesc': 'Order picked up by courier {driver}',
+      'allOrdersFromPickupInStockDesc': 'All orders from this pickup are now in stock',
+      'pickedUp': 'Picked Up',
+      'yourPickupHasBeenCompletedSuccessfully': 'Your pickup has been completed successfully',
+      'pickupInformation': 'Pickup Information',
+      'pickupId': 'Pickup ID',
+      'pickupType': 'Pickup Type',
+      'normal': 'Normal',
+      'scheduledDate': 'Scheduled Date',
+      'addressAndContact': 'Address & Contact',
+      'driverDetails': 'Driver Details',
+      'driverName': 'Driver Name',
+      'vehicleType': 'Vehicle Type',
+      'plateNumber': 'Plate Number',
+      'pickedUpOrders': 'Picked Up Orders',
+      'rateYourExperience': 'Rate Your Experience',
+      'driver': 'Driver',
+      'service': 'Service',
+      'submitRating': 'Submit Rating',
+      'fragileItemDescription': 'This pickup contains fragile items that require special handling',
+      'largeItemDescription': 'This pickup contains large items that may require a larger vehicle',
+      'notAssignedYet': 'Not assigned yet',
+      'availableAfterPickupCompletion': 'Available after pickup completion',
+      'notes': 'Notes',
+      'ordersPickedUp': 'Orders Picked Up',
+      'trackYourPickedUpOrders': 'Track your picked up orders',
+      'searchByOrderIdCustomerOrLocation': 'Search by order ID, customer or location',
+      'order': 'Order',
+      'product': 'Product',
+      'na': 'N/A',
+      // Wallet
+      'walletTitle': 'Wallet',
+      'totalBalance': 'TOTAL BALANCE',
+      'errorLoadingBalance': 'Error loading balance',
+      'withdrawFrequency': 'Withdraw Frequency',
+      'nextWithdrawDate': 'Next Withdraw Date',
+      'transactionHistory': 'Transaction History',
+      'export': 'Export',
+      'financialTransactionsHelp': 'All your financial transactions and account activities.',
+      'noTransactionsFound': 'No transactions found',
+      'errorLoadingTransactions': 'Error loading transactions',
+      'timePeriod': 'Time Period',
+      'allTime': 'All Time',
+      'statusFilter': 'Status Filter',
+      'transactionType': 'Transaction Type',
+      'customDateRangeOptional': 'Custom Date Range (Optional)',
+      'exportTransactions': 'Export Transactions',
+      'exportToExcel': 'Export to Excel',
+      'exporting': 'Exporting...',
+      'allStatus': 'All Status',
+      'settled': 'Settled',
+      'pendingLower': 'Pending',
+      'allTypes': 'All Types',
+      'cashCycle': 'Cash Cycle',
+      'serviceFees': 'Service Fees',
+      'pickupFees': 'Pickup Fees',
+      'refund': 'Refund',
+      'deposit': 'Deposit',
+      'withdrawal': 'Withdrawal',
+      'fromDate': 'From Date',
+      'toDate': 'To Date',
+      'clearDates': 'Clear Dates',
+      'transactionDate': 'Transaction Date',
+      'transactionTypeLabel': 'Transaction Type',
+      'amountWithCurrency': 'Amount (EGP)',
+      'storagePermissionExcel': 'Storage permission is required to download Excel files',
+      'noAuthToken': 'No authentication token found. Please log in again.',
+      'excelExportedSuccessfully': 'Excel exported successfully!',
+      'filtersLabel': 'Filters:',
+      'useShareDialogToSave': 'Use share dialog to save to Downloads',
+      'exportFailedPrefix': 'Export failed: ',
+      'balanceRecalculatedUnsettled': 'Balance recalculated from {count} unsettled transactions.',
+      'weekly': 'Weekly',
+      'daily': 'Daily',
+      'monthly': 'Monthly',
+      'biweekly': 'Every two weeks',
+      'thisYear': 'This Year',
+      'cashCycleTitle': 'Cash Cycle',
+      'financialOverview': 'Financial Overview',
+      'trackEarnings': 'Track your earnings and manage your cash flow',
+      'netEarnings': 'Net Earnings',
+      'totalOrders': 'Total Orders',
+      'totalIncome': 'Total Income',
+      'totalFees': 'Total Fees',
+      'transactionHistoryDetailed': 'Detailed view of all your order earnings and fees',
+      'serviceFee': 'Service Fee',
+      'paymentDate': 'Payment Date',
+      'deliveryLocation': 'Delivery Location',
+      'cancellationFees': 'Cancellation Fees',
+      'returnFees': 'Return Fees',
+      'returnCompletedFees': 'Return Completed Fees',
+      'platformFee': 'Platform Fee',
+      'paymentPending': 'Payment Pending',
+      'loadingFinancialData': 'Loading financial data...',
+      'loadingLargeDatasetNote': 'This may take a moment for large datasets',
+      'unableToLoadData': 'Unable to Load Data',
+      'fetchFinancialDataIssue': 'We encountered an issue while fetching your financial data.',
+      'excelReadyToSave': 'Excel file ready to save - use share dialog to save to Downloads',
+      'invalidExportResponse': 'Invalid export response',
     },
     'ar': {
       'appTitle': 'تطبيق الخدمات اللوجستية',
@@ -693,6 +928,12 @@ class AppLocalizations {
       'orderValue': 'قيمة الطلب',
       'shippingFees': 'رسوم الشحن',
       'totalAmount': 'المبلغ الإجمالي',
+      'noOrdersMatchingQuery': 'لا توجد طلبات مطابقة لـ "{query}"',
+      'noOrdersPickedUpYet': 'لا توجد طلبات تم استلامها بعد',
+      'adjustSearchTerms': 'جرّب تعديل كلمات البحث',
+      'ordersWillAppearAfterPickup': 'ستظهر الطلبات هنا بمجرد استلامها',
+      'loadingOrders': 'جاري تحميل الطلبات...',
+      'failedToLoadOrders': 'فشل في تحميل الطلبات',
       
       // Pickups
       'createPickup': 'إنشاء استلام',
@@ -868,10 +1109,33 @@ class AppLocalizations {
       'deliveryFeeSummary': 'ملخص رسوم التوصيل',
       'totalDeliveryFee': 'إجمالي رسوم التوصيل',
       'confirmOrder': 'تأكيد الطلب',
+      'returnReason': 'سبب الإرجاع',
+      'returnNotes': 'ملاحظات الإرجاع',
+      // Cash Collection form
+      'cashCollectionDetails': 'تفاصيل تحصيل النقد',
+      'amountToCollect': 'المبلغ المطلوب تحصيله',
+      'enterAmountToCollect': 'أدخل المبلغ المراد تحصيله',
+      'enterWholeNumbersOnly': 'أدخل أرقامًا صحيحة فقط (بدون كسور عشرية)',
+      // Exchange form
+      'exchangeDetails': 'تفاصيل الاستبدال',
+      'currentProductDescription': 'وصف المنتجات الحالية',
+      'describeCurrentProductsPlaceholder': 'صف المنتجات الحالية المطلوب استبدالها',
+      'numberOfCurrentItems': 'عدد العناصر الحالية',
+      'newProductDescription': 'وصف المنتجات الجديدة',
+      'describeNewProductsPlaceholder': 'صف المنتجات الجديدة المطلوب استبدالها',
+      'numberOfNewItems': 'عدد العناصر الجديدة',
+      'cashDifference': 'فرق نقدي',
+      // Return form
+      'returnDetails': 'تفاصيل الإرجاع',
+      'originalOrderNumber': 'رقم الطلب الأصلي',
+      'enterOriginalOrderNumber': 'أدخل رقم الطلب الأصلي',
+      'describeItemsBeingReturnedPlaceholder': 'صف العناصر المراد إرجاعها (مثال: قميص أزرق، مقاس L، سماعات لاسلكية)',
       
       // Customer Details Screen
       'phoneNumber': 'رقم الهاتف',
       'addSecondaryNumber': 'إضافة رقم ثانوي',
+      'hideSecondaryNumber': 'إخفاء الرقم الثانوي',
+      'secondaryPhoneNumber': 'رقم الهاتف الثانوي',
       'namePlaceholder': 'الاسم',
       'address': 'العنوان',
       'cityArea': 'المدينة - المنطقة',
@@ -881,6 +1145,8 @@ class AppLocalizations {
       'building': 'المبنى',
       'landmark': 'معلم مميز',
       'thisIsWorkingAddress': 'هذا عنوان العمل',
+      'pleaseEnterAddressDetails': 'يرجى إدخال تفاصيل العنوان',
+      'pleaseSelectCity': 'يرجى اختيار مدينة',
 
       // City names
       'cairo': 'القاهرة',
@@ -1013,6 +1279,210 @@ class AppLocalizations {
       'website': 'الموقع الإلكتروني',
       'legal': 'قانوني',
       'allRightsReserved': 'Now Shipping. جميع الحقوق محفوظة 2025 ©',
+      'pendingPickup': 'في انتظار الاستلام',
+      'inReturnStock': 'في مخزون الإرجاع',
+      'returnToWarehouse': 'إرجاع إلى المستودع',
+      'rescheduled': 'إعادة جدولة',
+      'returnInitiated': 'تم بدء الإرجاع',
+      'returnAssigned': 'تم تعيين الإرجاع',
+      'returnPickedUp': 'تم استلام الإرجاع',
+      'returnAtWarehouse': 'الإرجاع في المستودع',
+      'returnToBusiness': 'إرجاع إلى العمل',
+      'returnLinked': 'الإرجاع مربوط',
+      'waitingAction': 'في انتظار الإجراء',
+      'returnCompleted': 'تم إكمال الإرجاع',
+      'deliveryFailed': 'فشل التوصيل',
+      'autoReturnInitiated': 'تم بدء الإرجاع التلقائي',
+      'processingStatus': 'قيد المعالجة',
+      'pausedStatus': 'معلق',
+      'successfulStatus': 'ناجح',
+      'unsuccessfulStatus': 'غير ناجح',
+      'loadingTrackingInformation': 'جاري تحميل معلومات التتبع...',
+      'currentStatus': 'الحالة الحالية',
+      'orderFees': 'رسوم الطلب',
+      'progress': 'التقدم',
+      'completedDate': 'تاريخ الإكمال',
+      'deliveryPerson': 'الشخص المسؤول عن التوصيل',
+      'retryTomorrow': 'إعادة المحاولة غداً',
+      'retryTomorrowConfirmation': 'هل أنت متأكد من أنك تريد جدولة هذا الطلب لإعادة المحاولة التلقائية غداً؟',
+      'confirmSchedule': 'تأكيد الجدولة',
+      'scheduleRetryFor': 'جدولة إعادة المحاولة لـ:',
+      'returnToWarehouseConfirmation': 'هل أنت متأكد من أنك تريد إرجاع هذا الطلب إلى المستودع؟ لا يمكن التراجع عن هذا الإجراء.',
+      'confirmReturn': 'تأكيد الإرجاع',
+      'cancelOrder': 'إلغاء الطلب',
+      'cancelOrderConfirmation': 'هل أنت متأكد من أنك تريد إلغاء هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.',
+      'keepOrder': 'الاحتفاظ بالطلب',
+      'cancellingOrder': 'جاري إلغاء الطلب...',
+      'processing': 'جاري المعالجة...',
+      'searchByOrderIdOrCustomerName': 'البحث برقم الطلب أو اسم العميل',
+      'pleaseCompleteAndActivateAccount': 'يرجى إكمال وتفعيل حسابك أولاً',
+      'scanQrCode': 'مسح رمز الاستجابة السريعة',
+      'suggestionBox': 'صندوق الاقتراحات',
+      'newLabel': 'جديد',
+      'helpUsServeBetter': 'ساعدنا لنخدمك بشكل أفضل',
+      'shareSuggestions': 'شارك اقتراحاتك',
+      'suggestNow': 'اقترح الآن',
+      'youreAllSet': 'أنت جاهز!',
+      'profileCompletedSuccess': 'تم إكمال الملف الشخصي بنجاح',
+      'inHub': 'في المركز',
+      'viewAll': 'عرض الكل',
+      'statistics': 'الإحصائيات',
+      'thisWeek': 'هذا الأسبوع',
+      'thisMonth': 'هذا الشهر',
+      'newOrdersCount': 'الطلبات الجديدة',
+      'completedOrdersCount': 'الطلبات المكتملة',
+      'revenue': 'الإيرادات',
+      'totalEarnings': 'إجمالي الأرباح',
+      'profileSummary': 'ملخص الملف الشخصي',
+      'brand': 'العلامة التجارية',
+      'industry': 'القطاع',
+      'location': 'الموقع',
+      'payment': 'الدفع',
+      'finishSetup': 'إنهاء الإعداد',
+      'notProvided': 'غير متوفر',
+      'city': 'المدينة',
+      'country': 'البلد',
+      'bankTransfer': 'تحويل بنكي',
+      'digitalWallet': 'محفظة رقمية',
+      'notSelected': 'غير محدد',
+      'orderPlaced': 'تم وضع الطلب',
+      'packed': 'تم التغليف',
+      'shipping': 'الشحن',
+      'inProgress': 'قيد التنفيذ',
+      'outForDelivery': 'خارج للتوصيل',
+      'delivered': 'تم التسليم',
+      'orderHasBeenCreated': 'تم إنشاء الطلب',
+      'fastShippingMarkedCompleted': 'الشحن السريع - تم تحديده كمكتمل بعد مسح استلام العمل',
+      'fastShippingAssignedToCourier': 'طلب الشحن السريع تم تعيينه لموصل1 - جاهز للاستلام من العمل',
+      'fastShippingReadyForDelivery': 'الشحن السريع - جاهز للتوصيل للعميل',
+      'orderCompletedByCourier': 'تم إكمال الطلب بواسطة موصل1',
+      'returnInspection': 'فحص الإرجاع',
+      'returnProcessing': 'معالجة الإرجاع',
+      'failedToLoadPickups': 'فشل في تحميل عمليات الاستلام',
+      'pickupNumber': 'استلام #',
+      'contact': 'جهة الاتصال',
+      'fragile': 'هش',
+      'deletePickup': 'حذف الاستلام',
+      'deletePickupConfirmation': 'هل أنت متأكد من أنك تريد حذف الاستلام #{number}؟ لا يمكن التراجع عن هذا الإجراء.',
+      'yesDelete': 'نعم، احذف',
+      'deleteFunctionalityNotAvailable': 'وظيفة الحذف غير متاحة',
+      'pickupDeletedSuccessfully': 'تم حذف الاستلام بنجاح',
+      'failedToDeletePickup': 'فشل في حذف الاستلام. يرجى المحاولة مرة أخرى.',
+      'yesCancel': 'نعم، ألغِ',
+      'pickupCancellationFeatureComingSoon': 'ميزة إلغاء الاستلام قريباً',
+      'enterPickupAddress': 'أدخل عنوان الاستلام',
+      'ordersPicked': 'الطلبات المستلمة',
+      'pickupTracking': 'تتبع الاستلام',
+      'ofMilestonesCompleted': '{completed} من {total} مراحل مكتملة',
+      'pickupCreated': 'تم إنشاء الاستلام',
+      'pickupHasBeenCreated': 'تم إنشاء الاستلام',
+      'driverAssigned': 'تم تعيين السائق',
+      'pickupAssignedTo': 'تم تعيين الاستلام لـ {driver}',
+      'itemsPickedUp': 'تم استلام العناصر',
+      'completed': 'مكتمل',
+      'pending': 'في الانتظار',
+      'current': 'الحالي',
+      'pickupHasBeenCreatedDesc': 'تم إنشاء الاستلام',
+      'pickupAssignedToDriverDesc': 'تم تعيين الاستلام لـ {driver}',
+      'orderPickedUpByCourierDesc': 'تم استلام الطلب من قبل السائق {driver}',
+      'allOrdersFromPickupInStockDesc': 'جميع الطلبات من هذا الاستلام أصبحت في المخزن',
+      'pickedUp': 'تم الاستلام',
+      'yourPickupHasBeenCompletedSuccessfully': 'تم إكمال استلامك بنجاح',
+      'pickupInformation': 'معلومات الاستلام',
+      'pickupId': 'رقم الاستلام',
+      'pickupType': 'نوع الاستلام',
+      'normal': 'عادي',
+      'scheduledDate': 'التاريخ المجدول',
+      'addressAndContact': 'العنوان وجهة الاتصال',
+      'driverDetails': 'تفاصيل السائق',
+      'driverName': 'اسم السائق',
+      'vehicleType': 'نوع المركبة',
+      'plateNumber': 'رقم اللوحة',
+      'pickedUpOrders': 'الطلبات المستلمة',
+      'rateYourExperience': 'قيم تجربتك',
+      'driver': 'السائق',
+      'service': 'الخدمة',
+      'submitRating': 'إرسال التقييم',
+      'fragileItemDescription': 'يحتوي هذا الاستلام على عناصر هشة تتطلب معالجة خاصة',
+      'largeItemDescription': 'يحتوي هذا الاستلام على عناصر كبيرة قد تتطلب مركبة أكبر',
+      'notAssignedYet': 'لم يتم التعيين بعد',
+      'availableAfterPickupCompletion': 'متاح بعد اكتمال الاستلام',
+      'notes': 'ملاحظات',
+      'ordersPickedUp': 'الطلبات المستلمة',
+      'trackYourPickedUpOrders': 'تتبع الطلبات المستلمة',
+      'searchByOrderIdCustomerOrLocation': 'البحث برقم الطلب أو العميل أو الموقع',
+      'order': 'الطلب',
+      'product': 'المنتج',
+      'na': 'غير متوفر',
+      // Wallet
+      'walletTitle': 'المحفظة',
+      'totalBalance': 'إجمالي الرصيد',
+      'errorLoadingBalance': 'خطأ في تحميل الرصيد',
+      'withdrawFrequency': 'تكرار السحب',
+      'nextWithdrawDate': 'تاريخ السحب القادم',
+      'transactionHistory': 'سجل المعاملات',
+      'export': 'تصدير',
+      'financialTransactionsHelp': 'جميع معاملاتك المالية وأنشطة الحساب.',
+      'noTransactionsFound': 'لا توجد معاملات',
+      'errorLoadingTransactions': 'خطأ في تحميل المعاملات',
+      'timePeriod': 'الفترة الزمنية',
+      'allTime': 'كل الوقت',
+      'statusFilter': 'تصفية الحالة',
+      'transactionType': 'نوع المعاملة',
+      'customDateRangeOptional': 'نطاق تاريخ مخصص (اختياري)',
+      'exportTransactions': 'تصدير المعاملات',
+      'exportToExcel': 'تصدير إلى إكسل',
+      'exporting': 'جاري التصدير...',
+      'allStatus': 'كل الحالات',
+      'settled': 'مسوّى',
+      'pendingLower': 'قيد الانتظار',
+      'allTypes': 'كل الأنواع',
+      'cashCycle': 'دورة النقد',
+      'serviceFees': 'رسوم الخدمة',
+      'pickupFees': 'رسوم الاستلام',
+      'refund': 'استرجاع',
+      'deposit': 'إيداع',
+      'withdrawal': 'سحب',
+      'fromDate': 'من تاريخ',
+      'toDate': 'إلى تاريخ',
+      'clearDates': 'مسح التواريخ',
+      'transactionDate': 'تاريخ المعاملة',
+      'transactionTypeLabel': 'نوع المعاملة',
+      'amountWithCurrency': 'المبلغ (جنيه مصري)',
+      'storagePermissionExcel': 'إذن التخزين مطلوب لتنزيل ملفات الإكسل',
+      'noAuthToken': 'لم يتم العثور على رمز مصادقة. يرجى تسجيل الدخول مرة أخرى.',
+      'excelExportedSuccessfully': 'تم تصدير ملف الإكسل بنجاح!',
+      'filtersLabel': 'الفلاتر:',
+      'useShareDialogToSave': 'استخدم مربع المشاركة للحفظ في التنزيلات',
+      'exportFailedPrefix': 'فشل التصدير: ',
+      'balanceRecalculatedUnsettled': 'تمت إعادة احتساب الرصيد من {count} معاملات غير مسوّاة.',
+      'weekly': 'أسبوعيًا',
+      'daily': 'يوميًا',
+      'monthly': 'شهريًا',
+      'biweekly': 'كل أسبوعين',
+      'thisYear': 'هذا العام',
+      'cashCycleTitle': 'دورة النقد',
+      'financialOverview': 'نظرة مالية عامة',
+      'trackEarnings': 'تابع أرباحك وأدر التدفقات النقدية',
+      'netEarnings': 'صافي الأرباح',
+      'totalOrders': 'إجمالي الطلبات',
+      'totalIncome': 'إجمالي الدخل',
+      'totalFees': 'إجمالي الرسوم',
+      'transactionHistoryDetailed': 'عرض تفصيلي لجميع أرباح ورسوم الطلبات',
+      'serviceFee': 'رسوم الخدمة',
+      'paymentDate': 'تاريخ الدفع',
+      'deliveryLocation': 'موقع التسليم',
+      'cancellationFees': 'رسوم الإلغاء',
+      'returnFees': 'رسوم الإرجاع',
+      'returnCompletedFees': 'رسوم الإرجاع المكتمل',
+      'platformFee': 'رسوم المنصة',
+      'paymentPending': 'الدفع قيد الانتظار',
+      'loadingFinancialData': 'جاري تحميل البيانات المالية...',
+      'loadingLargeDatasetNote': 'قد يستغرق ذلك بعض الوقت مع البيانات الكبيرة',
+      'unableToLoadData': 'تعذّر تحميل البيانات',
+      'fetchFinancialDataIssue': 'واجهنا مشكلة أثناء جلب بياناتك المالية.',
+      'excelReadyToSave': 'ملف الإكسل جاهز للحفظ - استخدم مربع المشاركة للحفظ في التنزيلات',
+      'invalidExportResponse': 'استجابة تصدير غير صالحة',
     },
   };
 
@@ -1179,6 +1649,12 @@ class AppLocalizations {
   String get orderValue => get('orderValue');
   String get shippingFees => get('shippingFees');
   String get totalAmount => get('totalAmount');
+  String get noOrdersMatchingQuery => get('noOrdersMatchingQuery');
+  String get noOrdersPickedUpYet => get('noOrdersPickedUpYet');
+  String get adjustSearchTerms => get('adjustSearchTerms');
+  String get ordersWillAppearAfterPickup => get('ordersWillAppearAfterPickup');
+  String get loadingOrders => get('loadingOrders');
+  String get failedToLoadOrders => get('failedToLoadOrders');
   
   // Pickups getters
   String get createPickup => get('createPickup');
@@ -1396,10 +1872,33 @@ class AppLocalizations {
   String get deliveryFeeSummary => get('deliveryFeeSummary');
   String get totalDeliveryFee => get('totalDeliveryFee');
   String get confirmOrder => get('confirmOrder');
+  String get returnReason => get('returnReason');
+  String get returnNotes => get('returnNotes');
+  // Cash Collection form getters
+  String get cashCollectionDetails => get('cashCollectionDetails');
+  String get amountToCollect => get('amountToCollect');
+  String get enterAmountToCollect => get('enterAmountToCollect');
+  String get enterWholeNumbersOnly => get('enterWholeNumbersOnly');
+  // Exchange form getters
+  String get exchangeDetails => get('exchangeDetails');
+  String get currentProductDescription => get('currentProductDescription');
+  String get describeCurrentProductsPlaceholder => get('describeCurrentProductsPlaceholder');
+  String get numberOfCurrentItems => get('numberOfCurrentItems');
+  String get newProductDescription => get('newProductDescription');
+  String get describeNewProductsPlaceholder => get('describeNewProductsPlaceholder');
+  String get numberOfNewItems => get('numberOfNewItems');
+  String get cashDifference => get('cashDifference');
+  // Return form getters
+  String get returnDetails => get('returnDetails');
+  String get originalOrderNumber => get('originalOrderNumber');
+  String get enterOriginalOrderNumber => get('enterOriginalOrderNumber');
+  String get describeItemsBeingReturnedPlaceholder => get('describeItemsBeingReturnedPlaceholder');
   
   // Customer Details Screen getters
   String get phoneNumber => get('phoneNumber');
   String get addSecondaryNumber => get('addSecondaryNumber');
+  String get hideSecondaryNumber => get('hideSecondaryNumber');
+  String get secondaryPhoneNumber => get('secondaryPhoneNumber');
   String get namePlaceholder => get('namePlaceholder');
   String get address => get('address');
   String get cityArea => get('cityArea');
@@ -1409,6 +1908,8 @@ class AppLocalizations {
   String get building => get('building');
   String get landmark => get('landmark');
   String get thisIsWorkingAddress => get('thisIsWorkingAddress');
+  String get pleaseEnterAddressDetails => get('pleaseEnterAddressDetails');
+  String get pleaseSelectCity => get('pleaseSelectCity');
 
   // City name getters
   String get cairo => get('cairo');
@@ -1540,6 +2041,191 @@ class AppLocalizations {
   String get website => get('website');
   String get legal => get('legal');
   String get allRightsReserved => get('allRightsReserved');
+
+  // Order status getters
+  String get pendingPickup => get('pendingPickup');
+  String get inReturnStock => get('inReturnStock');
+  String get returnToWarehouse => get('returnToWarehouse');
+  String get rescheduled => get('rescheduled');
+  String get returnInitiated => get('returnInitiated');
+  String get returnAssigned => get('returnAssigned');
+  String get returnPickedUp => get('returnPickedUp');
+  String get returnAtWarehouse => get('returnAtWarehouse');
+  String get returnToBusiness => get('returnToBusiness');
+  String get returnLinked => get('returnLinked');
+  String get waitingAction => get('waitingAction');
+  String get returnCompleted => get('returnCompleted');
+  String get deliveryFailed => get('deliveryFailed');
+  String get autoReturnInitiated => get('autoReturnInitiated');
+  String get processingStatus => get('processingStatus');
+  String get pausedStatus => get('pausedStatus');
+  String get successfulStatus => get('successfulStatus');
+  String get unsuccessfulStatus => get('unsuccessfulStatus');
+  String get loadingTrackingInformation => get('loadingTrackingInformation');
+  String get currentStatus => get('currentStatus');
+  String get orderFees => get('orderFees');
+  String get progress => get('progress');
+  String get completedDate => get('completedDate');
+  String get deliveryPerson => get('deliveryPerson');
+  String get retryTomorrow => get('retryTomorrow');
+  String get retryTomorrowConfirmation => get('retryTomorrowConfirmation');
+  String get confirmSchedule => get('confirmSchedule');
+  String get scheduleRetryFor => get('scheduleRetryFor');
+  String get returnToWarehouseConfirmation => get('returnToWarehouseConfirmation');
+  String get confirmReturn => get('confirmReturn');
+  String get cancelOrder => get('cancelOrder');
+  String get cancelOrderConfirmation => get('cancelOrderConfirmation');
+  String get keepOrder => get('keepOrder');
+  String get cancellingOrder => get('cancellingOrder');
+  String get processing => get('processing');
+  String get searchByOrderIdOrCustomerName => get('searchByOrderIdOrCustomerName');
+  String get pleaseCompleteAndActivateAccount => get('pleaseCompleteAndActivateAccount');
+  String get scanQrCode => get('scanQrCode');
+  
+  // Tracking screen getters
+  String get orderPlaced => get('orderPlaced');
+  String get packed => get('packed');
+  String get shipping => get('shipping');
+  String get inProgress => get('inProgress');
+  String get outForDelivery => get('outForDelivery');
+  String get delivered => get('delivered');
+  String get orderHasBeenCreated => get('orderHasBeenCreated');
+  String get fastShippingMarkedCompleted => get('fastShippingMarkedCompleted');
+  String get fastShippingAssignedToCourier => get('fastShippingAssignedToCourier');
+  String get fastShippingReadyForDelivery => get('fastShippingReadyForDelivery');
+  String get orderCompletedByCourier => get('orderCompletedByCourier');
+  String get returnInspection => get('returnInspection');
+  String get returnProcessing => get('returnProcessing');
+  
+  // Pickup screen getters (only new ones)
+  String get failedToLoadPickups => get('failedToLoadPickups');
+  String get pickupNumber => get('pickupNumber');
+  String get contact => get('contact');
+  String get fragile => get('fragile');
+  String get deletePickup => get('deletePickup');
+  String get deletePickupConfirmation => get('deletePickupConfirmation');
+  String get yesDelete => get('yesDelete');
+  String get deleteFunctionalityNotAvailable => get('deleteFunctionalityNotAvailable');
+  String get pickupDeletedSuccessfully => get('pickupDeletedSuccessfully');
+  String get failedToDeletePickup => get('failedToDeletePickup');
+  String get yesCancel => get('yesCancel');
+  String get pickupCancellationFeatureComingSoon => get('pickupCancellationFeatureComingSoon');
+  String get enterPickupAddress => get('enterPickupAddress');
+  
+  // Pickup tracking getters
+  String get ordersPicked => get('ordersPicked');
+  String get pickupTracking => get('pickupTracking');
+  String get ofMilestonesCompleted => get('ofMilestonesCompleted');
+  String get pickupCreated => get('pickupCreated');
+  String get pickupHasBeenCreated => get('pickupHasBeenCreated');
+  String get driverAssigned => get('driverAssigned');
+  String get pickupAssignedTo => get('pickupAssignedTo');
+  String get itemsPickedUp => get('itemsPickedUp');
+  String get completed => get('completed');
+  String get pending => get('pending');
+  String get current => get('current');
+  String get pickupHasBeenCreatedDesc => get('pickupHasBeenCreatedDesc');
+  String get pickupAssignedToDriverDesc => get('pickupAssignedToDriverDesc');
+  String get orderPickedUpByCourierDesc => get('orderPickedUpByCourierDesc');
+  String get allOrdersFromPickupInStockDesc => get('allOrdersFromPickupInStockDesc');
+  String get pickedUp => get('pickedUp');
+  String get yourPickupHasBeenCompletedSuccessfully => get('yourPickupHasBeenCompletedSuccessfully');
+  String get pickupInformation => get('pickupInformation');
+  String get pickupId => get('pickupId');
+  String get pickupType => get('pickupType');
+  String get normal => get('normal');
+  String get scheduledDate => get('scheduledDate');
+  String get addressAndContact => get('addressAndContact');
+  String get driverDetails => get('driverDetails');
+  String get driverName => get('driverName');
+  String get vehicleType => get('vehicleType');
+  String get plateNumber => get('plateNumber');
+  String get pickedUpOrders => get('pickedUpOrders');
+  String get rateYourExperience => get('rateYourExperience');
+  String get driver => get('driver');
+  String get service => get('service');
+  String get submitRating => get('submitRating');
+  String get fragileItemDescription => get('fragileItemDescription');
+  String get largeItemDescription => get('largeItemDescription');
+  String get notAssignedYet => get('notAssignedYet');
+  String get availableAfterPickupCompletion => get('availableAfterPickupCompletion');
+  String get notes => get('notes');
+  String get ordersPickedUp => get('ordersPickedUp');
+  String get trackYourPickedUpOrders => get('trackYourPickedUpOrders');
+  String get searchByOrderIdCustomerOrLocation => get('searchByOrderIdCustomerOrLocation');
+  String get order => get('order');
+  String get product => get('product');
+  String get na => get('na');
+  // Wallet getters
+  String get walletTitle => get('walletTitle');
+  String get totalBalance => get('totalBalance');
+  String get errorLoadingBalance => get('errorLoadingBalance');
+  String get withdrawFrequency => get('withdrawFrequency');
+  String get nextWithdrawDate => get('nextWithdrawDate');
+  String get transactionHistory => get('transactionHistory');
+  String get export => get('export');
+  String get financialTransactionsHelp => get('financialTransactionsHelp');
+  String get noTransactionsFound => get('noTransactionsFound');
+  String get errorLoadingTransactions => get('errorLoadingTransactions');
+  String get timePeriod => get('timePeriod');
+  String get allTime => get('allTime');
+  String get statusFilter => get('statusFilter');
+  String get transactionType => get('transactionType');
+  String get customDateRangeOptional => get('customDateRangeOptional');
+  String get exportTransactions => get('exportTransactions');
+  String get exportToExcel => get('exportToExcel');
+  String get exporting => get('exporting');
+  String get allStatus => get('allStatus');
+  String get settled => get('settled');
+  String get pendingLower => get('pendingLower');
+  String get allTypes => get('allTypes');
+  String get cashCycle => get('cashCycle');
+  String get serviceFees => get('serviceFees');
+  String get pickupFees => get('pickupFees');
+  String get refund => get('refund');
+  String get deposit => get('deposit');
+  String get withdrawal => get('withdrawal');
+  String get fromDate => get('fromDate');
+  String get toDate => get('toDate');
+  String get clearDates => get('clearDates');
+  String get transactionDate => get('transactionDate');
+  String get transactionTypeLabel => get('transactionTypeLabel');
+  String get amountWithCurrency => get('amountWithCurrency');
+  String get storagePermissionExcel => get('storagePermissionExcel');
+  String get noAuthToken => get('noAuthToken');
+  String get excelExportedSuccessfully => get('excelExportedSuccessfully');
+  String get filtersLabel => get('filtersLabel');
+  String get useShareDialogToSave => get('useShareDialogToSave');
+  String get exportFailedPrefix => get('exportFailedPrefix');
+  String get balanceRecalculatedUnsettled => get('balanceRecalculatedUnsettled');
+  String get weekly => get('weekly');
+  String get daily => get('daily');
+  String get monthly => get('monthly');
+  String get biweekly => get('biweekly');
+  String get thisYear => get('thisYear');
+  String get cashCycleTitle => get('cashCycleTitle');
+  String get financialOverview => get('financialOverview');
+  String get trackEarnings => get('trackEarnings');
+  String get netEarnings => get('netEarnings');
+  String get totalOrders => get('totalOrders');
+  String get transactionHistoryDetailed => get('transactionHistoryDetailed');
+  String get serviceFee => get('serviceFee');
+  String get paymentDate => get('paymentDate');
+  String get deliveryLocation => get('deliveryLocation');
+  String get totalIncome => get('totalIncome');
+  String get totalFees => get('totalFees');
+  String get orderDate => get('orderDate');
+  String get cancellationFees => get('cancellationFees');
+  String get returnFees => get('returnFees');
+  String get returnCompletedFees => get('returnCompletedFees');
+  String get platformFee => get('platformFee');
+  String get paymentPending => get('paymentPending');
+  String get loadingFinancialData => get('loadingFinancialData');
+  String get loadingLargeDatasetNote => get('loadingLargeDatasetNote');
+  String get unableToLoadData => get('unableToLoadData');
+  String get fetchFinancialDataIssue => get('fetchFinancialDataIssue');
+  String get excelReadyToSave => get('excelReadyToSave');
+  String get invalidExportResponse => get('invalidExportResponse');
 }
 
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

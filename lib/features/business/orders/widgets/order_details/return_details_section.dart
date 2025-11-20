@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:now_shipping/features/business/orders/providers/order_details_provider.dart';
 import 'package:now_shipping/features/business/orders/widgets/order_details/section_utilities.dart';
+import 'package:now_shipping/core/l10n/app_localizations.dart';
 
 class ReturnDetailsSection extends StatelessWidget {
   final OrderDetailsModel orderDetails;
@@ -16,15 +17,15 @@ class ReturnDetailsSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(
-            title: 'Return Details',
+          SectionHeader(
+            title: AppLocalizations.of(context).returnDetails,
             icon: Icons.assignment_return_outlined,
           ),
           const SizedBox(height: 16),
           
           // Number of Return Items
           DetailRow(
-            label: 'Number of Items',
+            label: AppLocalizations.of(context).numberOfItems,
             value: '${orderDetails.returnItems ?? orderDetails.numberOfItems ?? 1}',
           ),
           
@@ -32,8 +33,8 @@ class ReturnDetailsSection extends StatelessWidget {
           
           // Return Reason
           DetailRow(
-            label: 'Return Reason',
-            value: orderDetails.returnReason ?? 'N/A',
+            label: AppLocalizations.of(context).returnReason,
+            value: orderDetails.returnReason ?? AppLocalizations.of(context).na,
             maxLines: 2,
           ),
           
@@ -41,8 +42,8 @@ class ReturnDetailsSection extends StatelessWidget {
           
           // Return Items Description
           DetailRow(
-            label: 'Item Description',
-            value: orderDetails.returnProductDescription ?? 'N/A',
+            label: AppLocalizations.of(context).productDescription,
+            value: orderDetails.returnProductDescription ?? AppLocalizations.of(context).na,
             maxLines: 3,
           ),
           
@@ -50,8 +51,8 @@ class ReturnDetailsSection extends StatelessWidget {
           if (orderDetails.collectCashAmount > 0) ...[
             const SizedBox(height: 12),
             DetailRow(
-              label: 'Refund Amount',
-              value: '${orderDetails.collectCashAmount} EGP',
+              label: AppLocalizations.of(context).refund,
+              value: '${orderDetails.collectCashAmount} ${AppLocalizations.of(context).egp}',
               isHighlighted: true,
             ),
           ],

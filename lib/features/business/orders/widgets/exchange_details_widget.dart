@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
+import 'package:now_shipping/core/l10n/app_localizations.dart';
+import 'pickup_address_selector_widget.dart';
 
 class ExchangeDetailsWidget extends ConsumerStatefulWidget {
   const ExchangeDetailsWidget({super.key});
@@ -72,9 +74,9 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Exchange Details
-          const Text(
-            'Exchange Details',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).exchangeDetails,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Color(0xff2F2F2F),
@@ -84,9 +86,9 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
           const SizedBox(height: 16),
           
           // Current Product Description
-          const Text(
-            'Current Product Description',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).currentProductDescription,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Color(0xff2F2F2F),
@@ -105,7 +107,7 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
               );
             },
             decoration: InputDecoration(
-              hintText: 'Describe the current products being exchanged',
+              hintText: AppLocalizations.of(context).describeCurrentProductsPlaceholder,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -123,15 +125,20 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Number of Current \nItems',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xff2F2F2F),
+              Expanded(
+                child: Text(
+                  AppLocalizations.of(context).numberOfCurrentItems,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xff2F2F2F),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 8),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Minus button
                   InkWell(
@@ -192,9 +199,9 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
           const SizedBox(height: 16),
           
           // New Product Description
-          const Text(
-            'New Product Description',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).newProductDescription,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Color(0xff2F2F2F),
@@ -213,7 +220,7 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
               );
             },
             decoration: InputDecoration(
-              hintText: 'Describe the new products being exchanged',
+              hintText: AppLocalizations.of(context).describeNewProductsPlaceholder,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -231,15 +238,20 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Number of New Items',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xff2F2F2F),
+              Expanded(
+                child: Text(
+                  AppLocalizations.of(context).numberOfNewItems,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xff2F2F2F),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 8),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Minus button
                   InkWell(
@@ -317,9 +329,9 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
                   }
                 },
               ),
-              const Text(
-                'Cash Difference',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).cashDifference,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Color(0xff2F2F2F),
@@ -335,10 +347,10 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
               controller: _cashDifferenceAmountController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'Cash Difference Amount',
+                labelText: AppLocalizations.of(context).cashDifference,
                 labelStyle: const TextStyle(color: Color(0xff2F2F2F)),
-                hintText: 'Enter amount',
-                prefixText: 'EGP ',
+                hintText: AppLocalizations.of(context).enterAmount,
+                prefixText: '${AppLocalizations.of(context).egp} ',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                   borderSide: BorderSide(color: Colors.grey.shade300),
@@ -380,9 +392,9 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              const Text(
-                'Express Shipping',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).expressShipping,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Color(0xff2F2F2F),
@@ -390,6 +402,12 @@ class _ExchangeDetailsWidgetState extends ConsumerState<ExchangeDetailsWidget> {
               ),
             ],
           ),
+          
+          // Show pickup address selector when express shipping is enabled
+          if (order.expressShipping == true) ...[
+            const SizedBox(height: 16),
+            const PickupAddressSelectorWidget(),
+          ],
         ],
       ),
     );

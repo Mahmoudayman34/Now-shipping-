@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/features/business/orders/providers/order_providers.dart';
 import 'package:now_shipping/features/business/orders/providers/orders_provider.dart';
+import 'package:now_shipping/core/l10n/app_localizations.dart';
+import 'pickup_address_selector_widget.dart';
 
 class ReturnDetailsWidget extends ConsumerStatefulWidget {
   const ReturnDetailsWidget({super.key});
@@ -144,7 +146,7 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
               Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
               const SizedBox(width: 8),
               Text(
-                'Original Order Details',
+                AppLocalizations.of(context).orderDetails,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -159,15 +161,15 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
           const SizedBox(height: 12),
           
           // Order details in a grid
-          _buildReadOnlyField('Order Number', orderNumber),
+          _buildReadOnlyField(AppLocalizations.of(context).orderNumber, orderNumber),
           const SizedBox(height: 8),
-          _buildReadOnlyField('Customer', customerName),
+          _buildReadOnlyField(AppLocalizations.of(context).customer, customerName),
           const SizedBox(height: 8),
-          _buildReadOnlyField('Status', status),
+          _buildReadOnlyField(AppLocalizations.of(context).status, status),
           const SizedBox(height: 8),
-          _buildReadOnlyField('Product', productDescription),
+          _buildReadOnlyField(AppLocalizations.of(context).product, productDescription),
           const SizedBox(height: 8),
-          _buildReadOnlyField('No. of Items', numberOfItems.toString()),
+          _buildReadOnlyField(AppLocalizations.of(context).numberOfItems, numberOfItems.toString()),
         ],
       ),
     );
@@ -229,9 +231,9 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Return Type',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).returnType,
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: Color(0xff2F2F2F),
@@ -529,9 +531,9 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Return Details Header
-          const Text(
-            'Return Details',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).returnDetails,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Color(0xff2F2F2F),
@@ -541,9 +543,9 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
           const SizedBox(height: 16),
           
           // Original Order Number Input
-          const Text(
-            'Original Order Number',
-            style: TextStyle(
+          Text(
+            AppLocalizations.of(context).originalOrderNumber,
+            style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
               color: Color(0xff2F2F2F),
@@ -563,7 +565,7 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
                     FilteringTextInputFormatter.digitsOnly,
                   ],
             decoration: InputDecoration(
-                    hintText: 'Enter original order number (e.g., 123456)',
+                    hintText: AppLocalizations.of(context).enterOriginalOrderNumber,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -581,7 +583,7 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter the original order number';
+                      return AppLocalizations.of(context).thisFieldIsRequired;
                     }
                     return null;
                   },
@@ -767,9 +769,9 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Product Description',
-                  style: TextStyle(
+                Text(
+                  AppLocalizations.of(context).productDescription,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Color(0xff2F2F2F),
@@ -787,7 +789,7 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
                     );
                   },
                   decoration: InputDecoration(
-                    hintText: 'Describe the items being returned (e.g., Blue T-shirt, Size L, Wireless Headphones)',
+                    hintText: AppLocalizations.of(context).describeItemsBeingReturnedPlaceholder,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide(color: Colors.grey.shade300),
@@ -820,9 +822,9 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
                   borderRadius: BorderRadius.circular(4),
                 ),
               ),
-              const Text(
-                'Express Shipping',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context).expressShipping,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   color: Color(0xff2F2F2F),
@@ -830,6 +832,12 @@ class _ReturnDetailsWidgetState extends ConsumerState<ReturnDetailsWidget> {
               ),
             ],
           ),
+          
+          // Show pickup address selector when express shipping is enabled
+          if (order.expressShipping == true) ...[
+            const SizedBox(height: 16),
+            const PickupAddressSelectorWidget(),
+          ],
         ],
       ),
     );

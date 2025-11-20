@@ -26,70 +26,118 @@ class OrderNotifier extends StateNotifier<OrderModel> {
   OrderNotifier() : super(OrderModel());
   
   // Convert current state to API request format
-  Map<String, dynamic> toApiRequest() {
+  Map<String, dynamic> toApiRequest(WidgetRef ref) {
     print('DEBUG EXPRESS: Original expressShipping value from state: ${state.expressShipping}');
+    
+    // Get customer data from provider for additional fields
+    final customerData = ref.read(customerDataProvider);
+    
+    // Extract government and zone from customer data if available
+    String government = 'Cairo';
+    String zone = '';
+    String address = state.customerAddress ?? '';
+    
+    if (customerData != null) {
+      // Use city from customer data as government
+      if (customerData['city'] != null && customerData['city'].toString().isNotEmpty) {
+        government = customerData['city'] as String;
+      }
+      
+      // Use zone from customer data
+      if (customerData['zone'] != null && customerData['zone'].toString().isNotEmpty) {
+        zone = customerData['zone'] as String;
+      }
+      
+      // Build address from customer data fields
+      final List<String> addressParts = [];
+      if (customerData['addressDetails'] != null && customerData['addressDetails'].toString().isNotEmpty) {
+        addressParts.add(customerData['addressDetails'] as String);
+      }
+      if (customerData['building'] != null && customerData['building'].toString().isNotEmpty) {
+        addressParts.add('Building ${customerData['building']}');
+      }
+      if (customerData['floor'] != null && customerData['floor'].toString().isNotEmpty) {
+        addressParts.add('Floor ${customerData['floor']}');
+      }
+      if (customerData['apartment'] != null && customerData['apartment'].toString().isNotEmpty) {
+        addressParts.add('Apartment ${customerData['apartment']}');
+      }
+      if (addressParts.isNotEmpty) {
+        address = addressParts.join(', ');
+      }
+    } else {
+      // Fallback to parsing from customerAddress if customerData is not available
+      if (state.customerAddress != null && state.customerAddress!.contains(',')) {
+        final parts = state.customerAddress!.split(',');
+        if (parts.length >= 2) {
+          government = parts.first.trim();
+          zone = parts.last.trim();
+        }
+      }
+    }
     
     final Map<String, dynamic> request = {
       'fullName': state.customerName ?? '',
       'phoneNumber': state.customerPhone ?? '',
-      'address': state.customerAddress ?? '',
-      'government': state.customerAddress?.split(',').first.trim() ?? 'Cairo',
-      'zone': state.customerAddress?.split(',').last.trim() ?? '',
+      'address': address,
+      'government': government,
+      'zone': zone,
       'orderType': state.deliveryType ?? 'Deliver',
       'previewPermission': state.allowPackageInspection == true ? 'on' : 'off',
       'Notes': state.specialInstructions ?? '',
-      'expressShipping': state.expressShipping ?? false,
+      'isExpressShipping': state.expressShipping ?? false,
     };
+    
+    // Add otherPhoneNumber if available from customer data
+    if (customerData != null && customerData['secondaryPhone'] != null && customerData['secondaryPhone'].toString().isNotEmpty) {
+      request['otherPhoneNumber'] = customerData['secondaryPhone'] as String;
+    }
+    
+    // Add deliverToWorkAddress if available from customer data
+    if (customerData != null && customerData['isWorkingAddress'] == true) {
+      request['deliverToWorkAddress'] = true;
+    }
 
-    print('DEBUG EXPRESS: expressShipping in initial request: ${request['expressShipping']}');
+    print('DEBUG EXPRESS: isExpressShipping in initial request: ${request['isExpressShipping']}');
 
     // Add fields based on order type
-    if (state.deliveryType == 'Deliver') {
+    final orderType = state.deliveryType ?? 'Deliver';
+    
+    if (orderType == 'Deliver') {
       request['productDescription'] = state.productDescription ?? '';
       request['numberOfItems'] = state.numberOfItems ?? 1;
-      request['COD'] = state.cashOnDelivery ?? false;
-      request['amountCOD'] = state.cashOnDelivery == true ? 
-                      int.tryParse(state.cashOnDeliveryAmount ?? '0') ?? 0 : 0;
+      if (state.cashOnDelivery == true) {
+        request['COD'] = true;
+        request['amountCOD'] = int.tryParse(state.cashOnDeliveryAmount ?? '0') ?? 0;
+      }
     } 
-    else if (state.deliveryType == 'Exchange') {
+    else if (orderType == 'Exchange') {
       request['currentPD'] = state.productDescription ?? '';
       request['numberOfItemsCurrentPD'] = state.numberOfItems ?? 1;
       request['newPD'] = state.newProductDescription ?? '';
       request['numberOfItemsNewPD'] = state.numberOfNewItems ?? 1;
-      request['CashDifference'] = state.hasCashDifference ?? false;
-      request['amountCashDifference'] = state.hasCashDifference == true ? 
-                                  int.tryParse(state.cashDifferenceAmount ?? '0') ?? 0 : 0;
+      if (state.hasCashDifference == true) {
+        request['CashDifference'] = true;
+        request['amountCashDifference'] = int.tryParse(state.cashDifferenceAmount ?? '0') ?? 0;
+      }
     }
-    else if (state.deliveryType == 'Cash Collection') {
-      // Use 'Cash Collection' as the order type name (matches the API sample)
+    else if (orderType == 'Cash Collection' || orderType == 'Cash Collect') {
+      // Use 'Cash Collection' as the order type name (matches the API specification)
       request['orderType'] = 'Cash Collection';
       // Ensure amount is correctly parsed as an integer
       final amount = int.tryParse(state.amountToCollect ?? '0') ?? 0;
       request['amountCashCollection'] = amount;
-      
-      // Remove any unneeded fields that might be causing issues
-      if (request.containsKey('productDescription')) request.remove('productDescription');
-      if (request.containsKey('numberOfItems')) request.remove('numberOfItems');
     }
-    else if (state.deliveryType == 'Cash Collect') {
-      // Use 'Cash Collection' as the order type name (matches the API sample)
-      request['orderType'] = 'Cash Collection';
-      // Ensure amount is correctly parsed as an integer
-      final amount = int.tryParse(state.amountToCollect ?? '0') ?? 0;
-      request['amountCashCollection'] = amount;
-      
-      // Remove any unneeded fields that might be causing issues
-      if (request.containsKey('productDescription')) request.remove('productDescription');
-      if (request.containsKey('numberOfItems')) request.remove('numberOfItems');
-      
-      // Log the final request to help debugging
-      print('DEBUG PROVIDER: Final Cash Collection request: $request');
-    }
-    else if (state.deliveryType == 'Return') {
+    else if (orderType == 'Return') {
       // Format Return order according to API specification
       request['productDescription'] = state.productDescription ?? '';
       request['originalOrderNumber'] = state.originalOrderNumber ?? '';
       request['returnReason'] = state.returnReason ?? '';
+      
+      // Add return notes if available
+      if (state.specialInstructions != null && state.specialInstructions!.isNotEmpty) {
+        request['returnNotes'] = state.specialInstructions;
+      }
       
       // Determine if it's a partial return
       final isPartialReturn = state.returnType == 'partial';
@@ -121,19 +169,37 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       request['referralNumber'] = state.referralNumber;
     }
 
-    // Save expressShipping value before removing false booleans
-    final bool expressShippingValue = request['expressShipping'] ?? false;
-    print('DEBUG EXPRESS: expressShipping value before removeWhere: $expressShippingValue');
+    // Save isExpressShipping value before cleaning up
+    final bool isExpressShippingValue = request['isExpressShipping'] ?? false;
+    print('DEBUG EXPRESS: isExpressShipping value before cleanup: $isExpressShippingValue');
 
-    // Make sure we're not sending empty fields that the API doesn't expect
-    request.removeWhere((key, value) => value == '' || value == null || (value is bool && value == false));
+    // Add selected pickup address ID if express shipping is enabled
+    if (isExpressShippingValue == true && state.selectedPickupAddressId != null) {
+      request['selectedPickupAddressId'] = state.selectedPickupAddressId;
+      print('DEBUG PICKUP: Added selectedPickupAddressId to request: ${state.selectedPickupAddressId}');
+    }
+
+    // Clean up empty/null fields, but keep boolean false values for isExpressShipping and COD
+    request.removeWhere((key, value) {
+      // Keep isExpressShipping even if false
+      if (key == 'isExpressShipping') return false;
+      // Keep COD even if false (it's a valid value)
+      if (key == 'COD' && value == false) return false;
+      // Keep CashDifference even if false
+      if (key == 'CashDifference' && value == false) return false;
+      // Keep deliverToWorkAddress even if false
+      if (key == 'deliverToWorkAddress' && value == false) return false;
+      // Remove empty strings, null values, and other false booleans
+      return value == '' || value == null || (value is bool && value == false);
+    });
     
-    // Always include expressShipping regardless of its value
-    request['expressShipping'] = expressShippingValue;
-    print('DEBUG EXPRESS: expressShipping value after explicitly setting it: ${request['expressShipping']}');
+    // Always include isExpressShipping regardless of its value
+    request['isExpressShipping'] = isExpressShippingValue;
+    print('DEBUG EXPRESS: isExpressShipping value after explicitly setting it: ${request['isExpressShipping']}');
 
-    print('DEBUG EXPRESS: Final request map contains expressShipping key: ${request.containsKey('expressShipping')}');
-    print('DEBUG EXPRESS: Final request expressShipping value: ${request['expressShipping']}');
+    print('DEBUG EXPRESS: Final request map contains isExpressShipping key: ${request.containsKey('isExpressShipping')}');
+    print('DEBUG EXPRESS: Final request isExpressShipping value: ${request['isExpressShipping']}');
+    print('DEBUG PROVIDER: Final request: $request');
 
     return request;
   }
@@ -346,6 +412,40 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       returnType: state.returnType,
       numberOfItemsToReturn: state.numberOfItemsToReturn,
       returnReason: state.returnReason,
+      selectedPickupAddressId: state.selectedPickupAddressId,
+    );
+  }
+  
+  // Update pickup address for express shipping
+  void updatePickupAddress(String? pickupAddressId) {
+    state = OrderModel(
+      id: state.id,
+      customerName: state.customerName,
+      customerPhone: state.customerPhone,
+      customerAddress: state.customerAddress,
+      deliveryType: state.deliveryType,
+      productDescription: state.productDescription,
+      newProductDescription: state.newProductDescription,
+      numberOfItems: state.numberOfItems,
+      numberOfNewItems: state.numberOfNewItems,
+      numberOfReturnItems: state.numberOfReturnItems,
+      cashOnDelivery: state.cashOnDelivery,
+      cashOnDeliveryAmount: state.cashOnDeliveryAmount,
+      hasCashDifference: state.hasCashDifference,
+      cashDifferenceAmount: state.cashDifferenceAmount,
+      allowPackageInspection: state.allowPackageInspection,
+      specialInstructions: state.specialInstructions,
+      referralNumber: state.referralNumber,
+      amountToCollect: state.amountToCollect,
+      createdAt: state.createdAt,
+      status: state.status,
+      expressShipping: state.expressShipping,
+      originalOrderNumber: state.originalOrderNumber,
+      originalOrderData: state.originalOrderData,
+      returnType: state.returnType,
+      numberOfItemsToReturn: state.numberOfItemsToReturn,
+      returnReason: state.returnReason,
+      selectedPickupAddressId: pickupAddressId,
     );
   }
     // Update additional options
@@ -381,6 +481,7 @@ class OrderNotifier extends StateNotifier<OrderModel> {
       returnType: state.returnType,
       numberOfItemsToReturn: state.numberOfItemsToReturn,
       returnReason: state.returnReason,
+      selectedPickupAddressId: state.selectedPickupAddressId,
     );
   }
   

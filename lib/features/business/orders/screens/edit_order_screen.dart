@@ -606,7 +606,7 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
         
         // Get current order from provider and convert to API format
         final orderNotifier = ref.read(orderModelProvider.notifier);
-        final orderData = orderNotifier.toApiRequest();
+        final orderData = orderNotifier.toApiRequest(ref);
         
         // Ensure we have all required fields in the correct format
         final Map<String, dynamic> finalOrderData = {

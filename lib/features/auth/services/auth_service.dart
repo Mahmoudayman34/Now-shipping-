@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../config/env.dart';
 import '../../../data/services/api_service.dart';
+import '../../../core/services/firebase_messaging_service.dart';
 
 class UserModel {
   final String id;
@@ -112,6 +113,28 @@ class AuthService {
           
           // Save to shared preferences
           await _saveAuthData(token, userData);
+          
+          // Update FCM token on login for multi-device support
+          try {
+            final firebaseMessaging = FirebaseMessagingService();
+            // Check if Firebase is initialized first
+            if (firebaseMessaging.isInitialized) {
+              await firebaseMessaging.updateTokenOnLogin(token);
+              print('✅ FCM token updated on login');
+            } else {
+              // Try to initialize if not already initialized
+              await firebaseMessaging.initialize();
+              if (firebaseMessaging.isInitialized) {
+                await firebaseMessaging.updateTokenOnLogin(token);
+                print('✅ FCM token updated on login (after initialization)');
+              } else {
+                print('⚠️  Firebase Messaging not initialized, skipping token update');
+              }
+            }
+          } catch (e) {
+            print('⚠️  Failed to update FCM token on login: $e');
+            // Continue with login even if FCM update fails
+          }
           
           // Create UserModel from response
           final userModel = UserModel(

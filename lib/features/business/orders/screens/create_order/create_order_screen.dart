@@ -91,6 +91,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
       body: Scaffold(
         backgroundColor: Colors.grey.shade50,
         appBar: AppBar(
+          centerTitle: true,
           title: Text(
             appBarTitle,
             style: TextStyle(
@@ -104,7 +105,6 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
               fontWeight: FontWeight.bold
             ),
           ),
-          centerTitle: true,
           backgroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
@@ -235,7 +235,7 @@ class _CreateOrderScreenState extends ConsumerState<CreateOrderScreen> {
         
         // Get current order from provider and convert to API format
         final orderNotifier = ref.read(orderModelProvider.notifier);
-        final orderData = orderNotifier.toApiRequest();
+        final orderData = orderNotifier.toApiRequest(ref);
         
         // Extra validation for Cash Collection orders
         final orderType = orderData['orderType'] as String?;

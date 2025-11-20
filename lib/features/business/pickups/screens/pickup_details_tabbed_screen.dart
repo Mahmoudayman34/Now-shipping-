@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
 import 'package:now_shipping/features/business/pickups/providers/pickup_provider.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class PickupDetailsTabbedScreen extends ConsumerStatefulWidget {
   final PickupModel pickup;
@@ -42,16 +43,17 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
 
   // Show delete confirmation dialog
   void _showDeleteConfirmation(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Pickup'),
-          content: Text('Are you sure you want to delete pickup #${widget.pickup.pickupNumber}? This action cannot be undone.'),
+          title: Text(l10n.deletePickup),
+          content: Text(l10n.deletePickupConfirmation.replaceAll('{number}', widget.pickup.pickupNumber)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             TextButton(
               onPressed: () {
@@ -61,7 +63,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
               ),
-              child: const Text('Delete'),
+              child: Text(l10n.delete),
             ),
           ],
         );
@@ -118,6 +120,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
     return ResponsiveUtils.wrapScreen(
       body: Scaffold(
         appBar: AppBar(
+          centerTitle: true,
           title: Text(
             'Pickup #${widget.pickup.pickupNumber}',
             style: TextStyle(
@@ -173,10 +176,10 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
               ),
               fontWeight: FontWeight.w500,
             ),
-            tabs: const [
-              Tab(text: 'Tracking'),
-              Tab(text: 'Pickup Details'),
-              Tab(text: 'Orders Picked'),
+            tabs: [
+              Tab(text: AppLocalizations.of(context).tracking),
+              Tab(text: AppLocalizations.of(context).pickupDetails),
+              Tab(text: AppLocalizations.of(context).ordersPicked),
             ],
           ),
         ),
@@ -272,7 +275,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                 Text(
-                      'Pickup Tracking',
+                      AppLocalizations.of(context).pickupTracking,
                   style: TextStyle(
                     fontSize: ResponsiveUtils.getResponsiveFontSize(
                       context,
@@ -285,7 +288,9 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                       ),
                     ),
                     Text(
-                      '$completedStages of $totalStages milestones completed',
+                      AppLocalizations.of(context).ofMilestonesCompleted
+                          .replaceAll('{completed}', '$completedStages')
+                          .replaceAll('{total}', '$totalStages'),
                       style: TextStyle(
                         fontSize: ResponsiveUtils.getResponsiveFontSize(
                           context,
@@ -364,8 +369,9 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
           stage.stageName.toLowerCase() == expectedStage['name'].toString().toLowerCase()
         );
         
+        final l10n = AppLocalizations.of(context);
         if (stageExists) {
-          status = 'Completed';
+          status = l10n.completed;
           final stageDateTime = apiStage.stageDate;
           displayTime = '${stageDateTime.hour.toString().padLeft(2, '0')}:${stageDateTime.minute.toString().padLeft(2, '0')}:${stageDateTime.second.toString().padLeft(2, '0')}';
           displayDate = '${stageDateTime.day}/${stageDateTime.month}/${stageDateTime.year}';
@@ -377,14 +383,34 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
             );
           });
           
-          status = previousStageCompleted && index < expectedStages.length - 1 ? 'In Progress' : 'Pending';
+          status = previousStageCompleted && index < expectedStages.length - 1 ? l10n.inProgress : l10n.pending;
         }
         
         // Get display name
         String displayName = _getDisplayStageName(expectedStage['name'] as String);
         
-        // Convert stageNotes to list of strings
-        List<String> noteTexts = stageExists ? apiStage.stageNotes.map((note) => note.text).toList() : [];
+        // Always use localized descriptions instead of API notes
+        List<String> noteTexts = [];
+        
+        if (stageExists) {
+          switch (expectedStage['name'].toString().toLowerCase()) {
+            case 'pickup created':
+              noteTexts.add(l10n.pickupHasBeenCreatedDesc);
+              break;
+            case 'driverassigned':
+              noteTexts.add(l10n.pickupAssignedToDriverDesc.replaceAll('{driver}', 'man1'));
+              break;
+            case 'pickedup':
+              noteTexts.add(l10n.orderPickedUpByCourierDesc.replaceAll('{driver}', 'man1'));
+              break;
+            case 'completed':
+              noteTexts.add(l10n.allOrdersFromPickupInStockDesc);
+              break;
+            default:
+              // Fallback to API notes if stage name doesn't match
+              noteTexts = apiStage.stageNotes.map((note) => note.text).toList();
+          }
+        }
         
         return _buildTimelineItem(
           title: displayName,
@@ -402,15 +428,16 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
   }
   
   String _getDisplayStageName(String stageName) {
+    final l10n = AppLocalizations.of(context);
     switch (stageName.toLowerCase()) {
       case 'pickup created':
-        return 'Pickup Created';
+        return l10n.pickupCreated;
       case 'driverassigned':
-        return 'Driver Assigned';
+        return l10n.driverAssigned;
       case 'pickedup':
-        return 'Items Picked Up';
+        return l10n.itemsPickedUp;
       case 'completed':
-        return 'Completed';
+        return l10n.completed;
       default:
         return stageName;
     }
@@ -436,24 +463,25 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
     Color timelineColor;
     Color cardBorderColor;
     
-    switch (status) {
-      case 'Completed':
-        statusColor = const Color(0xFFFF6B35);
-        statusBgColor = const Color(0xFFFF6B35).withOpacity(0.1);
-        timelineColor = const Color(0xFFFF6B35);
-        cardBorderColor = const Color(0xFFFF6B35).withOpacity(0.3);
-        break;
-      case 'In Progress':
-        statusColor = const Color(0xFFFF6B35);
-        statusBgColor = const Color(0xFFFF6B35).withOpacity(0.1);
-        timelineColor = const Color(0xFFFF6B35);
-        cardBorderColor = const Color(0xFFFF6B35).withOpacity(0.3);
-        break;
-      default:
-        statusColor = Colors.grey.shade600;
-        statusBgColor = Colors.grey.shade100;
-        timelineColor = Colors.grey.shade300;
-        cardBorderColor = Colors.grey.shade200;
+    final l10n = AppLocalizations.of(context);
+    final isCompleted = status == l10n.completed;
+    final isInProgress = status == l10n.inProgress;
+    
+    if (isCompleted) {
+      statusColor = const Color(0xFFFF6B35);
+      statusBgColor = const Color(0xFFFF6B35).withOpacity(0.1);
+      timelineColor = const Color(0xFFFF6B35);
+      cardBorderColor = const Color(0xFFFF6B35).withOpacity(0.3);
+    } else if (isInProgress) {
+      statusColor = const Color(0xFFFF6B35);
+      statusBgColor = const Color(0xFFFF6B35).withOpacity(0.1);
+      timelineColor = const Color(0xFFFF6B35);
+      cardBorderColor = const Color(0xFFFF6B35).withOpacity(0.3);
+    } else {
+      statusColor = Colors.grey.shade600;
+      statusBgColor = Colors.grey.shade100;
+      timelineColor = Colors.grey.shade300;
+      cardBorderColor = Colors.grey.shade200;
     }
     
     return Container(
@@ -468,18 +496,18 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                 width: 48,
                 height: 48,
               decoration: BoxDecoration(
-                  gradient: status == 'Completed' || status == 'In Progress'
+                  gradient: isCompleted || isInProgress
                       ? const LinearGradient(
                           colors: [Color(0xFFFF6B35), Color(0xFFE55A2B)],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         )
                       : null,
-                  color: status == 'Completed' || status == 'In Progress' 
+                  color: isCompleted || isInProgress 
                       ? null 
                       : Colors.grey.shade300,
                 shape: BoxShape.circle,
-                  boxShadow: status == 'Completed' || status == 'In Progress'
+                  boxShadow: isCompleted || isInProgress
                       ? [
                           BoxShadow(
                             color: const Color(0xFFFF6B35).withOpacity(0.3),
@@ -490,7 +518,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                       : null,
               ),
               child: Center(
-                  child: status == 'Completed'
+                  child: isCompleted
                       ? const Icon(
                           Icons.check,
                   color: Colors.white,
@@ -498,7 +526,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                         )
                       : Icon(
                           icon,
-                          color: status == 'Completed' || status == 'In Progress'
+                          color: isCompleted || isInProgress
                               ? Colors.white
                               : Colors.grey.shade600,
                           size: 24,
@@ -510,14 +538,14 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                   width: 4,
                   height: 60,
                   decoration: BoxDecoration(
-                    gradient: status == 'Completed'
+                    gradient: isCompleted
                         ? const LinearGradient(
                             colors: [Color(0xFFFF6B35), Color(0xFFE55A2B)],
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                           )
                         : null,
-                    color: status == 'Completed' ? null : timelineColor,
+                    color: isCompleted ? null : timelineColor,
                     borderRadius: BorderRadius.circular(2),
                   ),
               ),
@@ -576,7 +604,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                             ),
                           ),
                           child: Text(
-                            'Current',
+                            AppLocalizations.of(context).current,
                             style: TextStyle(
                               fontSize: ResponsiveUtils.getResponsiveFontSize(
                                 context,
@@ -748,7 +776,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Orders Picked Up',
+                            AppLocalizations.of(context).ordersPickedUp,
                             style: TextStyle(
                               fontSize: ResponsiveUtils.getResponsiveFontSize(
                                 context,
@@ -761,7 +789,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                             ),
                           ),
                           Text(
-                            'Track your picked up orders',
+                            AppLocalizations.of(context).trackYourPickedUpOrders,
                             style: TextStyle(
                               fontSize: ResponsiveUtils.getResponsiveFontSize(
                                 context,
@@ -799,7 +827,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                       });
                     },
                     decoration: InputDecoration(
-                      hintText: 'Search by order ID, customer or location...',
+                      hintText: AppLocalizations.of(context).searchByOrderIdCustomerOrLocation,
                       hintStyle: TextStyle(
                         color: Colors.grey.shade500,
                         fontSize: ResponsiveUtils.getResponsiveFontSize(
@@ -872,10 +900,13 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
 
   // Helper methods for the new design
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+    final l10n = AppLocalizations.of(context);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -891,8 +922,8 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
           const SizedBox(height: 24),
           Text(
             _searchQuery.isNotEmpty 
-                ? 'No orders found matching "$_searchQuery"'
-                : 'No orders picked up yet',
+                ? l10n.noOrdersMatchingQuery.replaceFirst('{query}', _searchQuery)
+                : l10n.noOrdersPickedUpYet,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -903,46 +934,52 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
           const SizedBox(height: 8),
           Text(
             _searchQuery.isNotEmpty 
-                ? 'Try adjusting your search terms'
-                : 'Orders will appear here once they are picked up',
+                ? l10n.adjustSearchTerms
+                : l10n.ordersWillAppearAfterPickup,
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade600,
             ),
             textAlign: TextAlign.center,
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
+    final l10n = AppLocalizations.of(context);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
           CircularProgressIndicator(
             color: const Color(0xFFFF6B35),
             strokeWidth: 3,
           ),
           const SizedBox(height: 16),
           Text(
-            'Loading orders...',
+            l10n.loadingOrders,
             style: TextStyle(
               fontSize: 16,
               color: Colors.grey.shade600,
               fontWeight: FontWeight.w500,
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildErrorState(dynamic error) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+    final l10n = AppLocalizations.of(context);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -960,7 +997,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
             ),
             const SizedBox(height: 24),
             Text(
-              'Failed to load orders',
+            l10n.failedToLoadOrders,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -969,7 +1006,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
             ),
             const SizedBox(height: 8),
             Text(
-              'Exception: $error',
+            '${l10n.error}: $error',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey.shade600,
@@ -1056,7 +1093,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                 // Order number
                 Expanded(
                   child: Text(
-                    'Order #${order.orderNumber}',
+                    '${AppLocalizations.of(context).order} #${order.orderNumber}',
                     style: TextStyle(
                       fontSize: ResponsiveUtils.getResponsiveFontSize(
                         context,
@@ -1108,7 +1145,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                 // Customer info
                 _buildInfoRow(
                   icon: Icons.person_outline,
-                  label: 'Customer',
+                  label: AppLocalizations.of(context).customer,
                   value: order.orderCustomer.fullName,
                   iconColor: const Color(0xFFFF6B35),
                 ),
@@ -1117,7 +1154,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                 // Address
                 _buildInfoRow(
                   icon: Icons.location_on_outlined,
-                  label: 'Address',
+                  label: AppLocalizations.of(context).address,
                   value: order.orderCustomer.address,
                   iconColor: const Color(0xFFFF6B35),
                 ),
@@ -1126,7 +1163,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                 // Phone
                 _buildInfoRow(
                   icon: Icons.phone_outlined,
-                  label: 'Phone',
+                  label: AppLocalizations.of(context).phone,
                   value: order.orderCustomer.phoneNumber,
                   iconColor: const Color(0xFFFF6B35),
                 ),
@@ -1136,7 +1173,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                 if (order.orderShipping.productDescription.isNotEmpty) ...[
                   _buildInfoRow(
                     icon: Icons.inventory_2_outlined,
-                    label: 'Product',
+                    label: AppLocalizations.of(context).product,
                     value: order.orderShipping.productDescription,
                     iconColor: const Color(0xFFFF6B35),
                   ),
@@ -1166,7 +1203,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
                             borderRadius: BorderRadius.circular(borderRadius * 0.3),
                           ),
                           child: Text(
-                            'EGP',
+                            AppLocalizations.of(context).egp,
                             style: TextStyle(
                               fontSize: ResponsiveUtils.getResponsiveFontSize(
                                 context,
@@ -1338,7 +1375,7 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isPickedUp = widget.pickup.status == 'Picked Up';
+    final bool isPickedUp = widget.pickup.status == AppLocalizations.of(context).pickedUp;
     final String formattedDate = '${widget.pickup.pickupDate.day}/${widget.pickup.pickupDate.month}/${widget.pickup.pickupDate.year}';
 
     return Container(
@@ -1436,7 +1473,7 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
                     ),
                 const SizedBox(height: 4),
                     Text(
-                  isPickedUp ? 'Your pickup has been completed successfully' : 'Your pickup is scheduled and ready',
+                  isPickedUp ? AppLocalizations.of(context).yourPickupHasBeenCompletedSuccessfully : 'Your pickup is scheduled and ready',
                       style: TextStyle(
                     fontSize: ResponsiveUtils.getResponsiveFontSize(
                       context,
@@ -1530,7 +1567,7 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
                 ),
                 SizedBox(width: spacing),
                 Text(
-                  'Pickup Details',
+                  AppLocalizations.of(context).pickupDetails,
                   style: TextStyle(
                     fontSize: ResponsiveUtils.getResponsiveFontSize(
                       context,
@@ -1548,34 +1585,36 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
           ),
 
           // Pickup Information Section
-          _buildEnhancedSubsectionHeader('Pickup Information'),
-          _buildEnhancedDetailItem('Pickup ID', '#${widget.pickup.pickupNumber}', Icons.tag),
-          _buildEnhancedDetailItem('Pickup Type', 'Normal', Icons.category),
-          _buildEnhancedDetailItem('Number of Orders', '${widget.pickup.numberOfOrders}', Icons.shopping_bag),
-          _buildEnhancedDetailItem('Scheduled Date', formattedDate, Icons.calendar_today),
-          _buildEnhancedDetailItem('Status', widget.pickup.status, Icons.info),
+          _buildEnhancedSubsectionHeader(AppLocalizations.of(context).pickupInformation),
+          _buildEnhancedDetailItem(AppLocalizations.of(context).pickupId, '#${widget.pickup.pickupNumber}', Icons.tag),
+          _buildEnhancedDetailItem(AppLocalizations.of(context).pickupType, AppLocalizations.of(context).normal, Icons.category),
+          _buildEnhancedDetailItem(AppLocalizations.of(context).numberOfOrders, '${widget.pickup.numberOfOrders}', Icons.shopping_bag),
+          // Pickup Fees - Prominently displayed
+          _buildPickupFeesCard(),
+          _buildEnhancedDetailItem(AppLocalizations.of(context).scheduledDate, formattedDate, Icons.calendar_today),
+          _buildEnhancedDetailItem(AppLocalizations.of(context).status, widget.pickup.status, Icons.info),
           _buildDivider(),
 
           // Address & Contact Section
-          _buildEnhancedSubsectionHeader('Address & Contact'),
-          _buildEnhancedDetailItem('Address', widget.pickup.address, Icons.location_on),
-          _buildEnhancedDetailItem('Contact Number', widget.pickup.contactNumber, Icons.phone),
+          _buildEnhancedSubsectionHeader(AppLocalizations.of(context).addressAndContact),
+          _buildEnhancedDetailItem(AppLocalizations.of(context).address, widget.pickup.address, Icons.location_on),
+          _buildEnhancedDetailItem(AppLocalizations.of(context).contactNumber, widget.pickup.contactNumber, Icons.phone),
           
           // Special Requirements Section (if applicable)
           if (widget.pickup.isFragileItem || widget.pickup.isLargeItem) ...[
             _buildDivider(),
-            _buildEnhancedSubsectionHeader('Special Requirements'),
+            _buildEnhancedSubsectionHeader(AppLocalizations.of(context).specialRequirements),
             if (widget.pickup.isFragileItem)
               _buildEnhancedDetailItem(
-                'Fragile Item', 
-                'This pickup contains fragile items that require special handling',
+                AppLocalizations.of(context).fragileItem, 
+                AppLocalizations.of(context).fragileItemDescription,
                 Icons.warning_amber_rounded,
                 iconColor: Colors.orange,
               ),
             if (widget.pickup.isLargeItem)
               _buildEnhancedDetailItem(
-                'Large Item', 
-                'This pickup contains large items that may require a larger vehicle',
+                AppLocalizations.of(context).largeItem, 
+                AppLocalizations.of(context).largeItemDescription,
                 Icons.local_shipping,
                 iconColor: Colors.blue,
               ),
@@ -1584,8 +1623,8 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
           // Notes Section (if applicable)
           if (widget.pickup.notes != null && widget.pickup.notes!.isNotEmpty) ...[
             _buildDivider(),
-            _buildEnhancedSubsectionHeader('Notes'),
-            _buildEnhancedDetailItem('Special Instructions', widget.pickup.notes!, Icons.note),
+            _buildEnhancedSubsectionHeader(AppLocalizations.of(context).notes),
+            _buildEnhancedDetailItem(AppLocalizations.of(context).specialInstructions, widget.pickup.notes!, Icons.note),
           ],
         ],
       ),
@@ -1610,6 +1649,88 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
           color: const Color(0xFF2C3E50),
           letterSpacing: 0.5,
         ),
+      ),
+    );
+  }
+
+  Widget _buildPickupFeesCard() {
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context);
+    
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: spacing, vertical: 8),
+      padding: EdgeInsets.all(spacing * 1.5),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFF6B35).withOpacity(0.1),
+            const Color(0xFFFF6B35).withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFFF6B35).withOpacity(0.3),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF6B35).withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFF6B35).withOpacity(0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.attach_money,
+              color: Color(0xFFFF6B35),
+              size: 28,
+            ),
+          ),
+          SizedBox(width: spacing),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.of(context).pickupFees,
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 14,
+                      tablet: 16,
+                      desktop: 18,
+                    ),
+                    color: Colors.grey.shade700,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${widget.pickup.pickupFees.toStringAsFixed(0)} EGP',
+                  style: TextStyle(
+                    fontSize: ResponsiveUtils.getResponsiveFontSize(
+                      context,
+                      mobile: 24,
+                      tablet: 28,
+                      desktop: 32,
+                    ),
+                    color: const Color(0xFFFF6B35),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1825,7 +1946,7 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
                 ),
                 SizedBox(width: spacing),
                 Text(
-                  'Driver Details',
+                  AppLocalizations.of(context).driverDetails,
                     style: TextStyle(
                     fontSize: ResponsiveUtils.getResponsiveFontSize(
                       context,
@@ -1843,10 +1964,10 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
           ),
           
           // Driver Information
-          _buildEnhancedDetailItem('Driver Name', widget.pickup.assignedDriver?.name ?? 'Not assigned yet', Icons.person),
-          _buildEnhancedDetailItem('Vehicle Type', widget.pickup.assignedDriver?.vehicleType ?? 'N/A', Icons.directions_car),
-          _buildEnhancedDetailItem('Plate Number', widget.pickup.assignedDriver?.vehiclePlateNumber ?? 'N/A', Icons.confirmation_number),
-          _buildEnhancedDetailItem('Picked Up Orders', '${widget.pickup.ordersPickedUp.length}', Icons.shopping_bag),
+          _buildEnhancedDetailItem(AppLocalizations.of(context).driverName, widget.pickup.assignedDriver?.name ?? AppLocalizations.of(context).notAssignedYet, Icons.person),
+          _buildEnhancedDetailItem(AppLocalizations.of(context).vehicleType, widget.pickup.assignedDriver?.vehicleType ?? AppLocalizations.of(context).na, Icons.directions_car),
+          _buildEnhancedDetailItem(AppLocalizations.of(context).plateNumber, widget.pickup.assignedDriver?.vehiclePlateNumber ?? AppLocalizations.of(context).na, Icons.confirmation_number),
+          _buildEnhancedDetailItem(AppLocalizations.of(context).pickedUpOrders, '${widget.pickup.ordersPickedUp.length}', Icons.shopping_bag),
           
           // Rating Section
           _buildEnhancedRatingSection(isPickedUp),
@@ -1872,7 +1993,7 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-            'Rate Your Experience',
+            AppLocalizations.of(context).rateYourExperience,
                 style: TextStyle(
               fontSize: ResponsiveUtils.getResponsiveFontSize(
                 context,
@@ -1887,7 +2008,7 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
           const SizedBox(height: 16),
           
           // Driver Rating Section
-          _buildRatingRow('Driver', _driverRating, (rating) {
+          _buildRatingRow(AppLocalizations.of(context).driver, _driverRating, (rating) {
             if (isPickedUp && !_hasSubmittedRatings) {
               setState(() {
                 _driverRating = rating;
@@ -1898,7 +2019,7 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
           if (isPickedUp) const SizedBox(height: 24),
           
           // Service Rating Section
-          _buildRatingRow('Service', _serviceRating, (rating) {
+          _buildRatingRow(AppLocalizations.of(context).service, _serviceRating, (rating) {
             if (isPickedUp && !_hasSubmittedRatings) {
               setState(() {
                 _serviceRating = rating;
@@ -1922,7 +2043,7 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
                 disabledBackgroundColor: Colors.grey.shade300,
               ),
                 child: Text(
-                  'Submit Rating',
+                  AppLocalizations.of(context).submitRating,
                   style: TextStyle(
                     fontSize: ResponsiveUtils.getResponsiveFontSize(
                       context,
@@ -2008,7 +2129,7 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: Text(
-              'Available after pickup completion',
+              AppLocalizations.of(context).availableAfterPickupCompletion,
               style: TextStyle(
                 fontSize: ResponsiveUtils.getResponsiveFontSize(
                   context,
