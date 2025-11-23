@@ -9,6 +9,7 @@ import 'package:now_shipping/data/services/api_service.dart';
 import 'package:now_shipping/features/auth/services/auth_service.dart';
 import 'package:now_shipping/core/widgets/toast_.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/utils/error_message_parser.dart';
 
 class CreatePickupScreen extends ConsumerStatefulWidget {
   final PickupModel? pickupToEdit; // Added parameter for pickup to edit
@@ -1023,18 +1024,10 @@ class _CreatePickupScreenState extends ConsumerState<CreatePickupScreen> {
           _isSubmitting = false;
         });
 
-        // Handle errors
-        String errorMessage = 'Failed to create pickup. Please try again.';
-        
-        if (e.toString().contains('No internet connection')) {
-          errorMessage = 'No internet connection. Please check your network.';
-        } else if (e.toString().contains('Authentication token not found')) {
-          errorMessage = 'Session expired. Please login again.';
-        }
-
+        // Handle errors with user-friendly messages
         ToastService.show(
           context,
-          errorMessage,
+          ErrorMessageParser.parseError(e),
           type: ToastType.error,
         );
 

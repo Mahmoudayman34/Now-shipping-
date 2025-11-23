@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/transaction_providers.dart';
 import '../../../auth/services/auth_service.dart';
 import 'package:now_shipping/core/l10n/app_localizations.dart';
+import 'package:now_shipping/core/utils/error_message_parser.dart';
 
 class ExportTransactionsWidget extends ConsumerStatefulWidget {
   const ExportTransactionsWidget({super.key});
@@ -536,7 +537,7 @@ class _ExportTransactionsWidgetState extends ConsumerState<ExportTransactionsWid
               children: [
                 const Icon(Icons.error, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(child: Text('${AppLocalizations.of(context).exportFailedPrefix}$e')),
+                Expanded(child: Text('${AppLocalizations.of(context).exportFailedPrefix}${ErrorMessageParser.parseError(e)}')),
               ],
             ),
             backgroundColor: Colors.red,

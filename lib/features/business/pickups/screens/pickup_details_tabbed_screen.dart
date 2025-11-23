@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:now_shipping/features/business/pickups/models/pickup_model.dart';
 import 'package:now_shipping/features/business/pickups/providers/pickup_provider.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/utils/error_message_parser.dart';
 import '../../../../core/l10n/app_localizations.dart';
 
 class PickupDetailsTabbedScreen extends ConsumerStatefulWidget {
@@ -107,7 +108,7 @@ class _PickupDetailsTabbedScreenState extends ConsumerState<PickupDetailsTabbedS
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text(ErrorMessageParser.parseError(e)),
             backgroundColor: const Color(0xFFE53E3E),
           ),
         );
@@ -2207,7 +2208,7 @@ class _PickupDetailsContentState extends State<PickupDetailsContent> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString()}'),
+            content: Text(ErrorMessageParser.parseError(e)),
             backgroundColor: const Color(0xFFE53E3E),
           ),
         );

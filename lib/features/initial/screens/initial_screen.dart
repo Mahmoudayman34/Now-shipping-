@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/state/app_state_provider.dart';
-import '../../onboarding/controller/onboarding_controller.dart';
+import '../../onboarding/providers/onboarding_provider.dart';
 import '../../onboarding/screens/onboarding_screen.dart';
 import '../../auth/screens/login_screen.dart';
 import '../../auth/screens/signup_screen.dart';
@@ -29,9 +29,12 @@ class _InitialScreenState extends ConsumerState<InitialScreen> {
 
   Future<void> _checkAppState() async {
     try {
-      // Check if onboarding has been seen
-      final onboardingController = OnboardingController();
-      final onboardingSeen = await onboardingController.isOnboardingSeen();
+      // Ensure onboarding provider has loaded its state
+      await ref.read(onboardingProvider.notifier).ensureLoaded();
+      
+      // Check if onboarding has been seen using the provider
+      final onboardingState = ref.read(onboardingProvider);
+      final onboardingSeen = onboardingState.hasSeenOnboarding;
       
       // Check if user is logged in
       final authService = ref.read(authServiceProvider);

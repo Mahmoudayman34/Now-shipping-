@@ -4,6 +4,7 @@ import 'package:now_shipping/features/business/dashboard/providers/profile_form_
 import '../../../common/widgets/app_text_field.dart';
 import '../../../../core/utils/validators.dart';
 import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastType;
+import '../../../../core/l10n/app_localizations.dart';
 
 class DashboardBrandInfoStep extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
@@ -206,7 +207,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Tell us about your brand',
+                    AppLocalizations.of(context).tellUsAboutBrand,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: const Color(0xffF29620),
@@ -214,7 +215,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'This helps us customize your experience',
+                    AppLocalizations.of(context).brandInfoHelper,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurface.withOpacity(0.7),
                     ),
@@ -239,9 +240,9 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                 );
               },
               child: AppTextField(
-                label: 'Brand Name',
+                label: AppLocalizations.of(context).brandName,
                 controller: _brandNameController,
-                hintText: 'Enter your brand name',
+                hintText: AppLocalizations.of(context).enterBrandName,
                 validator: Validators.required,
                 // Auto-save on text change
                 onChanged: (value) {
@@ -270,7 +271,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Industry',
+                    AppLocalizations.of(context).industry,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w500,
                     ),
@@ -282,9 +283,9 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        hintText: 'Select an industry...',
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(context).selectIndustry,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                         border: InputBorder.none,
                       ),
                       value: _selectedIndustry,
@@ -300,7 +301,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                           }
                         });
                       },
-                      validator: (value) => value == null ? 'Please select an industry' : null,
+                      validator: (value) => value == null ? AppLocalizations.of(context).pleaseSelectIndustry : null,
                     ),
                   ),
                   
@@ -308,7 +309,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                   if (_selectedIndustry == 'Other') ...[
                     const SizedBox(height: 16),
                     Text(
-                      'Specify Industry *',
+                      AppLocalizations.of(context).specifyIndustry,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w500,
                         color: Colors.red.shade600,
@@ -318,10 +319,10 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                     AppTextField(
                       label: '',
                       controller: _otherIndustryController,
-                      hintText: 'Enter your industry',
+                      hintText: AppLocalizations.of(context).enterYourIndustry,
                       validator: (value) {
                         if (_selectedIndustry == 'Other' && (value == null || value.isEmpty)) {
-                          return 'Please specify your industry';
+                          return AppLocalizations.of(context).pleaseSpecifyIndustry;
                         }
                         return null;
                       },
@@ -353,7 +354,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Monthly Order Volume',
+                    AppLocalizations.of(context).monthlyOrderVolume,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontWeight: FontWeight.w500,
                     ),
@@ -365,9 +366,9 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        hintText: 'Select your volume',
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(context).selectVolume,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                         border: InputBorder.none,
                       ),
                       value: _selectedVolume,
@@ -379,7 +380,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                           _selectedVolume = value;
                         });
                       },
-                      validator: (value) => value == null ? 'Please select order volume' : null,
+                      validator: (value) => value == null ? AppLocalizations.of(context).pleaseSelectVolume : null,
                     ),
                   ),
                 ],
@@ -405,7 +406,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Where do you sell your products?',
+                    AppLocalizations.of(context).whereDoYouSell,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: Color(0xffF29620),
@@ -413,7 +414,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Select all that apply',
+                    AppLocalizations.of(context).selectAllThatApply,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurface.withOpacity(0.6),
                     ),
@@ -473,7 +474,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                   if (_selectedChannels.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     Text(
-                      'Add your selling channels links',
+                      AppLocalizations.of(context).addSellingChannelsLinks,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: theme.colorScheme.primary,
@@ -488,8 +489,8 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                         child: TextFormField(
                           controller: _channelLinkControllers[channel],
                           decoration: InputDecoration(
-                            labelText: '$channel Link',
-                            hintText: 'Enter your $channel URL',
+                            labelText: AppLocalizations.of(context).channelLink(channel),
+                            hintText: AppLocalizations.of(context).enterChannelUrl(channel),
                             prefixIcon: Icon(
                               _getChannelIcon(channel),
                               color: Color(0xffF29620).withOpacity(0.7),
@@ -514,7 +515,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                             // Only validate if channel is selected
                             if (_selectedChannels.contains(channel)) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter your $channel link';
+                                return AppLocalizations.of(context).pleaseEnterChannelLink(channel);
                               }
                             }
                             return null;
@@ -553,9 +554,9 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      "Back",
-                      style: TextStyle(
+                    child: Text(
+                      AppLocalizations.of(context).back,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -579,9 +580,9 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      "Next",
-                      style: TextStyle(
+                    child: Text(
+                      AppLocalizations.of(context).next,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                       ),
@@ -598,7 +599,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  "Your progress is automatically saved when you switch tabs",
+                  AppLocalizations.of(context).progressAutoSaved,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
@@ -645,7 +646,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
       if (_selectedChannels.isEmpty) {
         ToastService.show(
           context,
-          "Please select at least one selling channel",
+          AppLocalizations.of(context).pleaseSelectSellingChannel,
           type: ToastType.error,
         );
         return;
@@ -656,7 +657,7 @@ class _DashboardBrandInfoStepState extends ConsumerState<DashboardBrandInfoStep>
         if (_channelLinkControllers[channel]!.text.isEmpty) {
           ToastService.show(
             context,
-            "Please enter a link for $channel",
+            AppLocalizations.of(context).pleaseEnterLinkFor(channel),
             type: ToastType.error,
           );
           return;

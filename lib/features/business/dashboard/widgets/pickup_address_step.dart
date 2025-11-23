@@ -12,6 +12,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/services/regions_service.dart';
 import '../../../../core/providers/locale_provider.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class DashboardPickupAddressStep extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
@@ -45,13 +46,20 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
   // Track which addresses are expanded
   final Set<String> _expandedAddresses = {};
   
-  final List<String> countries = [
-    'Egypt',
-  ];
-
-  final Map<String, List<String>> regionsByCountry = {
-    'Egypt': ['Cairo'],
-  };
+  // Text editing controllers for each address - keyed by address ID
+  final Map<String, TextEditingController> _addressNameControllers = {};
+  final Map<String, TextEditingController> _addressDetailsControllers = {};
+  final Map<String, TextEditingController> _nearbyLandmarkControllers = {};
+  final Map<String, TextEditingController> _phoneNumberControllers = {};
+  final Map<String, TextEditingController> _otherPhoneControllers = {};
+  
+  // Search controllers for zone search dialogs - keyed by address ID
+  final Map<String, TextEditingController> _zoneSearchControllers = {};
+  
+  // Countries list - will be translated
+  List<String> getCountries(BuildContext context) {
+    return [AppLocalizations.of(context).egypt];
+  }
   
   // Zones are now loaded dynamically from JSON files via RegionsService
   
@@ -59,14 +67,107 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
   void initState() {
     super.initState();
     // Load existing data if available
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadExistingData();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _loadExistingData();
     });
     
     // Register save callback
     if (widget.onRegisterSave != null) {
       widget.onRegisterSave!(_saveFormData);
     }
+  }
+  
+  @override
+  void dispose() {
+    // Dispose all text controllers
+    for (var controller in _addressNameControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _addressDetailsControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _nearbyLandmarkControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _phoneNumberControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _otherPhoneControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _zoneSearchControllers.values) {
+      controller.dispose();
+    }
+    _addressNameControllers.clear();
+    _addressDetailsControllers.clear();
+    _nearbyLandmarkControllers.clear();
+    _phoneNumberControllers.clear();
+    _otherPhoneControllers.clear();
+    _zoneSearchControllers.clear();
+    super.dispose();
+  }
+  
+  // Initialize controllers for an address
+  void _initializeControllersForAddress(String addressId, PickupAddress address) {
+    // Address name controller
+    if (!_addressNameControllers.containsKey(addressId)) {
+      _addressNameControllers[addressId] = TextEditingController(text: address.addressName ?? '');
+    } else {
+      // Update text if it changed externally
+      if (_addressNameControllers[addressId]!.text != (address.addressName ?? '')) {
+        _addressNameControllers[addressId]!.text = address.addressName ?? '';
+      }
+    }
+    
+    // Address details controller
+    if (!_addressDetailsControllers.containsKey(addressId)) {
+      _addressDetailsControllers[addressId] = TextEditingController(text: address.addressDetails ?? '');
+    } else {
+      if (_addressDetailsControllers[addressId]!.text != (address.addressDetails ?? '')) {
+        _addressDetailsControllers[addressId]!.text = address.addressDetails ?? '';
+      }
+    }
+    
+    // Nearby landmark controller
+    if (!_nearbyLandmarkControllers.containsKey(addressId)) {
+      _nearbyLandmarkControllers[addressId] = TextEditingController(text: address.nearbyLandmark ?? '');
+    } else {
+      if (_nearbyLandmarkControllers[addressId]!.text != (address.nearbyLandmark ?? '')) {
+        _nearbyLandmarkControllers[addressId]!.text = address.nearbyLandmark ?? '';
+      }
+    }
+    
+    // Phone number controller
+    if (!_phoneNumberControllers.containsKey(addressId)) {
+      _phoneNumberControllers[addressId] = TextEditingController(text: address.phoneNumber ?? '');
+    } else {
+      if (_phoneNumberControllers[addressId]!.text != (address.phoneNumber ?? '')) {
+        _phoneNumberControllers[addressId]!.text = address.phoneNumber ?? '';
+      }
+    }
+    
+    // Other phone controller
+    if (!_otherPhoneControllers.containsKey(addressId)) {
+      _otherPhoneControllers[addressId] = TextEditingController(text: address.otherPhoneNumber ?? '');
+    } else {
+      if (_otherPhoneControllers[addressId]!.text != (address.otherPhoneNumber ?? '')) {
+        _otherPhoneControllers[addressId]!.text = address.otherPhoneNumber ?? '';
+      }
+    }
+  }
+  
+  // Dispose controllers for an address
+  void _disposeControllersForAddress(String addressId) {
+    _addressNameControllers[addressId]?.dispose();
+    _addressDetailsControllers[addressId]?.dispose();
+    _nearbyLandmarkControllers[addressId]?.dispose();
+    _phoneNumberControllers[addressId]?.dispose();
+    _otherPhoneControllers[addressId]?.dispose();
+    _addressNameControllers.remove(addressId);
+    _addressDetailsControllers.remove(addressId);
+    _nearbyLandmarkControllers.remove(addressId);
+    _phoneNumberControllers.remove(addressId);
+    _otherPhoneControllers.remove(addressId);
   }
 
   // Method to save current form data without validation
@@ -125,8 +226,11 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
     }
   }
 
-  void _loadExistingData() {
+  Future<void> _loadExistingData() async {
     final data = ref.read(profileFormDataProvider);
+    // Get Cairo name for default region
+    final locale = ref.read(localeProvider);
+    final cairoName = await RegionsService.getCairoGovernorateName(locale.languageCode);
     
     // Try to load new format first (list of addresses)
     if (data.containsKey('pickupAddresses') && data['pickupAddresses'] != null) {
@@ -137,16 +241,17 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
               final address = PickupAddress.fromJson(json as Map<String, dynamic>);
               // Set default values if not present
               return address.copyWith(
-                country: address.country ?? 'Egypt',
-                region: address.region ?? 'Cairo',
+                country: address.country ?? AppLocalizations.of(context).egypt,
+                region: address.region ?? cairoName, // Default to Cairo from JSON
               );
             })
             .toList();
         
-        // Initialize form keys for each address
+        // Initialize form keys and controllers for each address
         for (var address in _addresses) {
           if (address.id != null) {
             _addressFormKeys[address.id!] = GlobalKey<FormState>();
+            _initializeControllersForAddress(address.id!, address);
           }
         }
       });
@@ -159,8 +264,8 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
         nearbyLandmark: data['nearbyLandmark'],
         phoneNumber: data['phoneNumber'] ?? data['pickupPhone'],
         otherPhoneNumber: data['otherPhoneNumber'],
-        country: data['country'] ?? 'Egypt', // Default to Egypt
-        region: data['region'] ?? data['city'] ?? 'Cairo', // Default to Cairo
+        country: data['country'] ?? AppLocalizations.of(context).egypt, // Default to Egypt
+        region: data['region'] ?? data['city'], // Don't set default - will be loaded from JSON
         zone: data['zone'],
         latitude: data['latitude']?.toDouble(),
         longitude: data['longitude']?.toDouble(),
@@ -171,6 +276,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
         _addresses = [address];
         if (address.id != null) {
           _addressFormKeys[address.id!] = GlobalKey<FormState>();
+          _initializeControllersForAddress(address.id!, address);
         }
       });
     }
@@ -179,15 +285,15 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
     if (_addresses.isEmpty) {
       _addNewAddress();
     } else {
-      // Set defaults for any addresses missing country/region
-      setState(() {
-        _addresses = _addresses.map((address) {
-          return address.copyWith(
-            country: address.country ?? 'Egypt',
-            region: address.region ?? 'Cairo',
-          );
-        }).toList();
-      });
+        // Set defaults for any addresses missing country/region
+        setState(() {
+          _addresses = _addresses.map((address) {
+            return address.copyWith(
+              country: address.country ?? AppLocalizations.of(context).egypt,
+              region: address.region ?? cairoName, // Default to Cairo from JSON
+            );
+          }).toList();
+        });
     
       // Expand the first address by default
       if (_addresses.isNotEmpty && _addresses.first.id != null) {
@@ -199,24 +305,44 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
   void _addNewAddress() {
     final newId = DateTime.now().millisecondsSinceEpoch.toString();
     final addressNumber = _addresses.length + 1;
-    final newAddress = PickupAddress(
+    // Get Cairo name based on current locale
+    final locale = ref.read(localeProvider);
+    // Use temporary Cairo name based on locale, will be updated when async completes
+    final tempCairoName = locale.languageCode == 'ar' ? 'القاهره' : 'Cairo';
+    
+    final tempAddress = PickupAddress(
       id: newId,
       addressName: addressNumber == 1 ? 'Main Address' : 'Address $addressNumber',
-      country: 'Egypt', // Auto-select Egypt
-      region: 'Cairo', // Auto-select Cairo as it's the only option
+      country: AppLocalizations.of(context).egypt, // Auto-select Egypt
+      region: tempCairoName, // Temporary Cairo name
     );
     
-      setState(() {
-      _addresses.add(newAddress);
+    setState(() {
+      _addresses.add(tempAddress);
       _addressFormKeys[newId] = GlobalKey<FormState>();
+      _initializeControllersForAddress(newId, tempAddress);
       // Expand newly added address by default
       _expandedAddresses.add(newId);
+    });
+    
+    // Update with correct Cairo name from JSON
+    RegionsService.getCairoGovernorateName(locale.languageCode).then((cairoName) {
+      if (mounted) {
+        final index = _addresses.indexWhere((addr) => addr.id == newId);
+        if (index != -1) {
+          setState(() {
+            _addresses[index] = _addresses[index].copyWith(region: cairoName);
+          });
+          _saveFormData();
+        }
+      }
     });
     
     _saveFormData();
   }
 
   void _removeAddress(String addressId) {
+      _disposeControllersForAddress(addressId);
       setState(() {
       _addresses.removeWhere((addr) => addr.id == addressId);
       _addressFormKeys.remove(addressId);
@@ -246,7 +372,35 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
       final index = _addresses.indexWhere((addr) => addr.id == addressId);
       if (index != -1) {
         _addresses[index] = updatedAddress;
+        
+        // Sync controller text if address changed externally (not from text field)
+        // Only update if the value actually changed to avoid disrupting user input
+        if (_addressNameControllers.containsKey(addressId)) {
+          if (_addressNameControllers[addressId]!.text != (updatedAddress.addressName ?? '')) {
+            _addressNameControllers[addressId]!.text = updatedAddress.addressName ?? '';
+          }
         }
+        if (_addressDetailsControllers.containsKey(addressId)) {
+          if (_addressDetailsControllers[addressId]!.text != (updatedAddress.addressDetails ?? '')) {
+            _addressDetailsControllers[addressId]!.text = updatedAddress.addressDetails ?? '';
+          }
+        }
+        if (_nearbyLandmarkControllers.containsKey(addressId)) {
+          if (_nearbyLandmarkControllers[addressId]!.text != (updatedAddress.nearbyLandmark ?? '')) {
+            _nearbyLandmarkControllers[addressId]!.text = updatedAddress.nearbyLandmark ?? '';
+          }
+        }
+        if (_phoneNumberControllers.containsKey(addressId)) {
+          if (_phoneNumberControllers[addressId]!.text != (updatedAddress.phoneNumber ?? '')) {
+            _phoneNumberControllers[addressId]!.text = updatedAddress.phoneNumber ?? '';
+          }
+        }
+        if (_otherPhoneControllers.containsKey(addressId)) {
+          if (_otherPhoneControllers[addressId]!.text != (updatedAddress.otherPhoneNumber ?? '')) {
+            _otherPhoneControllers[addressId]!.text = updatedAddress.otherPhoneNumber ?? '';
+          }
+        }
+      }
       });
       _saveFormData();
   }
@@ -266,7 +420,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
     if (!allValid) {
       ToastService.show(
         context,
-        "Please fill all required fields",
+        AppLocalizations.of(context).pleaseFillAllFields,
         type: ToastType.error,
       );
       return;
@@ -287,7 +441,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
     if (!hasValidAddress) {
       ToastService.show(
         context,
-        "Please add at least one complete address",
+        AppLocalizations.of(context).pleaseAddCompleteAddress,
         type: ToastType.error,
       );
       return;
@@ -324,7 +478,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
             Text(
-                            'Pickup Locations',
+                            AppLocalizations.of(context).pickupLocations,
               style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Color(0xffF29620),
@@ -332,7 +486,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
             ),
                           const SizedBox(height: 4),
             Text(
-                            'Add addresses where our courier can collect your packages',
+                            AppLocalizations.of(context).pickupLocationsHelper,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withOpacity(0.7),
               ),
@@ -381,7 +535,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No addresses added yet',
+                        AppLocalizations.of(context).noAddressesAdded,
                         style: TextStyle(
                           color: Colors.grey.shade600,
                           fontSize: 16,
@@ -389,7 +543,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Tap the + button to add your first address',
+                        AppLocalizations.of(context).tapToAddFirstAddress,
                         style: TextStyle(
                           color: Colors.grey.shade500,
                           fontSize: 14,
@@ -418,7 +572,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
-                  "Your progress is automatically saved when you switch tabs",
+                  AppLocalizations.of(context).progressAutoSaved,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
@@ -437,7 +591,11 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
   Widget _buildAddressCard(ThemeData theme, PickupAddress address, int index) {
     final addressId = address.id ?? DateTime.now().millisecondsSinceEpoch.toString();
     final formKey = _addressFormKeys[addressId] ??= GlobalKey<FormState>();
-    final addressNameController = TextEditingController(text: address.addressName);
+    // Initialize controller if it doesn't exist
+    if (!_addressNameControllers.containsKey(addressId)) {
+      _initializeControllersForAddress(addressId, address);
+    }
+    final addressNameController = _addressNameControllers[addressId]!;
     final isExpanded = _expandedAddresses.contains(addressId);
     
     return Container(
@@ -494,7 +652,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
                         child: TextFormField(
                           controller: addressNameController,
                           decoration: InputDecoration(
-                            hintText: 'Address Name',
+                            hintText: AppLocalizations.of(context).addressName,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -574,11 +732,16 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
   }
   
   Widget _buildAddressFormFields(ThemeData theme, PickupAddress address, String addressId) {
-    // Controllers for this address - use key to ensure they update when address changes
-    final addressDetailsController = TextEditingController(text: address.addressDetails ?? '');
-    final nearbyLandmarkController = TextEditingController(text: address.nearbyLandmark ?? '');
-    final phoneNumberController = TextEditingController(text: address.phoneNumber ?? '');
-    final otherPhoneController = TextEditingController(text: address.otherPhoneNumber ?? '');
+    // Initialize controllers if they don't exist
+    if (!_addressDetailsControllers.containsKey(addressId)) {
+      _initializeControllersForAddress(addressId, address);
+    }
+    
+    // Use stored controllers instead of creating new ones
+    final addressDetailsController = _addressDetailsControllers[addressId]!;
+    final nearbyLandmarkController = _nearbyLandmarkControllers[addressId]!;
+    final phoneNumberController = _phoneNumberControllers[addressId]!;
+    final otherPhoneController = _otherPhoneControllers[addressId]!;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -588,7 +751,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Country',
+              AppLocalizations.of(context).country,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
@@ -607,21 +770,21 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
                   contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   border: InputBorder.none,
                 ),
-                hint: const Text('Select country'),
-                value: address.country != null && countries.contains(address.country) 
+                hint: Text(AppLocalizations.of(context).selectCountry),
+                value: address.country != null && getCountries(context).contains(address.country) 
                     ? address.country 
-                    : 'Egypt', // Default to Egypt
-                items: countries
+                    : AppLocalizations.of(context).egypt, // Default to Egypt
+                items: getCountries(context)
                     .map((country) => DropdownMenuItem(value: country, child: Text(country)))
                     .toList(),
                 onChanged: (value) {
                     _updateAddress(addressId, address.copyWith(
-                      country: value ?? 'Egypt', // Default to Egypt if null
-                      region: 'Cairo', // Auto-select Cairo as it's the only option
+                      country: value ?? AppLocalizations.of(context).egypt, // Default to Egypt if null
+                      region: null, // Reset region when country changes - will be loaded from JSON
                       zone: null, // Reset zone when country changes
                     ));
                 },
-                validator: (value) => value == null ? 'Please select a country' : null,
+                validator: (value) => value == null ? AppLocalizations.of(context).pleaseSelectCountry : null,
               ),
             ),
           ],
@@ -629,56 +792,71 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
         
         const SizedBox(height: 16),
 
-        // Governorate and Area dropdown
+        // Governorate and Area dropdown - limited to Cairo only
         if (address.country != null)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Governorate and Area *',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Click to select governorate and area',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButtonFormField<String>(
-                  key: ValueKey('region_${address.id}_${address.region}'),
-                  isExpanded: true,
-                  icon: const Icon(Icons.arrow_drop_down),
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    border: InputBorder.none,
+          ref.watch(cairoOnlyProvider).when(
+            data: (governorates) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppLocalizations.of(context).governorateAndArea,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  hint: const Text('Select Area'),
-                  value: address.region != null && regionsByCountry[address.country] != null 
-                      && regionsByCountry[address.country]!.contains(address.region)
-                      ? address.region 
-                      : 'Cairo', // Default to Cairo
-                  items: regionsByCountry[address.country]!
-                      .map((region) => DropdownMenuItem(value: region, child: Text(region)))
-                      .toList(),
-                  onChanged: (value) {
-                    _updateAddress(addressId, address.copyWith(
-                      region: value ?? 'Cairo', // Default to Cairo if null
-                      zone: null, // Reset zone when region changes
-                    ));
-                  },
-                  validator: (value) => value == null ? 'Please select governorate and area' : null,
-                ),
+                  const SizedBox(height: 4),
+                  Text(
+                    AppLocalizations.of(context).clickToSelectGovernorate,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      key: ValueKey('region_${address.id}_${address.region}'),
+                      isExpanded: true,
+                      icon: const Icon(Icons.arrow_drop_down),
+                      decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        border: InputBorder.none,
+                      ),
+                      hint: Text(AppLocalizations.of(context).selectArea),
+                      value: address.region != null && governorates.contains(address.region)
+                          ? address.region 
+                          : governorates.isNotEmpty ? governorates.first : null,
+                      items: governorates
+                          .map((region) => DropdownMenuItem(value: region, child: Text(region)))
+                          .toList(),
+                      onChanged: (value) {
+                        _updateAddress(addressId, address.copyWith(
+                          region: value,
+                          zone: null, // Reset zone when region changes
+                        ));
+                      },
+                      validator: (value) => value == null ? AppLocalizations.of(context).pleaseSelectGovernorate : null,
+                    ),
+                  ),
+                ],
+              );
+            },
+            loading: () => const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
               ),
-            ],
+            ),
+            error: (error, stack) => Text(
+              'Error loading governorates: $error',
+              style: TextStyle(color: theme.colorScheme.error),
+            ),
           ),
         
         const SizedBox(height: 16),
@@ -694,35 +872,45 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Zone',
+                AppLocalizations.of(context).zone,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButtonFormField<String>(
-                      key: ValueKey('zone_${address.id}_${address.zone}'),
-                  isExpanded: true,
-                  icon: const Icon(Icons.arrow_drop_down),
-                  decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    border: InputBorder.none,
+              InkWell(
+                onTap: () => _showZoneSearchDialog(context, address, addressId, availableZones),
+                child: Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  hint: const Text('Select zone'),
-                      value: address.zone != null && availableZones.contains(address.zone)
-                          ? address.zone 
-                          : null, // Only set value if it's in the list
-                      items: availableZones
-                      .map((zone) => DropdownMenuItem(value: zone, child: Text(zone)))
-                      .toList(),
-                  onChanged: (value) {
-                        _updateAddress(addressId, address.copyWith(zone: value));
-                  },
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          address.zone ?? AppLocalizations.of(context).selectZone,
+                          style: TextStyle(
+                            color: address.zone != null 
+                                ? Colors.black87 
+                                : Colors.grey.shade600,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.search,
+                        color: Colors.grey.shade600,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        color: Colors.grey.shade600,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -743,10 +931,10 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
         
         // Address Details
         AppTextField(
-          key: ValueKey('addressDetails_${address.id}_${address.addressDetails}'),
-          label: 'Address Details *',
+          key: ValueKey('addressDetails_${address.id}'),
+          label: AppLocalizations.of(context).addressDetails,
           controller: addressDetailsController,
-          hintText: 'Street, Building, Floor, Apartment',
+          hintText: AppLocalizations.of(context).addressDetailsHint,
           validator: Validators.required,
           onChanged: (value) {
             _updateAddress(addressId, address.copyWith(addressDetails: value));
@@ -757,9 +945,9 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
         
         // Nearby Landmark
         AppTextField(
-          label: 'Nearby Landmark (Optional)',
+          label: AppLocalizations.of(context).nearbyLandmark,
           controller: nearbyLandmarkController,
-          hintText: 'e.g. Near the school',
+          hintText: AppLocalizations.of(context).nearbyLandmarkHint,
           onChanged: (value) {
             _updateAddress(addressId, address.copyWith(nearbyLandmark: value));
           },
@@ -772,7 +960,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Pickup Phone Number *',
+              AppLocalizations.of(context).pickupPhoneNumber,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
@@ -781,7 +969,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
             TextFormField(
               controller: phoneNumberController,
               decoration: InputDecoration(
-                hintText: 'e.g. 0 123 456 7890',
+                //hintText: AppLocalizations.of(context).pickupPhoneHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -803,7 +991,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Other Pickup Phone (Optional)',
+              AppLocalizations.of(context).otherPickupPhone,
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w500,
               ),
@@ -812,7 +1000,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
             TextFormField(
               controller: otherPhoneController,
               decoration: InputDecoration(
-                hintText: 'e.g. 0 123 456 7890',
+                //hintText: AppLocalizations.of(context).pickupPhoneHint,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -839,7 +1027,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Location on Map (Optional)',
+          AppLocalizations.of(context).locationOnMap,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w500,
           ),
@@ -852,7 +1040,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
           child: ElevatedButton.icon(
             onPressed: () => _getCurrentLocation(address, addressId),
             icon: const Icon(Icons.my_location, size: 18),
-            label: const Text('Get Location'),
+            label: Text(AppLocalizations.of(context).getLocation),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xfff29620),
               foregroundColor: Colors.white,
@@ -914,7 +1102,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Tap to select location on map',
+                          AppLocalizations.of(context).tapToSelectLocation,
                           style: TextStyle(
                             color: const Color(0xfff29620),
                             fontWeight: FontWeight.w600,
@@ -944,7 +1132,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Location Selected',
+                          AppLocalizations.of(context).locationSelected,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -959,7 +1147,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'Tap to change location',
+                            AppLocalizations.of(context).tapToChangeLocation,
                             style: TextStyle(
                               color: const Color(0xfff29620),
                               fontWeight: FontWeight.w500,
@@ -987,7 +1175,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
       if (permission.isDenied || permission.isPermanentlyDenied) {
         ToastService.show(
           context,
-          "Location permission is required to get your current location",
+          AppLocalizations.of(context).locationPermissionRequired,
           type: ToastType.error,
         );
         return;
@@ -1002,7 +1190,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
         debugPrint('Geolocator not available: $e');
         ToastService.show(
           context,
-          "Location services not available. Please restart the app after installing updates.",
+          AppLocalizations.of(context).locationServicesNotAvailable,
           type: ToastType.error,
         );
         return;
@@ -1011,7 +1199,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
       if (!serviceEnabled) {
         ToastService.show(
           context,
-          "Please enable location services",
+          AppLocalizations.of(context).pleaseEnableLocationServices,
           type: ToastType.error,
         );
         return;
@@ -1020,7 +1208,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
       // Show loading indicator
       ToastService.show(
         context,
-        "Getting your location...",
+        AppLocalizations.of(context).gettingYourLocation,
         type: ToastType.info,
       );
       
@@ -1034,7 +1222,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
         debugPrint('Error getting position: $e');
         ToastService.show(
           context,
-          "Failed to get location. Please try again or select location on map.",
+          AppLocalizations.of(context).failedToGetLocation,
           type: ToastType.error,
         );
         return;
@@ -1049,9 +1237,8 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks.first;
         
-        // Normalize region name
+        // Get region from placemark for address formatting
         String? rawRegion = place.administrativeArea;
-        String region = _normalizeRegionName(rawRegion);
         
         // Format address for display
         String formattedAddress = [
@@ -1074,10 +1261,12 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
           addressDetails = place.subLocality ?? place.locality ?? formattedAddress;
         }
         
-        // Get available zones for the region from JSON
+        // Get available zones for Cairo from JSON
         final locale = ref.read(localeProvider);
+        // Always use Cairo governorate
+        final cairoGovernorateName = await RegionsService.getCairoGovernorateName(locale.languageCode);
         final availableZones = await RegionsService.getZonesForGovernorate(
-          region.isNotEmpty ? region : 'Cairo',
+          cairoGovernorateName,
           locale.languageCode,
         );
         
@@ -1156,19 +1345,13 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
           debugPrint('Selected zone: $selectedZone');
         }
         
-        // Normalize country name - only use if it's in our countries list
+        // Normalize country name - only use if it's Egypt
         String? normalizedCountry;
         if (place.country != null) {
           // Normalize country name (e.g., "Egypt" or "Arab Republic of Egypt" -> "Egypt")
           String countryLower = place.country!.toLowerCase();
           if (countryLower.contains('egypt') || countryLower == 'eg') {
-            normalizedCountry = 'Egypt';
-          } else if (countries.contains(place.country)) {
-            normalizedCountry = place.country;
-          }
-          // Only set country if it's in our list
-          if (normalizedCountry == null || !countries.contains(normalizedCountry)) {
-            normalizedCountry = null; // Don't set invalid country
+            normalizedCountry = AppLocalizations.of(context).egypt;
           }
         }
         
@@ -1182,19 +1365,20 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
         debugPrint('Country from GPS: ${place.country}, Normalized: $normalizedCountry');
         
         // Update address with current location
+        // Always set region to Cairo
         _updateAddress(addressId, address.copyWith(
           latitude: position.latitude,
           longitude: position.longitude,
           formattedAddress: formattedAddress,
           addressDetails: finalAddressDetails,
-          country: normalizedCountry ?? address.country, // Only set if valid, otherwise keep existing
-          region: region.isNotEmpty ? region : address.region,
+          country: normalizedCountry ?? address.country ?? AppLocalizations.of(context).egypt, // Only set if valid, otherwise keep existing
+          region: cairoGovernorateName, // Always set to Cairo
           zone: selectedZone,
         ));
         
         ToastService.show(
           context,
-          "Location updated successfully",
+          AppLocalizations.of(context).locationUpdatedSuccessfully,
           type: ToastType.success,
         );
       } else {
@@ -1206,7 +1390,7 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
         
         ToastService.show(
           context,
-          "Location saved (address not found)",
+          AppLocalizations.of(context).locationSaved,
           type: ToastType.info,
         );
       }
@@ -1217,23 +1401,178 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
       if (e.toString().contains('MissingPluginException')) {
         ToastService.show(
           context,
-          "Please restart the app to enable location features",
+          AppLocalizations.of(context).pleaseRestartApp,
           type: ToastType.error,
         );
       } else {
         ToastService.show(
           context,
-          "Failed to get location: ${e.toString()}",
+          AppLocalizations.of(context).failedToGetLocationError(e.toString()),
           type: ToastType.error,
         );
       }
     }
   }
   
-  // Normalize region name to match dropdown options - always return Cairo
-  String _normalizeRegionName(String? regionName) {
-    // Always return Cairo as it's the only option
-    return 'Cairo';
+  // Show searchable zone dialog
+  void _showZoneSearchDialog(BuildContext context, PickupAddress address, String addressId, List<String> availableZones) {
+    // Initialize search controller for this address if not exists
+    if (!_zoneSearchControllers.containsKey(addressId)) {
+      _zoneSearchControllers[addressId] = TextEditingController();
+    }
+    final searchController = _zoneSearchControllers[addressId]!;
+    List<String> filteredZones = List.from(availableZones);
+    
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.9,
+                height: MediaQuery.of(context).size.height * 0.7,
+                padding: const EdgeInsets.all(0),
+                child: Column(
+                  children: [
+                    // Header
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: widget.themeColor,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              AppLocalizations.of(context).selectZone,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white),
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    // Search field
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: TextField(
+                        controller: searchController,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          hintText: AppLocalizations.of(context).searchZone,
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: searchController,
+                            builder: (context, value, child) {
+                              return value.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear, size: 20),
+                                      onPressed: () {
+                                        searchController.clear();
+                                        setDialogState(() {
+                                          filteredZones = List.from(availableZones);
+                                        });
+                                      },
+                                    )
+                                  : const SizedBox.shrink();
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: widget.themeColor, width: 2),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                        onChanged: (value) {
+                          setDialogState(() {
+                            if (value.isEmpty) {
+                              filteredZones = List.from(availableZones);
+                            } else {
+                              filteredZones = availableZones
+                                  .where((zone) => zone.toLowerCase().contains(value.toLowerCase()))
+                                  .toList();
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                    // Zones list
+                    Expanded(
+                      child: filteredZones.isEmpty
+                          ? Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(32.0),
+                                child: Text(
+                                  AppLocalizations.of(context).noZonesFound,
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: filteredZones.length,
+                              itemBuilder: (context, index) {
+                                final zone = filteredZones[index];
+                                final isSelected = zone == address.zone;
+                                return InkWell(
+                                  onTap: () {
+                                    _updateAddress(addressId, address.copyWith(zone: zone));
+                                    Navigator.of(dialogContext).pop();
+                                  },
+                                  child: Container(
+                                    color: isSelected 
+                                        ? widget.themeColor.withOpacity(0.1) 
+                                        : Colors.transparent,
+                                    child: ListTile(
+                                      title: Text(
+                                        zone,
+                                        style: TextStyle(
+                                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                          color: isSelected 
+                                              ? widget.themeColor 
+                                              : Colors.black87,
+                                        ),
+                                      ),
+                                      trailing: isSelected
+                                          ? Icon(Icons.check, color: widget.themeColor)
+                                          : null,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
   
   Future<void> _openLocationPicker(PickupAddress address, String addressId) async {
@@ -1248,25 +1587,21 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
     );
 
     if (result != null) {
-      // Normalize country - only use if it's in our countries list
+      // Normalize country - only use if it's Egypt
       String? normalizedCountry;
       if (result.country != null) {
         String countryLower = result.country!.toLowerCase();
         if (countryLower.contains('egypt') || countryLower == 'eg') {
-          normalizedCountry = 'Egypt';
-        } else if (countries.contains(result.country)) {
-          normalizedCountry = result.country;
-        }
-        // Only set country if it's in our list
-        if (normalizedCountry == null || !countries.contains(normalizedCountry)) {
-          normalizedCountry = null;
+          normalizedCountry = AppLocalizations.of(context).egypt;
         }
       }
       
-      // Load zones dynamically from JSON based on locale
+      // Load zones dynamically from JSON based on locale - always use Cairo
       final locale = ref.read(localeProvider);
+      // Always use Cairo governorate
+      final cairoGovernorateName = await RegionsService.getCairoGovernorateName(locale.languageCode);
       final availableZones = await RegionsService.getZonesForGovernorate(
-        result.region ?? 'Cairo',
+        cairoGovernorateName,
         locale.languageCode,
       );
       
@@ -1290,13 +1625,14 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
         addressDetailsToSet = result.formattedAddress ?? 'Selected location';
       }
       
+      // Always set region to Cairo
       _updateAddress(addressId, address.copyWith(
         latitude: result.latitude,
         longitude: result.longitude,
         formattedAddress: result.formattedAddress,
         addressDetails: addressDetailsToSet,
-        country: normalizedCountry ?? address.country, // Only set if valid
-        region: result.region ?? address.region,
+        country: normalizedCountry ?? address.country ?? AppLocalizations.of(context).egypt, // Only set if valid
+        region: cairoGovernorateName, // Always set to Cairo
         zone: selectedZone,
       ));
     }
@@ -1318,9 +1654,9 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
               borderRadius: BorderRadius.circular(12),
             ),
             ),
-            child: const Text(
-              "Back",
-              style: TextStyle(
+            child: Text(
+              AppLocalizations.of(context).back,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),
@@ -1344,9 +1680,9 @@ class _DashboardPickupAddressStepState extends ConsumerState<DashboardPickupAddr
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-            child: const Text(
-              "Next",
-              style: TextStyle(
+            child: Text(
+              AppLocalizations.of(context).next,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),

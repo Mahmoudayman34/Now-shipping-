@@ -10,6 +10,7 @@ import 'congrats_step.dart';
 import 'progress_bar.dart';
 import '../providers/profile_form_provider.dart';
 import '../services/profile_form_manager.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class ProfileCompletionForm extends ConsumerStatefulWidget {
   const ProfileCompletionForm({super.key});
@@ -28,13 +29,16 @@ class _ProfileCompletionFormState extends ConsumerState<ProfileCompletionForm> {
   static const Color themeColor = Color(0xfff29620);
   
   // Step labels for the progress bar and validation messages
-  final List<String> stepLabels = [
-    "Email",
-    "Brand",
-    "Pickup",
-    "Payment",
-    "Type",
-  ];
+  List<String> getStepLabels(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return [
+      l10n.formStepEmail,
+      l10n.formStepBrand,
+      l10n.formStepPickup,
+      l10n.formStepPayment,
+      l10n.formStepType,
+    ];
+  }
   
   // Create global keys for each form step to access their state
   final List<GlobalKey<FormState>> _formKeys = List.generate(
@@ -271,7 +275,7 @@ class _ProfileCompletionFormState extends ConsumerState<ProfileCompletionForm> {
           ProgressBar(
             currentStep: displayCurrentStep,
             totalSteps: _totalSteps,
-            stepLabels: stepLabels,
+            stepLabels: getStepLabels(context),
             onStepTap: goToStep,
           ),
         
@@ -363,7 +367,7 @@ class _ProfileCompletionFormState extends ConsumerState<ProfileCompletionForm> {
       currentStep: currentStep,
       onSuccess: _completeProfile,
       goToStep: goToStep,
-      stepLabels: stepLabels,
+      stepLabels: getStepLabels(context),
     );
   }
 }

@@ -13,6 +13,7 @@ import 'package:now_shipping/features/business/orders/widgets/exchange_details_w
 import 'package:now_shipping/features/business/orders/widgets/return_details_widget.dart';
 import 'package:now_shipping/features/business/orders/widgets/shipping_information_widget.dart';
 import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/utils/error_message_parser.dart';
 import '../../../../core/widgets/app_dialog.dart';
 
 // Provider for fetching order by ID
@@ -715,11 +716,12 @@ class _EditOrderScreenState extends ConsumerState<EditOrderScreen> {
           Navigator.pop(context);
         }
         
-        // Show error message
+        // Show user-friendly error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update order: ${e.toString()}'),
+            content: Text(ErrorMessageParser.parseError(e)),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
       }

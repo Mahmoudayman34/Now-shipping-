@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';  // Add this import for haptic feedback
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastType;
 import '../providers/profile_form_provider.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class DashboardPaymentMethodStep extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
@@ -37,6 +38,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
   
   // Add controllers for payment method details
   final TextEditingController _ibanController = TextEditingController();
+  final TextEditingController _accountNumberController = TextEditingController();
   final TextEditingController _accountNameController = TextEditingController();
   String? _selectedBank;
   
@@ -78,6 +80,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
   @override
   void dispose() {
     _ibanController.dispose();
+    _accountNumberController.dispose();
     _accountNameController.dispose();
     super.dispose();
   }
@@ -121,6 +124,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
       if (_selectedPaymentMethod == 'bank') {
         formData['bankName'] = _selectedBank;
         formData['iban'] = _ibanController.text;
+        formData['accountNumber'] = _accountNumberController.text;
         formData['accountName'] = _accountNameController.text;
       }
       
@@ -159,6 +163,9 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
         if (data.containsKey('iban')) {
           _ibanController.text = data['iban'] ?? '';
         }
+        if (data.containsKey('accountNumber')) {
+          _accountNumberController.text = data['accountNumber'] ?? '';
+        }
         if (data.containsKey('accountName')) {
           _accountNameController.text = data['accountName'] ?? '';
         }
@@ -178,9 +185,9 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Title section
-            const Text(
-              'Select Payment Method',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context).selectPaymentMethod,
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Color(0xffF29620),
@@ -188,7 +195,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
             ),
             const SizedBox(height: 4),
             Text(
-              'Choose your preferred payment option for checkout.',
+              AppLocalizations.of(context).choosePaymentOption,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey.shade600,
@@ -203,7 +210,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
                 width: 200,
                 child: _buildPaymentCard(
                   'bank',
-                  'Bank Transfer',
+                  AppLocalizations.of(context).bankTransfer,
                   Icons.account_balance_outlined,
                   theme,
                 ),
@@ -236,7 +243,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
                     height: 20,
                     child: Center(
                       child: Text(
-                        'Select a payment method to continue',
+                        AppLocalizations.of(context).selectPaymentMethodToContinue,
                         style: TextStyle(
                           color: Colors.grey.shade600,
                           fontStyle: FontStyle.italic,
@@ -266,8 +273,8 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('Back',
-                    style: TextStyle(
+                    child: Text(AppLocalizations.of(context).back,
+                    style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),),
@@ -286,8 +293,8 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('Next',
-                     style: TextStyle(
+                    child: Text(AppLocalizations.of(context).next,
+                     style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,),
                 ),
@@ -398,9 +405,9 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Select Your Bank:',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context).selectYourBank,
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
             color: Colors.black87,
@@ -410,7 +417,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
         DropdownButtonFormField<String>(
           value: _selectedBank,
           decoration: InputDecoration(
-            hintText: 'Choose your bank',
+            hintText: AppLocalizations.of(context).chooseYourBank,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -448,7 +455,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
           },
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please select your bank';
+              return AppLocalizations.of(context).pleaseSelectBank;
             }
             return null;
           },
@@ -456,9 +463,51 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
         
         const SizedBox(height: 24),
         
-        const Text(
-          'Enter your IBAN:',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context).enterAccountNumber,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _accountNumberController,
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context).accountNumberExample,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: orangeColor),
+            ),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            focusColor: orangeColor,
+          ),
+          cursorColor: orangeColor,
+          keyboardType: TextInputType.number,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return AppLocalizations.of(context).pleaseEnterAccountNumber;
+            }
+            return null;
+          },
+        ),
+        
+        const SizedBox(height: 24),
+        
+        Text(
+          '${AppLocalizations.of(context).enterYourIban} (${AppLocalizations.of(context).ibanOptional})',
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
             color: Colors.black87,
@@ -468,7 +517,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
         TextFormField(
           controller: _ibanController,
           decoration: InputDecoration(
-            hintText: 'Example: EG12 3456 7890 1234 5678 90',
+            hintText: AppLocalizations.of(context).ibanExample,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -487,19 +536,14 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
             focusColor: orangeColor,
           ),
           cursorColor: orangeColor,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Please enter your IBAN';
-            }
-            return null;
-          },
+          // IBAN is now optional, no validator needed
         ),
         
         const SizedBox(height: 24),
         
-        const Text(
-          'Enter your Account Name:',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context).enterAccountName,
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
             color: Colors.black87,
@@ -509,7 +553,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
         TextFormField(
           controller: _accountNameController,
           decoration: InputDecoration(
-            hintText: 'Example: John Doe',
+            hintText: AppLocalizations.of(context).accountNameExample,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -530,7 +574,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
           cursorColor: orangeColor,
           validator: (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter your account name';
+              return AppLocalizations.of(context).pleaseEnterAccountName;
             }
             return null;
           },
@@ -544,7 +588,7 @@ class _DashboardPaymentMethodStepState extends ConsumerState<DashboardPaymentMet
       // Show error message if no payment method is selected
       ToastService.show(
         context, 
-        'Please select a payment method',
+        AppLocalizations.of(context).pleaseSelectPaymentMethod,
         type: ToastType.error,
         duration: const Duration(seconds: 3),
       );

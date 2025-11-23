@@ -44,41 +44,13 @@ class ScannerModalState extends State<ScannerModal> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.8,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: Column(
-        children: [
-          // Header with title and flash toggle
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  widget.title,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  onPressed: _toggleFlash,
-                  icon: Icon(
-                    _isFlashOn ? Icons.flash_on : Icons.flash_off,
-                    color: _isFlashOn ? Colors.yellow : Colors.grey,
-                    size: 28,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Scanner
-          Expanded(
-            child: MobileScanner(
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            // Full screen scanner
+            MobileScanner(
               controller: _controller!,
               onDetect: (capture) {
                 final List<Barcode> barcodes = capture.barcodes;
@@ -88,20 +60,86 @@ class ScannerModalState extends State<ScannerModal> {
                 }
               },
             ),
-          ),
-          // Cancel button
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF26A2B9),
-                minimumSize: const Size.fromHeight(50),
+            // Header overlay with title and flash toggle
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.7),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.pop(context, null),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    Text(
+                      widget.title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: _toggleFlash,
+                      icon: Icon(
+                        _isFlashOn ? Icons.flash_on : Icons.flash_off,
+                        color: _isFlashOn ? Colors.yellow : Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              onPressed: () => Navigator.pop(context, null),
-              child: const Text('Cancel'),
             ),
-          ),
-        ],
+            // Cancel button at the bottom
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.7),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF26A2B9),
+                    minimumSize: const Size.fromHeight(50),
+                  ),
+                  onPressed: () => Navigator.pop(context, null),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

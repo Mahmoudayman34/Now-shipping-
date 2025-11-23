@@ -9,6 +9,7 @@ import 'package:now_shipping/features/business/orders/widgets/print_selection_di
 import 'package:now_shipping/features/common/widgets/scanner_modal.dart';
 import '../../../../core/l10n/app_localizations.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/utils/error_message_parser.dart';
 import '../../../../core/widgets/app_dialog.dart';
 
 class OrderDetailsScreenRefactored extends ConsumerStatefulWidget {
@@ -58,6 +59,22 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
 
   // Method to show the order actions bottom sheet
   void _showActionsBottomSheet(BuildContext context) {
+    // Check if smart sticker has already been scanned
+    final rawOrderData = ref.read(rawOrderDataProvider(widget.orderId));
+    final smartFlyerBarcode = rawOrderData['smartFlyerBarcode'] as String?;
+    
+    // Also check if orderNotes contains barcode assignment info
+    final orderNotes = rawOrderData['orderNotes'] as String? ?? '';
+    final hasBarcodeInNotes = orderNotes.contains('Smart Flyer barcode assigned') || 
+                              orderNotes.contains('smartFlyerBarcode');
+    
+    final isStickerScanned = (smartFlyerBarcode != null && smartFlyerBarcode.toString().trim().isNotEmpty) || hasBarcodeInNotes;
+    
+    // Debug logging
+    print('DEBUG BOTTOM SHEET: smartFlyerBarcode: $smartFlyerBarcode');
+    print('DEBUG BOTTOM SHEET: orderNotes: $orderNotes');
+    print('DEBUG BOTTOM SHEET: isStickerScanned: $isStickerScanned');
+    
     showModalBottomSheet(
       backgroundColor: Colors.white,
       context: context,
@@ -75,14 +92,16 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 16),
-              ActionItem(
-                icon: Icons.qr_code_scanner_outlined,
-                title: AppLocalizations.of(context).scanSmartSticker,
-                onTap: () {
-                  Navigator.pop(context);
-                  _scanBarcode();
-                },
-              ),
+              // Only show scan option if sticker hasn't been scanned yet
+              if (!isStickerScanned)
+                ActionItem(
+                  icon: Icons.qr_code_scanner_outlined,
+                  title: AppLocalizations.of(context).scanSmartSticker,
+                  onTap: () {
+                    Navigator.pop(context);
+                    _scanBarcode();
+                  },
+                ),
               ActionItem(
                 icon: Icons.print_outlined,
                 title: AppLocalizations.of(context).printAirwaybill,
@@ -120,11 +139,10 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
   // Method to scan a barcode
   Future<void> _scanBarcode() async {
     try {
-      // Show a modal dialog with the scanner
-      final String? barcodeScanRes = await showModalBottomSheet<String>(
+      // Show a full screen dialog with the scanner
+      final String? barcodeScanRes = await showDialog<String>(
         context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
+        barrierColor: Colors.black,
         builder: (context) => ScannerModal(
           title: 'Scan Smart Sticker',
           onScanResult: (result) {
@@ -162,8 +180,9 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Failed to scan smart sticker: ${e.toString()}'),
+                content: Text(ErrorMessageParser.parseError(e)),
                 backgroundColor: Colors.red,
+                duration: const Duration(seconds: 4),
               ),
             );
           }
@@ -173,9 +192,10 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
       print('Error in scan barcode: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to open scanner'),
+          SnackBar(
+            content: Text(ErrorMessageParser.parseError(e)),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -350,6 +370,7 @@ class _OrderDetailsScreenRefactoredState extends ConsumerState<OrderDetailsScree
             size: ResponsiveUtils.getResponsiveIconSize(context),
           ),
         ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       ),
     );
   }

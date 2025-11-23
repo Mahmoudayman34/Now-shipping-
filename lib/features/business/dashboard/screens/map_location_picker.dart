@@ -6,8 +6,12 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import '../models/location_model.dart';
+import '../../../../core/utils/error_message_parser.dart';
+import '../../../../core/l10n/app_localizations.dart';
+import '../../../../core/providers/locale_provider.dart';
 
 // Theme colors
 const Color _primaryOrange = Color(0xfff29620);
@@ -15,7 +19,7 @@ const Color _white = Colors.white;
 const Color _lightGrey = Color(0xFFF5F5F5);
 const Color _darkGrey = Color(0xFF757575);
 
-class MapLocationPicker extends StatefulWidget {
+class MapLocationPicker extends ConsumerStatefulWidget {
   final double? initialLatitude;
   final double? initialLongitude;
 
@@ -26,10 +30,10 @@ class MapLocationPicker extends StatefulWidget {
   });
 
   @override
-  State<MapLocationPicker> createState() => _MapLocationPickerState();
+  ConsumerState<MapLocationPicker> createState() => _MapLocationPickerState();
 }
 
-class _MapLocationPickerState extends State<MapLocationPicker> {
+class _MapLocationPickerState extends ConsumerState<MapLocationPicker> {
   GoogleMapController? _mapController;
   LatLng? _selectedPosition;
   Set<Marker> _markers = {};
@@ -101,30 +105,79 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
     });
   }
 
-  // Load address for a given position
+  // Load address for a given position using Google Geocoding API for localized results
   Future<void> _loadAddressForPosition(LatLng position) async {
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
+      // Get current locale for language parameter
+      final locale = ref.read(localeProvider);
+      final languageCode = locale.languageCode;
+      
+      // Use Google Geocoding API for localized addresses
+      final response = await http.get(
+        Uri.parse(
+          'https://maps.googleapis.com/maps/api/geocode/json?'
+          'latlng=${position.latitude},${position.longitude}&key=$_apiKey&language=$languageCode'
+        ),
       );
 
-      if (placemarks.isNotEmpty) {
-        Placemark place = placemarks.first;
-        String formattedAddress = [
-          place.thoroughfare,
-          place.subLocality,
-          place.locality,
-          place.administrativeArea,
-          place.country,
-        ].where((component) => component != null && component.isNotEmpty).join(', ');
-        
-        setState(() {
-          _currentAddress = formattedAddress;
-        });
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['results'] != null && data['results'].isNotEmpty) {
+          final result = data['results'][0];
+          final formattedAddress = result['formatted_address'] ?? '';
+          
+          setState(() {
+            _currentAddress = formattedAddress;
+          });
+        } else {
+          // Fallback to geocoding package if API fails
+          List<Placemark> placemarks = await placemarkFromCoordinates(
+            position.latitude,
+            position.longitude,
+          );
+
+          if (placemarks.isNotEmpty) {
+            Placemark place = placemarks.first;
+            String formattedAddress = [
+              place.thoroughfare,
+              place.subLocality,
+              place.locality,
+              place.administrativeArea,
+              place.country,
+            ].where((component) => component != null && component.isNotEmpty).join(', ');
+            
+            setState(() {
+              _currentAddress = formattedAddress;
+            });
+          }
+        }
       }
     } catch (e) {
       debugPrint('Error loading address: $e');
+      // Fallback to geocoding package on error
+      try {
+        List<Placemark> placemarks = await placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        );
+
+        if (placemarks.isNotEmpty) {
+          Placemark place = placemarks.first;
+          String formattedAddress = [
+            place.thoroughfare,
+            place.subLocality,
+            place.locality,
+            place.administrativeArea,
+            place.country,
+          ].where((component) => component != null && component.isNotEmpty).join(', ');
+          
+          setState(() {
+            _currentAddress = formattedAddress;
+          });
+        }
+      } catch (fallbackError) {
+        debugPrint('Fallback geocoding also failed: $fallbackError');
+      }
     }
   }
 
@@ -164,8 +217,8 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
       if (permission.isDenied || permission.isPermanentlyDenied) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Location permission is required'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context).locationPermissionRequired),
               backgroundColor: Colors.red,
             ),
           );
@@ -180,8 +233,8 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
         debugPrint('Geolocator not available: $e');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Location services not available. Please restart the app.'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context).locationServicesNotAvailable),
               backgroundColor: Colors.red,
             ),
           );
@@ -192,8 +245,8 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
       if (!serviceEnabled) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please enable location services'),
+            SnackBar(
+              content: Text(AppLocalizations.of(context).pleaseEnableLocationServices),
               backgroundColor: Colors.red,
             ),
           );
@@ -226,10 +279,10 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Location updated'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).locationUpdated),
             backgroundColor: _primaryOrange,
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
           ),
         );
       }
@@ -238,7 +291,7 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to get location: ${e.toString()}'),
+            content: Text(ErrorMessageParser.parseError(e)),
             backgroundColor: Colors.red,
           ),
         );
@@ -267,11 +320,15 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
       _showSearchResults = true;
     });
 
+    // Get current locale for language parameter
+    final locale = ref.read(localeProvider);
+    final languageCode = locale.languageCode;
+
     try {
       final response = await http.get(
         Uri.parse(
           'https://maps.googleapis.com/maps/api/place/autocomplete/json?'
-          'input=${Uri.encodeComponent(query)}&key=$_apiKey&language=en'
+          'input=${Uri.encodeComponent(query)}&key=$_apiKey&language=$languageCode'
           '&components=country:eg' // Limit to Egypt
         ),
       );
@@ -305,11 +362,15 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
       _searchFocusNode.unfocus();
     });
 
+    // Get current locale for language parameter
+    final locale = ref.read(localeProvider);
+    final languageCode = locale.languageCode;
+
     try {
       final response = await http.get(
         Uri.parse(
           'https://maps.googleapis.com/maps/api/place/details/json?'
-          'place_id=$placeId&key=$_apiKey&language=en&fields=geometry,formatted_address'
+          'place_id=$placeId&key=$_apiKey&language=$languageCode&fields=geometry,formatted_address'
         ),
       );
 
@@ -346,13 +407,88 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
     }
   }
 
-  // Get address from coordinates
+  // Get address from coordinates using Google Geocoding API for localized results
   Future<LocationData?> _getAddressFromLatLng(LatLng position) async {
     setState(() {
       _isLoading = true;
     });
 
+    // Get current locale for language parameter
+    final locale = ref.read(localeProvider);
+    final languageCode = locale.languageCode;
+
     try {
+      // Use Google Geocoding API for localized addresses
+      final response = await http.get(
+        Uri.parse(
+          'https://maps.googleapis.com/maps/api/geocode/json?'
+          'latlng=${position.latitude},${position.longitude}&key=$_apiKey&language=$languageCode'
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['results'] != null && data['results'].isNotEmpty) {
+          final result = data['results'][0];
+          final formattedAddress = result['formatted_address'] ?? '';
+          
+          // Extract address components
+          String? country;
+          String? rawRegion;
+          String? zone;
+          String? city;
+          String? district;
+          String? street;
+          
+          if (result['address_components'] != null) {
+            for (var component in result['address_components']) {
+              final types = component['types'] as List<dynamic>;
+              final longName = component['long_name'] as String?;
+              
+              if (types.contains('country')) {
+                country = longName;
+              } else if (types.contains('administrative_area_level_1')) {
+                rawRegion = longName;
+              } else if (types.contains('administrative_area_level_2')) {
+                zone = longName;
+              } else if (types.contains('locality')) {
+                city = longName;
+              } else if (types.contains('sublocality') || types.contains('sublocality_level_1')) {
+                district = longName;
+              } else if (types.contains('route') || types.contains('street_address')) {
+                street = longName;
+              }
+            }
+          }
+          
+          String region = _normalizeRegionName(rawRegion);
+          
+          // Format address details (street-level address for the form)
+          String addressDetails = [
+            street,
+            district,
+            city,
+          ].where((component) => component != null && component.isNotEmpty).join(', ');
+          
+          // If no street-level details, use formatted address as fallback
+          if (addressDetails.isEmpty) {
+            addressDetails = formattedAddress.isNotEmpty ? formattedAddress : AppLocalizations.of(context).selectedLocation;
+          }
+
+          return LocationData(
+            latitude: position.latitude,
+            longitude: position.longitude,
+            formattedAddress: formattedAddress,
+            addressDetails: addressDetails,
+            country: country,
+            city: city,
+            region: region,
+            zone: zone ?? district,
+          );
+        }
+      }
+      
+      // Fallback to geocoding package if API fails
       List<Placemark> placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,
@@ -388,7 +524,7 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
         
         // If no street-level details, use formatted address as fallback
         if (addressDetails.isEmpty) {
-          addressDetails = formattedAddress.isNotEmpty ? formattedAddress : 'Selected location';
+          addressDetails = formattedAddress.isNotEmpty ? formattedAddress : AppLocalizations.of(context).selectedLocation;
         }
 
         return LocationData(
@@ -441,9 +577,9 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
       resizeToAvoidBottomInset: false,
       backgroundColor: _white,
       appBar: AppBar(
-        title: const Text(
-          'Select Location',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context).selectLocation,
+          style: const TextStyle(
             color: _white,
             fontWeight: FontWeight.bold,
           ),
@@ -455,13 +591,13 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
           // Current location button
           IconButton(
             icon: const Icon(Icons.my_location, color: _white),
-            tooltip: 'Get Current Location',
+            tooltip: AppLocalizations.of(context).getCurrentLocation,
             onPressed: _isLoading ? null : _getCurrentLocation,
           ),
           // Reset to default location
           IconButton(
             icon: const Icon(Icons.home, color: _white),
-            tooltip: 'Center on Cairo',
+            tooltip: AppLocalizations.of(context).centerOnCairo,
             onPressed: _isLoading ? null : _moveToDefaultLocation,
           ),
         ],
@@ -560,9 +696,9 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                         color: Colors.red[300],
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Map failed to load',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context).mapFailedToLoad,
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: _darkGrey,
@@ -591,7 +727,7 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                           backgroundColor: _primaryOrange,
                           foregroundColor: _white,
                         ),
-                        child: const Text('Retry'),
+                        child: Text(AppLocalizations.of(context).retry),
                       ),
                     ],
                   ),
@@ -638,7 +774,7 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                     controller: _searchController,
                     focusNode: _searchFocusNode,
                     decoration: InputDecoration(
-                      hintText: 'Search for a location...',
+                      hintText: AppLocalizations.of(context).searchForLocation,
                       hintStyle: const TextStyle(color: _darkGrey),
                       prefixIcon: const Icon(Icons.search, color: _primaryOrange),
                       suffixIcon: _searchController.text.isNotEmpty
@@ -697,11 +833,11 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                             ),
                           )
                         : _searchResults.isEmpty
-                            ? const Padding(
-                                padding: EdgeInsets.all(16.0),
+                            ? Padding(
+                                padding: const EdgeInsets.all(16.0),
                                 child: Text(
-                                  'No results found',
-                                  style: TextStyle(color: _darkGrey),
+                                  AppLocalizations.of(context).noResultsFound,
+                                  style: const TextStyle(color: _darkGrey),
                                 ),
                               )
                             : ListView.builder(
@@ -826,9 +962,9 @@ class _MapLocationPickerState extends State<MapLocationPicker> {
                     children: [
                       const Icon(Icons.check_circle, size: 22),
                       const SizedBox(width: 8),
-                      const Text(
-                'Confirm Location',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context).confirmLocation,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),

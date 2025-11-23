@@ -1,7 +1,7 @@
 name: now_shipping
 description: A shipping management application.
 publish_to: 'none'
-version: 1.0.7+8
+version: 1.0.8+9
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -49,6 +49,9 @@ dependencies:
   
   # Time formatting
   timeago: ^3.7.0
+  
+  # Page indicator
+  smooth_page_indicator: ^1.1.0
 
 flutter_icons:
   android: true

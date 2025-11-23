@@ -7,6 +7,7 @@ import 'package:now_shipping/core/widgets/toast_.dart' show ToastService, ToastT
 import 'package:now_shipping/features/business/dashboard/providers/profile_form_provider.dart';
 import 'package:now_shipping/features/business/dashboard/providers/dashboard_provider.dart';
 import '../../../auth/services/auth_service.dart';
+import '../../../../core/l10n/app_localizations.dart';
 
 class DashboardEmailVerification extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
@@ -158,7 +159,7 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
         
         ToastService.show(
           context,
-          result['message'] ?? 'Verification email sent to ${_email ?? "your email address"}',
+          result['message'] ?? AppLocalizations.of(context).emailVerificationSentSuccess(_email ?? AppLocalizations.of(context).emailLabel),
           type: result['success'] ? ToastType.success : ToastType.error,
         );
         
@@ -178,7 +179,7 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
         
         ToastService.show(
           context,
-          'Failed to send verification email: ${e.toString()}',
+          AppLocalizations.of(context).failedToSendVerification(e.toString()),
           type: ToastType.error,
         );
       }
@@ -239,7 +240,7 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
         if (stats.isEmailVerified) {
           ToastService.show(
             context,
-            'Email has been verified successfully!',
+            AppLocalizations.of(context).emailVerifiedSuccessfully,
             type: ToastType.success,
           );
         }
@@ -248,7 +249,7 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
       if (mounted) {
         ToastService.show(
           context,
-          'Failed to refresh verification status: ${e.toString()}',
+          AppLocalizations.of(context).failedToRefreshStatus(e.toString()),
           type: ToastType.error,
         );
       }
@@ -266,7 +267,7 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => Center(
           child: Text(
-            'Error loading verification status: ${error.toString()}',
+            AppLocalizations.of(context).errorLoadingVerification(error.toString()),
             style: TextStyle(color: theme.colorScheme.error),
           ),
         ),
@@ -310,8 +311,8 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
                     // Title
                     Text(
                       _isVerified 
-                          ? "Email Verified!" 
-                          : "Verify Your Email",
+                          ? AppLocalizations.of(context).emailVerified
+                          : AppLocalizations.of(context).verifyYourEmail,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: _isVerified ? Colors.green : widget.themeColor,
@@ -323,8 +324,8 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
                     // Description
                     Text(
                       _isVerified
-                          ? "Your email has been successfully verified."
-                          : "We've sent a verification link to ${_email ?? "your email address"}. Please check your inbox and click the link to verify your email address.",
+                          ? AppLocalizations.of(context).emailVerifiedDescription
+                          : AppLocalizations.of(context).emailVerificationSent(_email ?? AppLocalizations.of(context).emailLabel),
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withOpacity(0.7),
@@ -353,8 +354,8 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
                               ? const CircularProgressIndicator()
                               : Text(
                                   _remainingSeconds > 0
-                                      ? "Resend email (${_remainingSeconds}s)"
-                                      : "Resend verification email",
+                                      ? AppLocalizations.of(context).resendEmailCountdown(_remainingSeconds)
+                                      : AppLocalizations.of(context).resendEmail,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: _remainingSeconds > 0
@@ -378,9 +379,9 @@ class _DashboardEmailVerificationState extends ConsumerState<DashboardEmailVerif
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text(
-                            "Continue",
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          child: Text(
+                            AppLocalizations.of(context).continueButton,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),

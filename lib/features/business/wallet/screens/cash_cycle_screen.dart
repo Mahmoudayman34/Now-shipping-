@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:now_shipping/features/business/wallet/providers/cash_cycle_provider.dart';
 import 'package:now_shipping/features/business/wallet/models/cash_cycle_model.dart';
 import 'package:now_shipping/core/l10n/app_localizations.dart';
+import 'package:now_shipping/core/utils/error_message_parser.dart';
 
 class CashCycleScreen extends ConsumerWidget {
   const CashCycleScreen({super.key});
@@ -829,7 +830,7 @@ class CashCycleScreen extends ConsumerWidget {
               children: [
                 const Icon(Icons.error_rounded, color: Colors.white),
                 const SizedBox(width: 8),
-                Expanded(child: Text('${AppLocalizations.of(context).exportFailedPrefix}$e')),
+                Expanded(child: Text('${AppLocalizations.of(context).exportFailedPrefix}${ErrorMessageParser.parseError(e)}')),
               ],
             ),
             backgroundColor: const Color(0xFFEF4444),

@@ -16,6 +16,7 @@ import 'package:now_shipping/core/widgets/toast_.dart';
 import '../../../../core/mixins/refreshable_screen_mixin.dart';
 import 'package:now_shipping/core/utils/order_status_helper.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/utils/error_message_parser.dart';
 
 // Provider to keep track of the selected delivery type filter
 final deliveryTypeFilterProvider = StateProvider<String>((ref) => 'All');
@@ -782,11 +783,10 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
   // Method to scan a barcode
   Future<void> _scanBarcode() async {
     try {
-      // Show a modal dialog with the scanner
-      final String? barcodeScanRes = await showModalBottomSheet<String>(
+      // Show a full screen dialog with the scanner
+      final String? barcodeScanRes = await showDialog<String>(
         context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
+        barrierColor: Colors.black,
         builder: (context) => ScannerModal(
           title: AppLocalizations.of(context).scanQrCode,
           onScanResult: (result) {
@@ -803,7 +803,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
       print('Error scanning barcode: $e');
       ToastService.show(
         context,
-        'Error scanning barcode. Please try again.',
+        ErrorMessageParser.parseError(e),
         type: ToastType.error,
       );
     }
@@ -850,7 +850,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> with SingleTickerPr
       print('Error searching for order: $e');
       ToastService.show(
         context,
-        'Error searching for order. Please try again.',
+        ErrorMessageParser.parseError(e),
         type: ToastType.error,
       );
     }

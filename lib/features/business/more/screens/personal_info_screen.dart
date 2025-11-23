@@ -8,6 +8,7 @@ import 'package:now_shipping/features/business/services/user_service.dart';
 import 'package:intl/intl.dart';
 import 'package:now_shipping/core/l10n/app_localizations.dart';
 import 'package:now_shipping/core/utils/responsive_utils.dart';
+import 'package:now_shipping/core/utils/error_message_parser.dart';
 
 class PersonalInfoScreen extends ConsumerWidget {
   const PersonalInfoScreen({super.key});
@@ -404,7 +405,11 @@ class _EditPersonalInfoScreenState extends ConsumerState<EditPersonalInfoScreen>
         });
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to upload image: $e')),
+            SnackBar(
+              content: Text(ErrorMessageParser.parseError(e)),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
           );
         }
       }

@@ -13,6 +13,7 @@ import '../widgets/cash_summary.dart';
 import '../widgets/new_orders_notification.dart';
 import '../widgets/profile_completion_form.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/utils/error_message_parser.dart';
 import '../../../common/widgets/shimmer_loading.dart';
 import '../../../../core/mixins/refreshable_screen_mixin.dart';
 import '../../../../core/services/notification_permission_helper.dart';
@@ -188,7 +189,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
             children: [
               const Icon(Icons.error_outline, color: Colors.red, size: 48),
               const SizedBox(height: 16),
-              Text('${AppLocalizations.of(context).error}: $error', textAlign: TextAlign.center),
+              Text('${AppLocalizations.of(context).error}: ${ErrorMessageParser.parseError(error)}', textAlign: TextAlign.center),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {

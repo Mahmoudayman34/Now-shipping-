@@ -93,6 +93,30 @@ class RegionsService {
     return governorates;
   }
 
+  /// Get Cairo governorate name based on locale
+  static Future<String> getCairoGovernorateName(String locale) async {
+    final regions = await loadRegions(locale);
+    
+    // Find Cairo governorate (case-insensitive match)
+    final cairoNames = ['Cairo', 'القاهره', 'القاهرة'];
+    for (final region in regions) {
+      final governorate = region.governorate.trim();
+      if (cairoNames.any((name) => governorate.toLowerCase() == name.toLowerCase() || 
+          governorate == name)) {
+        return governorate;
+      }
+    }
+    
+    // Fallback to default names
+    return locale == 'ar' ? 'القاهره' : 'Cairo';
+  }
+
+  /// Get only Cairo governorate (for limiting selection)
+  static Future<List<String>> getCairoOnly(String locale) async {
+    final cairoName = await getCairoGovernorateName(locale);
+    return [cairoName];
+  }
+
   /// Clear cache (useful when locale changes)
   static void clearCache() {
     _cachedRegions = null;
@@ -110,5 +134,11 @@ final zonesForGovernorateProvider = FutureProvider.family<List<String>, String>(
 final governoratesProvider = FutureProvider<List<String>>((ref) async {
   final locale = ref.watch(localeProvider);
   return RegionsService.getGovernorates(locale.languageCode);
+});
+
+/// Provider to get only Cairo governorate (limited selection)
+final cairoOnlyProvider = FutureProvider<List<String>>((ref) async {
+  final locale = ref.watch(localeProvider);
+  return RegionsService.getCairoOnly(locale.languageCode);
 });
 

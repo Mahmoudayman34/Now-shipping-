@@ -4,6 +4,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import '../models/notification_model.dart';
 import '../services/notification_service.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/utils/error_message_parser.dart';
 
 final notificationServiceProvider = Provider((ref) => NotificationService());
 
@@ -69,8 +70,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to mark as read: $e'),
+            content: Text(ErrorMessageParser.parseError(e)),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -98,8 +100,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to mark all as read: $e'),
+            content: Text(ErrorMessageParser.parseError(e)),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
           ),
         );
       }

@@ -262,10 +262,11 @@ class OrderDetailsNotifier extends StateNotifier<OrderDetailsModel?> {
       
       print('DEBUG PROVIDER: Smart sticker scan response: $response');
       
-      // Handle the response - you might want to update the order state or show a message
-      // For now, we'll just log the success
+      // Handle the response - refresh order details after successful scan
       if (response.containsKey('status') && response['status'] == 'success') {
         print('DEBUG PROVIDER: Smart sticker scanned successfully');
+        // Refresh order details to get updated data including smartFlyerBarcode
+        await fetchOrderDetails(state!.orderId, state!.status);
       } else {
         print('DEBUG PROVIDER: Smart sticker scan failed: $response');
       }

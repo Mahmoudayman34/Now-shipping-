@@ -14,6 +14,7 @@ import 'package:now_shipping/features/common/widgets/shimmer_loading.dart';
 import '../../../../core/mixins/refreshable_screen_mixin.dart';
 import '../../../../core/widgets/app_dialog.dart';
 import '../../../../core/utils/responsive_utils.dart';
+import '../../../../core/utils/error_message_parser.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 // Provider to store cached user data for this screen
@@ -703,12 +704,13 @@ class _PickupsScreenState extends ConsumerState<PickupsScreen> with SingleTicker
             }
           }
         } catch (e) {
-          // Show error message
+          // Show user-friendly error message
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('${AppLocalizations.of(context).error}: ${e.toString()}'),
+                content: Text(ErrorMessageParser.parseError(e)),
                 backgroundColor: const Color(0xFFE53E3E),
+                duration: const Duration(seconds: 4),
               ),
             );
           }

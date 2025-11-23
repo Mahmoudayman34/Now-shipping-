@@ -2,7 +2,8 @@ class ProfileCompletionModel {
   final String? ipaoPhoneNumber; // Required if paymentMethod = instaPay
   final String? mobileWalletNumber; // Required if paymentMethod = mobileWallet
   final String? accountName; // Required if paymentMethod = bankTransfer
-  final String? iban; // Required if paymentMethod = bankTransfer
+  final String? accountNumber; // Required if paymentMethod = bankTransfer
+  final String? iban; // Optional if paymentMethod = bankTransfer
   final String? bankName; // Required if paymentMethod = bankTransfer
   final String brandName; // Required
   final String brandType; // Required - "personal" or "company"
@@ -30,6 +31,7 @@ class ProfileCompletionModel {
     this.ipaoPhoneNumber,
     this.mobileWalletNumber,
     this.accountName,
+    this.accountNumber,
     this.iban,
     this.bankName,
     required this.brandName,
@@ -60,6 +62,7 @@ class ProfileCompletionModel {
       if (ipaoPhoneNumber != null) 'IPAorPhoneNumber': ipaoPhoneNumber,
       if (mobileWalletNumber != null) 'mobileWalletNumber': mobileWalletNumber,
       if (accountName != null) 'accountName': accountName,
+      if (accountNumber != null) 'accountNumber': accountNumber,
       if (iban != null) 'IBAN': iban,
       if (bankName != null) 'bankName': bankName,
       'brandName': brandName,
@@ -201,6 +204,7 @@ class ProfileCompletionModel {
       ipaoPhoneNumber: formData['ipaAddress'],
       mobileWalletNumber: formData['mobileNumber'],
       accountName: formData['accountName'],
+      accountNumber: formData['accountNumber'],
       iban: formData['iban'],
       bankName: formData['bankName'],
       brandName: formData['brandName'] ?? '',

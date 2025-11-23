@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:now_shipping/core/l10n/app_localizations.dart';
+import 'package:now_shipping/core/utils/error_message_parser.dart';
 import 'package:now_shipping/features/business/orders/providers/order_details_provider.dart';
 import 'package:now_shipping/features/business/orders/providers/orders_provider.dart' hide orderDetailsProvider;
 import 'package:now_shipping/features/business/orders/widgets/order_details/customer_section.dart';
@@ -41,12 +42,40 @@ class DetailsTab extends ConsumerWidget {
     // Check if status is waitingAction
     final isWaitingAction = orderDetails.status.toLowerCase().replaceAll(' ', '') == 'waitingaction';
     
+    // Check if smart sticker has already been scanned
+    // Check the smartFlyerBarcode field
+    final smartFlyerBarcodeValue = rawOrderData['smartFlyerBarcode'];
+    final smartFlyerBarcode = smartFlyerBarcodeValue?.toString().trim();
+    
+    // Also check if orderNotes contains barcode assignment info
+    final orderNotes = rawOrderData['orderNotes'] as String? ?? '';
+    final hasBarcodeInNotes = orderNotes.isNotEmpty && 
+                              (orderNotes.contains('Smart Flyer barcode assigned') || 
+                               orderNotes.contains('smartFlyerBarcode'));
+    
+    final isStickerScanned = (smartFlyerBarcode != null && smartFlyerBarcode.isNotEmpty) || hasBarcodeInNotes;
+    
+    // Debug logging
+    if (rawOrderData.isNotEmpty) {
+      print('DEBUG SCAN BUTTON: rawOrderData keys: ${rawOrderData.keys.toList()}');
+      print('DEBUG SCAN BUTTON: smartFlyerBarcode value: $smartFlyerBarcode');
+      print('DEBUG SCAN BUTTON: orderNotes: $orderNotes');
+      print('DEBUG SCAN BUTTON: isStickerScanned: $isStickerScanned');
+    }
+    
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+      padding: EdgeInsets.only(
+        left: 16.0,
+        right: 16.0,
+        top: 16.0,
+        bottom: 100.0, // Add extra bottom padding to avoid FAB conflict
+      ),
       children: [
-        // Scan Smart Sticker button at the top
-        ScanStickerButton(onTap: onScanSticker),
-        const SizedBox(height: 16),
+        // Scan Smart Sticker button at the top (only show if not already scanned)
+        if (!isStickerScanned) ...[
+          ScanStickerButton(onTap: onScanSticker),
+          const SizedBox(height: 16),
+        ],
         
         // Rescheduled note (if order has been rescheduled)
         if (orderDetails.scheduledRetryAt != null && orderDetails.scheduledRetryAt!.isNotEmpty) ...[
@@ -283,16 +312,10 @@ class DetailsTab extends ConsumerWidget {
                 // Close loading dialog
                 navigator.pop();
                 
-                // Extract error message
-                String errorMessage = 'Failed to schedule retry';
-                if (e.toString().contains('Exception:')) {
-                  errorMessage = e.toString().replaceAll('Exception:', '').trim();
-                }
-                
-                // Show error message
+                // Show user-friendly error message
                 scaffoldMessenger.showSnackBar(
                   SnackBar(
-                    content: Text(errorMessage),
+                    content: Text(ErrorMessageParser.parseError(e)),
                     backgroundColor: Colors.red,
                     duration: const Duration(seconds: 4),
                   ),
@@ -725,16 +748,10 @@ class DetailsTab extends ConsumerWidget {
                 // Close loading dialog
                 navigator.pop();
                 
-                // Extract error message
-                String errorMessage = 'Failed to cancel order';
-                if (e.toString().contains('Exception:')) {
-                  errorMessage = e.toString().replaceAll('Exception:', '').trim();
-                }
-                
-                // Show error message
+                // Show user-friendly error message
                 scaffoldMessenger.showSnackBar(
                   SnackBar(
-                    content: Text(errorMessage),
+                    content: Text(ErrorMessageParser.parseError(e)),
                     backgroundColor: Colors.red,
                     duration: const Duration(seconds: 4),
                   ),

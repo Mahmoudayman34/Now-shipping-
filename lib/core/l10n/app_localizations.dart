@@ -142,6 +142,152 @@ class AppLocalizations {
       'retry': 'Retry',
       'welcomeUser': 'Welcome',
       'completeProfile': 'Please complete your profile to access all features',
+      'formStepEmail': 'Email',
+      'formStepBrand': 'Brand',
+      'formStepPickup': 'Pickup',
+      'formStepPayment': 'Payment',
+      'formStepType': 'Type',
+      
+      // Email Verification Step
+      'emailVerified': 'Email Verified!',
+      'verifyYourEmail': 'Verify Your Email',
+      'emailVerifiedDescription': 'Your email has been successfully verified.',
+      'emailVerificationSent': 'We\'ve sent a verification link to {email}. Please check your inbox and click the link to verify your email address.',
+      'resendEmail': 'Resend verification email',
+      'resendEmailCountdown': 'Resend email ({seconds}s)',
+      'continueButton': 'Continue',
+      'errorLoadingVerification': 'Error loading verification status: {error}',
+      'emailVerificationSentSuccess': 'Verification email sent to {email}',
+      'failedToSendVerification': 'Failed to send verification email: {error}',
+      'emailVerifiedSuccessfully': 'Email has been verified successfully!',
+      'failedToRefreshStatus': 'Failed to refresh verification status: {error}',
+      
+      // Brand Info Step
+      'tellUsAboutBrand': 'Tell us about your brand',
+      'brandInfoHelper': 'This helps us customize your experience',
+      'brandName': 'Brand Name',
+      'enterBrandName': 'Enter your brand name',
+      'industry': 'Industry',
+      'selectIndustry': 'Select an industry...',
+      'pleaseSelectIndustry': 'Please select an industry',
+      'specifyIndustry': 'Specify Industry *',
+      'enterYourIndustry': 'Enter your industry',
+      'pleaseSpecifyIndustry': 'Please specify your industry',
+      'monthlyOrderVolume': 'Monthly Order Volume',
+      'selectVolume': 'Select your volume',
+      'pleaseSelectVolume': 'Please select order volume',
+      'whereDoYouSell': 'Where do you sell your products?',
+      'selectAllThatApply': 'Select all that apply',
+      'addSellingChannelsLinks': 'Add your selling channels links',
+      'channelLink': '{channel} Link',
+      'enterChannelUrl': 'Enter your {channel} URL',
+      'pleaseEnterChannelLink': 'Please enter your {channel} link',
+      'back': 'Back',
+      'next': 'Next',
+      'progressAutoSaved': 'Your progress is automatically saved when you switch tabs',
+      'pleaseSelectSellingChannel': 'Please select at least one selling channel',
+      'pleaseEnterLinkFor': 'Please enter a link for {channel}',
+      
+      // Pickup Address Step
+      'pickupLocations': 'Pickup Locations',
+      'pickupLocationsHelper': 'Add addresses where our courier can collect your packages',
+      'addressName': 'Address Name',
+      'country': 'Country',
+      'selectCountry': 'Select country',
+      'pleaseSelectCountry': 'Please select a country',
+      'egypt': 'Egypt',
+      'governorateAndArea': 'Governorate and Area *',
+      'clickToSelectGovernorate': 'Click to select governorate and area',
+      'selectArea': 'Select Area',
+      'pleaseSelectGovernorate': 'Please select governorate and area',
+      'zone': 'Zone',
+      'selectZone': 'Select zone',
+      'searchZone': 'Search zone...',
+      'noZonesFound': 'No zones found',
+      'addressDetails': 'Address Details *',
+      'addressDetailsHint': 'Street, Building, Floor, Apartment',
+      'nearbyLandmark': 'Nearby Landmark (Optional)',
+      'nearbyLandmarkHint': 'e.g. Near the school',
+      'pickupPhoneNumber': 'Pickup Phone Number *',
+      'pickupPhoneHint': 'e.g. 0 123 456 7890',
+      'otherPickupPhone': 'Other Pickup Phone (Optional)',
+      'locationOnMap': 'Location on Map (Optional)',
+      'getLocation': 'Get Location',
+      'tapToSelectLocation': 'Tap to select location on map',
+      'locationSelected': 'Location Selected',
+      'tapToChangeLocation': 'Tap to change location',
+      'selectLocation': 'Select Location',
+      'confirmLocation': 'Confirm Location',
+      'searchForLocation': 'Search for a location...',
+      'getCurrentLocation': 'Get Current Location',
+      'centerOnCairo': 'Center on Cairo',
+      'mapFailedToLoad': 'Map failed to load',
+      'noResultsFound': 'No results found',
+      'selectedLocation': 'Selected location',
+      'locationUpdated': 'Location updated',
+      'noAddressesAdded': 'No addresses added yet',
+      'tapToAddFirstAddress': 'Tap the + button to add your first address',
+      'pleaseFillAllFields': 'Please fill all required fields',
+      'pleaseAddCompleteAddress': 'Please add at least one complete address',
+      'locationPermissionRequired': 'Location permission is required to get your current location',
+      'locationServicesNotAvailable': 'Location services not available. Please restart the app after installing updates.',
+      'pleaseEnableLocationServices': 'Please enable location services',
+      'gettingYourLocation': 'Getting your location...',
+      'failedToGetLocation': 'Failed to get location. Please try again or select location on map.',
+      'locationUpdatedSuccessfully': 'Location updated successfully',
+      'locationSaved': 'Location saved (address not found)',
+      'pleaseRestartApp': 'Please restart the app to enable location features',
+      'failedToGetLocationError': 'Failed to get location: {error}',
+      
+      // Payment Method Step
+      'selectPaymentMethod': 'Select Payment Method',
+      'choosePaymentOption': 'Choose your preferred payment option for checkout.',
+      'bankTransfer': 'Bank Transfer',
+      'selectPaymentMethodToContinue': 'Select a payment method to continue',
+      'selectYourBank': 'Select Your Bank:',
+      'chooseYourBank': 'Choose your bank',
+      'pleaseSelectBank': 'Please select your bank',
+      'enterYourIban': 'Enter your IBAN:',
+      'ibanExample': 'Example: EG12 3456 7890 1234 5678 90',
+      'pleaseEnterIban': 'Please enter your IBAN',
+      'ibanOptional': 'IBAN (Optional)',
+      'enterAccountNumber': 'Enter your Account Number:',
+      'accountNumberExample': 'Example: 1234567890',
+      'pleaseEnterAccountNumber': 'Please enter your account number',
+      'enterAccountName': 'Enter your Account Name:',
+      'accountNameExample': 'Example: John Doe',
+      'pleaseEnterAccountName': 'Please enter your account name',
+      'pleaseSelectPaymentMethod': 'Please select a payment method',
+      
+      // Brand Type Step
+      'whatTypeOfSeller': 'What type of seller are you?',
+      'brandTypeHelper': 'This helps us tailor our services to your needs',
+      'individual': 'Individual',
+      'company': 'Company',
+      'enterTaxNumber': 'Enter your Tax Number:',
+      'enterNationalId': 'Enter your National ID Number:',
+      'taxNumberExample': 'Example: 1234567890',
+      'nationalIdExample': 'Example: 29811234',
+      'pleaseEnterTaxNumber': 'Please enter your tax number',
+      'pleaseEnterNationalId': 'Please enter your national ID number',
+      'uploadCompanyPapers': 'Upload Company Papers:',
+      'uploadNationalId': 'Upload National ID:',
+      'uploadPapers': 'Upload Papers',
+      'uploadYourNationalId': 'Upload Your National ID',
+      'pleaseUploadAllPapers': 'Please Upload All Papers',
+      'uploadFrontAndBack': 'Upload Front Side And Back Side',
+      'uploadMultipleDocuments': 'Upload Multiple Documents',
+      'uploadingProgress': 'Uploading {progress}% complete',
+      'uploadedDocuments': 'Uploaded Documents',
+      'documentRemoved': 'Document removed',
+      'uploadedFilesSuccessfully': 'Uploaded {count} files successfully',
+      'errorUploadingDocuments': 'Error uploading documents: {error}',
+      'submitProfile': 'Submit Profile',
+      'submitting': 'Submitting...',
+      'pleaseWaitForUpload': 'Please wait for upload to complete',
+      'pleaseSelectSellerType': 'Please select your seller type',
+      'finalStepNote': 'This is the final step, we\'ll check if all required information is complete',
+      
       'todaysOverview': 'Today\'s Overview',
       'inHubPackages': 'In Hub Packages',
       'headingToCustomer': 'Heading to Customer',
@@ -249,7 +395,6 @@ class AppLocalizations {
       'securePayments': 'Secure & Seamless Payments',
       'securePaymentsDesc': 'Manage cash transactions with confidence. Collect, track, and confirm every payment.',
       'skip': 'Skip',
-      'next': 'Next',
       'getStarted': 'Get Started',
       'youHaveInOurHubs': 'You have in our hubs',
       'packages': 'Packages',
@@ -402,7 +547,6 @@ class AppLocalizations {
       'namePlaceholder': 'name',
       'address': 'Address',
       'cityArea': 'City - Area',
-      'addressDetails': 'Address details',
       'apartment': '...Apartm',
       'floor': 'Floor',
       'building': 'Building',
@@ -453,7 +597,6 @@ class AppLocalizations {
       'sendResetLink': 'Send Reset Link',
       'emailSent': 'Email Sent!',
       'emailSentDescription': 'We\'ve sent a password reset link to your email address. Please check your inbox and follow the instructions to reset your password.',
-      'resendEmail': 'Resend Email',
       'backToLogin': 'Back to Login',
       'checkEmailForReset': 'Check your email for reset instructions',
       'enterOtpCode': 'Enter OTP Code',
@@ -598,14 +741,11 @@ class AppLocalizations {
       'totalEarnings': 'Total Earnings',
       'profileSummary': 'Profile Summary',
       'brand': 'Brand',
-      'industry': 'Industry',
       'location': 'Location',
       'payment': 'Payment',
       'finishSetup': 'Finish Setup',
       'notProvided': 'Not Provided',
       'city': 'City',
-      'country': 'Country',
-      'bankTransfer': 'Bank Transfer',
       'digitalWallet': 'Digital Wallet',
       'notSelected': 'Not Selected',
       'orderPlaced': 'Order Placed',
@@ -878,6 +1018,152 @@ class AppLocalizations {
       'retry': 'إعادة المحاولة',
       'welcomeUser': 'مرحباً',
       'completeProfile': 'يرجى إكمال ملفك الشخصي للوصول إلى جميع الميزات',
+      'formStepEmail': 'البريد الإلكتروني',
+      'formStepBrand': 'العلامة التجارية',
+      'formStepPickup': 'الاستلام',
+      'formStepPayment': 'الدفع',
+      'formStepType': 'النوع',
+      
+      // Email Verification Step
+      'emailVerified': 'تم التحقق من البريد الإلكتروني!',
+      'verifyYourEmail': 'تحقق من بريدك الإلكتروني',
+      'emailVerifiedDescription': 'تم التحقق من بريدك الإلكتروني بنجاح.',
+      'emailVerificationSent': 'لقد أرسلنا رابط التحقق إلى {email}. يرجى التحقق من صندوق الوارد والنقر على الرابط للتحقق من عنوان بريدك الإلكتروني.',
+      'resendEmail': 'إعادة إرسال بريد التحقق',
+      'resendEmailCountdown': 'إعادة إرسال البريد ({seconds}ث)',
+      'continueButton': 'متابعة',
+      'errorLoadingVerification': 'خطأ في تحميل حالة التحقق: {error}',
+      'emailVerificationSentSuccess': 'تم إرسال بريد التحقق إلى {email}',
+      'failedToSendVerification': 'فشل إرسال بريد التحقق: {error}',
+      'emailVerifiedSuccessfully': 'تم التحقق من البريد الإلكتروني بنجاح!',
+      'failedToRefreshStatus': 'فشل تحديث حالة التحقق: {error}',
+      
+      // Brand Info Step
+      'tellUsAboutBrand': 'أخبرنا عن علامتك التجارية',
+      'brandInfoHelper': 'هذا يساعدنا في تخصيص تجربتك',
+      'brandName': 'اسم العلامة التجارية',
+      'enterBrandName': 'أدخل اسم علامتك التجارية',
+      'industry': 'الصناعة',
+      'selectIndustry': 'اختر الصناعة...',
+      'pleaseSelectIndustry': 'يرجى اختيار الصناعة',
+      'specifyIndustry': 'حدد الصناعة *',
+      'enterYourIndustry': 'أدخل صناعتك',
+      'pleaseSpecifyIndustry': 'يرجى تحديد صناعتك',
+      'monthlyOrderVolume': 'حجم الطلبات الشهرية',
+      'selectVolume': 'اختر حجمك',
+      'pleaseSelectVolume': 'يرجى اختيار حجم الطلبات',
+      'whereDoYouSell': 'أين تبيع منتجاتك؟',
+      'selectAllThatApply': 'اختر كل ما ينطبق',
+      'addSellingChannelsLinks': 'أضف روابط قنوات البيع الخاصة بك',
+      'channelLink': 'رابط {channel}',
+      'enterChannelUrl': 'أدخل رابط {channel} الخاص بك',
+      'pleaseEnterChannelLink': 'يرجى إدخال رابط {channel} الخاص بك',
+      'back': 'رجوع',
+      'next': 'التالي',
+      'progressAutoSaved': 'يتم حفظ تقدمك تلقائياً عند التبديل بين التبويبات',
+      'pleaseSelectSellingChannel': 'يرجى اختيار قناة بيع واحدة على الأقل',
+      'pleaseEnterLinkFor': 'يرجى إدخال رابط لـ {channel}',
+      
+      // Pickup Address Step
+      'pickupLocations': 'مواقع الاستلام',
+      'pickupLocationsHelper': 'أضف عناوين حيث يمكن لساعي البريد جمع طرودك',
+      'addressName': 'اسم العنوان',
+      'country': 'الدولة',
+      'selectCountry': 'اختر الدولة',
+      'pleaseSelectCountry': 'يرجى اختيار الدولة',
+      'egypt': 'مصر',
+      'governorateAndArea': 'المحافظة والمنطقة *',
+      'clickToSelectGovernorate': 'انقر لاختيار المحافظة والمنطقة',
+      'selectArea': 'اختر المنطقة',
+      'pleaseSelectGovernorate': 'يرجى اختيار المحافظة والمنطقة',
+      'zone': 'المنطقة',
+      'selectZone': 'اختر المنطقة',
+      'searchZone': 'ابحث عن منطقة...',
+      'noZonesFound': 'لم يتم العثور على مناطق',
+      'addressDetails': 'تفاصيل العنوان *',
+      'addressDetailsHint': 'الشارع، المبنى، الطابق، الشقة',
+      'nearbyLandmark': 'معلم قريب (اختياري)',
+      'nearbyLandmarkHint': 'مثال: بالقرب من المدرسة',
+      'pickupPhoneNumber': 'رقم هاتف الاستلام *',
+      'pickupPhoneHint': 'مثال: 0 123 456 7890',
+      'otherPickupPhone': 'رقم هاتف استلام آخر (اختياري)',
+      'locationOnMap': 'الموقع على الخريطة (اختياري)',
+      'getLocation': 'الحصول على الموقع',
+      'tapToSelectLocation': 'انقر لاختيار الموقع على الخريطة',
+      'locationSelected': 'تم اختيار الموقع',
+      'tapToChangeLocation': 'انقر لتغيير الموقع',
+      'selectLocation': 'اختر الموقع',
+      'confirmLocation': 'تأكيد الموقع',
+      'searchForLocation': 'ابحث عن موقع...',
+      'getCurrentLocation': 'الحصول على الموقع الحالي',
+      'centerOnCairo': 'التمركز على القاهرة',
+      'mapFailedToLoad': 'فشل تحميل الخريطة',
+      'noResultsFound': 'لم يتم العثور على نتائج',
+      'selectedLocation': 'الموقع المحدد',
+      'locationUpdated': 'تم تحديث الموقع',
+      'noAddressesAdded': 'لم تتم إضافة عناوين بعد',
+      'tapToAddFirstAddress': 'انقر على زر + لإضافة عنوانك الأول',
+      'pleaseFillAllFields': 'يرجى ملء جميع الحقول المطلوبة',
+      'pleaseAddCompleteAddress': 'يرجى إضافة عنوان كامل واحد على الأقل',
+      'locationPermissionRequired': 'إذن الموقع مطلوب للحصول على موقعك الحالي',
+      'locationServicesNotAvailable': 'خدمات الموقع غير متاحة. يرجى إعادة تشغيل التطبيق بعد تثبيت التحديثات.',
+      'pleaseEnableLocationServices': 'يرجى تفعيل خدمات الموقع',
+      'gettingYourLocation': 'جاري الحصول على موقعك...',
+      'failedToGetLocation': 'فشل الحصول على الموقع. يرجى المحاولة مرة أخرى أو اختيار الموقع على الخريطة.',
+      'locationUpdatedSuccessfully': 'تم تحديث الموقع بنجاح',
+      'locationSaved': 'تم حفظ الموقع (لم يتم العثور على العنوان)',
+      'pleaseRestartApp': 'يرجى إعادة تشغيل التطبيق لتفعيل ميزات الموقع',
+      'failedToGetLocationError': 'فشل الحصول على الموقع: {error}',
+      
+      // Payment Method Step
+      'selectPaymentMethod': 'اختر طريقة الدفع',
+      'choosePaymentOption': 'اختر خيار الدفع المفضل لديك للدفع.',
+      'bankTransfer': 'تحويل بنكي',
+      'selectPaymentMethodToContinue': 'اختر طريقة الدفع للمتابعة',
+      'selectYourBank': 'اختر بنكك:',
+      'chooseYourBank': 'اختر بنكك',
+      'pleaseSelectBank': 'يرجى اختيار بنكك',
+      'enterYourIban': 'أدخل رقم IBAN الخاص بك:',
+      'ibanExample': 'مثال: EG12 3456 7890 1234 5678 90',
+      'pleaseEnterIban': 'يرجى إدخال رقم IBAN الخاص بك',
+      'ibanOptional': 'IBAN (اختياري)',
+      'enterAccountNumber': 'أدخل رقم حسابك:',
+      'accountNumberExample': 'مثال: 1234567890',
+      'pleaseEnterAccountNumber': 'يرجى إدخال رقم حسابك',
+      'enterAccountName': 'أدخل اسم الحساب:',
+      'accountNameExample': 'مثال: أحمد محمد',
+      'pleaseEnterAccountName': 'يرجى إدخال اسم الحساب',
+      'pleaseSelectPaymentMethod': 'يرجى اختيار طريقة الدفع',
+      
+      // Brand Type Step
+      'whatTypeOfSeller': 'ما نوع البائع الذي أنت؟',
+      'brandTypeHelper': 'هذا يساعدنا في تخصيص خدماتنا لاحتياجاتك',
+      'individual': 'فردي',
+      'company': 'شركة',
+      'enterTaxNumber': 'أدخل رقم الضريبة:',
+      'enterNationalId': 'أدخل رقم الهوية الوطنية:',
+      'taxNumberExample': 'مثال: 1234567890',
+      'nationalIdExample': 'مثال: 29811234',
+      'pleaseEnterTaxNumber': 'يرجى إدخال رقم الضريبة',
+      'pleaseEnterNationalId': 'يرجى إدخال رقم الهوية الوطنية',
+      'uploadCompanyPapers': 'رفع أوراق الشركة:',
+      'uploadNationalId': 'رفع الهوية الوطنية:',
+      'uploadPapers': 'رفع الأوراق',
+      'uploadYourNationalId': 'رفع هويتك الوطنية',
+      'pleaseUploadAllPapers': 'يرجى رفع جميع الأوراق',
+      'uploadFrontAndBack': 'رفع الجانب الأمامي والخلفي',
+      'uploadMultipleDocuments': 'رفع مستندات متعددة',
+      'uploadingProgress': 'جاري الرفع {progress}% مكتمل',
+      'uploadedDocuments': 'المستندات المرفوعة',
+      'documentRemoved': 'تم حذف المستند',
+      'uploadedFilesSuccessfully': 'تم رفع {count} ملفات بنجاح',
+      'errorUploadingDocuments': 'خطأ في رفع المستندات: {error}',
+      'submitProfile': 'إرسال الملف الشخصي',
+      'submitting': 'جاري الإرسال...',
+      'pleaseWaitForUpload': 'يرجى الانتظار حتى يكتمل الرفع',
+      'pleaseSelectSellerType': 'يرجى اختيار نوع البائع',
+      'finalStepNote': 'هذه هي الخطوة الأخيرة، سنتحقق من اكتمال جميع المعلومات المطلوبة',
+      
       'todayOverview': 'نظرة عامة اليوم',
       'todaysOverview': 'نظرة عامة على اليوم',
       'inHubPackages': 'الطرود في المركز',
@@ -986,7 +1272,6 @@ class AppLocalizations {
       'securePayments': 'مدفوعات آمنة وسلسة',
       'securePaymentsDesc': 'أدر المعاملات النقدية بثقة. اجمع وتتبع وأكد كل دفعة.',
       'skip': 'تخطي',
-      'next': 'التالي',
       'getStarted': 'البدء',
       'youHaveInOurHubs': 'لديك في مراكزنا',
       'packages': 'الطرود',
@@ -1139,7 +1424,6 @@ class AppLocalizations {
       'namePlaceholder': 'الاسم',
       'address': 'العنوان',
       'cityArea': 'المدينة - المنطقة',
-      'addressDetails': 'تفاصيل العنوان',
       'apartment': '...الشقة',
       'floor': 'الطابق',
       'building': 'المبنى',
@@ -1190,7 +1474,6 @@ class AppLocalizations {
       'sendResetLink': 'إرسال رابط إعادة التعيين',
       'emailSent': 'تم إرسال البريد الإلكتروني!',
       'emailSentDescription': 'لقد أرسلنا رابط إعادة تعيين كلمة المرور إلى عنوان بريدك الإلكتروني. يرجى التحقق من صندوق الوارد واتباع التعليمات لإعادة تعيين كلمة المرور.',
-      'resendEmail': 'إعادة إرسال البريد الإلكتروني',
       'backToLogin': 'العودة لتسجيل الدخول',
       'checkEmailForReset': 'تحقق من بريدك الإلكتروني للحصول على تعليمات إعادة التعيين',
       'enterOtpCode': 'أدخل رمز التحقق',
@@ -1335,14 +1618,11 @@ class AppLocalizations {
       'totalEarnings': 'إجمالي الأرباح',
       'profileSummary': 'ملخص الملف الشخصي',
       'brand': 'العلامة التجارية',
-      'industry': 'القطاع',
       'location': 'الموقع',
       'payment': 'الدفع',
       'finishSetup': 'إنهاء الإعداد',
       'notProvided': 'غير متوفر',
       'city': 'المدينة',
-      'country': 'البلد',
-      'bankTransfer': 'تحويل بنكي',
       'digitalWallet': 'محفظة رقمية',
       'notSelected': 'غير محدد',
       'orderPlaced': 'تم وضع الطلب',
@@ -1621,6 +1901,152 @@ class AppLocalizations {
   String get retry => get('retry');
   String get welcomeUser => get('welcomeUser');
   String get completeProfile => get('completeProfile');
+  String get formStepEmail => get('formStepEmail');
+  String get formStepBrand => get('formStepBrand');
+  String get formStepPickup => get('formStepPickup');
+  String get formStepPayment => get('formStepPayment');
+  String get formStepType => get('formStepType');
+  
+  // Email Verification Step
+  String get emailVerified => get('emailVerified');
+  String get verifyYourEmail => get('verifyYourEmail');
+  String get emailVerifiedDescription => get('emailVerifiedDescription');
+  String emailVerificationSent(String email) => get('emailVerificationSent').replaceAll('{email}', email);
+  String get resendEmail => get('resendEmail');
+  String resendEmailCountdown(int seconds) => get('resendEmailCountdown').replaceAll('{seconds}', seconds.toString());
+  String get continueButton => get('continueButton');
+  String errorLoadingVerification(String error) => get('errorLoadingVerification').replaceAll('{error}', error);
+  String emailVerificationSentSuccess(String email) => get('emailVerificationSentSuccess').replaceAll('{email}', email);
+  String failedToSendVerification(String error) => get('failedToSendVerification').replaceAll('{error}', error);
+  String get emailVerifiedSuccessfully => get('emailVerifiedSuccessfully');
+  String failedToRefreshStatus(String error) => get('failedToRefreshStatus').replaceAll('{error}', error);
+  
+  // Brand Info Step
+  String get tellUsAboutBrand => get('tellUsAboutBrand');
+  String get brandInfoHelper => get('brandInfoHelper');
+  String get brandName => get('brandName');
+  String get enterBrandName => get('enterBrandName');
+  String get industry => get('industry');
+  String get selectIndustry => get('selectIndustry');
+  String get pleaseSelectIndustry => get('pleaseSelectIndustry');
+  String get specifyIndustry => get('specifyIndustry');
+  String get enterYourIndustry => get('enterYourIndustry');
+  String get pleaseSpecifyIndustry => get('pleaseSpecifyIndustry');
+  String get monthlyOrderVolume => get('monthlyOrderVolume');
+  String get selectVolume => get('selectVolume');
+  String get pleaseSelectVolume => get('pleaseSelectVolume');
+  String get whereDoYouSell => get('whereDoYouSell');
+  String get selectAllThatApply => get('selectAllThatApply');
+  String get addSellingChannelsLinks => get('addSellingChannelsLinks');
+  String channelLink(String channel) => get('channelLink').replaceAll('{channel}', channel);
+  String enterChannelUrl(String channel) => get('enterChannelUrl').replaceAll('{channel}', channel);
+  String pleaseEnterChannelLink(String channel) => get('pleaseEnterChannelLink').replaceAll('{channel}', channel);
+  String get back => get('back');
+  String get next => get('next');
+  String get progressAutoSaved => get('progressAutoSaved');
+  String get pleaseSelectSellingChannel => get('pleaseSelectSellingChannel');
+  String pleaseEnterLinkFor(String channel) => get('pleaseEnterLinkFor').replaceAll('{channel}', channel);
+  
+  // Pickup Address Step
+  String get pickupLocations => get('pickupLocations');
+  String get pickupLocationsHelper => get('pickupLocationsHelper');
+  String get addressName => get('addressName');
+  String get country => get('country');
+  String get selectCountry => get('selectCountry');
+  String get pleaseSelectCountry => get('pleaseSelectCountry');
+  String get egypt => get('egypt');
+  String get governorateAndArea => get('governorateAndArea');
+  String get clickToSelectGovernorate => get('clickToSelectGovernorate');
+  String get selectArea => get('selectArea');
+  String get pleaseSelectGovernorate => get('pleaseSelectGovernorate');
+  String get zone => get('zone');
+  String get selectZone => get('selectZone');
+  String get searchZone => get('searchZone');
+  String get noZonesFound => get('noZonesFound');
+  String get addressDetails => get('addressDetails');
+  String get addressDetailsHint => get('addressDetailsHint');
+  String get nearbyLandmark => get('nearbyLandmark');
+  String get nearbyLandmarkHint => get('nearbyLandmarkHint');
+  String get pickupPhoneNumber => get('pickupPhoneNumber');
+  String get pickupPhoneHint => get('pickupPhoneHint');
+  String get otherPickupPhone => get('otherPickupPhone');
+  String get locationOnMap => get('locationOnMap');
+  String get getLocation => get('getLocation');
+  String get tapToSelectLocation => get('tapToSelectLocation');
+  String get locationSelected => get('locationSelected');
+  String get tapToChangeLocation => get('tapToChangeLocation');
+  String get selectLocation => get('selectLocation');
+  String get confirmLocation => get('confirmLocation');
+  String get searchForLocation => get('searchForLocation');
+  String get getCurrentLocation => get('getCurrentLocation');
+  String get centerOnCairo => get('centerOnCairo');
+  String get mapFailedToLoad => get('mapFailedToLoad');
+  String get noResultsFound => get('noResultsFound');
+  String get selectedLocation => get('selectedLocation');
+  String get locationUpdated => get('locationUpdated');
+  String get noAddressesAdded => get('noAddressesAdded');
+  String get tapToAddFirstAddress => get('tapToAddFirstAddress');
+  String get pleaseFillAllFields => get('pleaseFillAllFields');
+  String get pleaseAddCompleteAddress => get('pleaseAddCompleteAddress');
+  String get locationPermissionRequired => get('locationPermissionRequired');
+  String get locationServicesNotAvailable => get('locationServicesNotAvailable');
+  String get pleaseEnableLocationServices => get('pleaseEnableLocationServices');
+  String get gettingYourLocation => get('gettingYourLocation');
+  String get failedToGetLocation => get('failedToGetLocation');
+  String get locationUpdatedSuccessfully => get('locationUpdatedSuccessfully');
+  String get locationSaved => get('locationSaved');
+  String get pleaseRestartApp => get('pleaseRestartApp');
+  String failedToGetLocationError(String error) => get('failedToGetLocationError').replaceAll('{error}', error);
+  
+  // Payment Method Step
+  String get selectPaymentMethod => get('selectPaymentMethod');
+  String get choosePaymentOption => get('choosePaymentOption');
+  String get bankTransfer => get('bankTransfer');
+  String get selectPaymentMethodToContinue => get('selectPaymentMethodToContinue');
+  String get selectYourBank => get('selectYourBank');
+  String get chooseYourBank => get('chooseYourBank');
+  String get pleaseSelectBank => get('pleaseSelectBank');
+  String get enterYourIban => get('enterYourIban');
+  String get ibanExample => get('ibanExample');
+  String get pleaseEnterIban => get('pleaseEnterIban');
+  String get ibanOptional => get('ibanOptional');
+  String get enterAccountNumber => get('enterAccountNumber');
+  String get accountNumberExample => get('accountNumberExample');
+  String get pleaseEnterAccountNumber => get('pleaseEnterAccountNumber');
+  String get enterAccountName => get('enterAccountName');
+  String get accountNameExample => get('accountNameExample');
+  String get pleaseEnterAccountName => get('pleaseEnterAccountName');
+  String get pleaseSelectPaymentMethod => get('pleaseSelectPaymentMethod');
+  
+  // Brand Type Step
+  String get whatTypeOfSeller => get('whatTypeOfSeller');
+  String get brandTypeHelper => get('brandTypeHelper');
+  String get individual => get('individual');
+  String get company => get('company');
+  String get enterTaxNumber => get('enterTaxNumber');
+  String get enterNationalId => get('enterNationalId');
+  String get taxNumberExample => get('taxNumberExample');
+  String get nationalIdExample => get('nationalIdExample');
+  String get pleaseEnterTaxNumber => get('pleaseEnterTaxNumber');
+  String get pleaseEnterNationalId => get('pleaseEnterNationalId');
+  String get uploadCompanyPapers => get('uploadCompanyPapers');
+  String get uploadNationalId => get('uploadNationalId');
+  String get uploadPapers => get('uploadPapers');
+  String get uploadYourNationalId => get('uploadYourNationalId');
+  String get pleaseUploadAllPapers => get('pleaseUploadAllPapers');
+  String get uploadFrontAndBack => get('uploadFrontAndBack');
+  String get uploadMultipleDocuments => get('uploadMultipleDocuments');
+  String uploadingProgress(int progress) => get('uploadingProgress').replaceAll('{progress}', progress.toString());
+  String get uploadedDocuments => get('uploadedDocuments');
+  String get documentRemoved => get('documentRemoved');
+  String uploadedFilesSuccessfully(int count) => get('uploadedFilesSuccessfully').replaceAll('{count}', count.toString());
+  String errorUploadingDocuments(String error) => get('errorUploadingDocuments').replaceAll('{error}', error);
+  String get submitProfile => get('submitProfile');
+  String get submitting => get('submitting');
+  String get pleaseWaitForUpload => get('pleaseWaitForUpload');
+  String get pleaseSelectSellerType => get('pleaseSelectSellerType');
+  String get finalStepNote => get('finalStepNote');
+  
   String get todayOverview => get('todayOverview');
   String get inHubPackages => get('inHubPackages');
   String get headingToCustomer => get('headingToCustomer');
@@ -1721,15 +2147,12 @@ class AppLocalizations {
   String get youHaveInOurHubs => get('youHaveInOurHubs');
   String get profileSummary => get('profileSummary');
   String get brand => get('brand');
-  String get industry => get('industry');
   String get location => get('location');
   String get payment => get('payment');
   String get finishSetup => get('finishSetup');
   String get notProvided => get('notProvided');
   String get city => get('city');
-  String get country => get('country');
   String get cashOnDelivery => get('cashOnDelivery');
-  String get bankTransfer => get('bankTransfer');
   String get digitalWallet => get('digitalWallet');
   String get notSelected => get('notSelected');
   
@@ -1902,7 +2325,6 @@ class AppLocalizations {
   String get namePlaceholder => get('namePlaceholder');
   String get address => get('address');
   String get cityArea => get('cityArea');
-  String get addressDetails => get('addressDetails');
   String get apartment => get('apartment');
   String get floor => get('floor');
   String get building => get('building');
@@ -1952,7 +2374,6 @@ class AppLocalizations {
   String get sendResetLink => get('sendResetLink');
   String get emailSent => get('emailSent');
   String get emailSentDescription => get('emailSentDescription');
-  String get resendEmail => get('resendEmail');
   String get backToLogin => get('backToLogin');
   String get checkEmailForReset => get('checkEmailForReset');
   String get enterOtpCode => get('enterOtpCode');

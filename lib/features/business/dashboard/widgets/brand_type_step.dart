@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
+import '../../../../core/l10n/app_localizations.dart';
 
 class DashboardBrandTypeStep extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
@@ -41,18 +42,21 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
   bool _isUploading = false;
   double _uploadProgress = 0.0;
 
-  final brandTypes = [
-    {
-      'id': 'individual',
-      'title': 'Individual',
-      'icon': Icons.person_outline,
-    },
-    {
-      'id': 'company',
-      'title': 'Company',
-      'icon': Icons.business_outlined,
-    },
-  ];
+  List<Map<String, dynamic>> getBrandTypes(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return [
+      {
+        'id': 'individual',
+        'title': l10n.individual,
+        'icon': Icons.person_outline,
+      },
+      {
+        'id': 'company',
+        'title': l10n.company,
+        'icon': Icons.business_outlined,
+      },
+    ];
+  }
 
   @override
   void initState() {
@@ -131,7 +135,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
         // Toast notification
         ToastService.show(
           context,
-          'Uploaded ${uploadedUrls.length} files successfully',
+          AppLocalizations.of(context).uploadedFilesSuccessfully(uploadedUrls.length),
           type: ToastType.success,
           duration: const Duration(seconds: 2),
         );
@@ -270,7 +274,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
     
     ToastService.show(
       context,
-      'Document removed',
+      AppLocalizations.of(context).documentRemoved,
       type: ToastType.info,
       duration: const Duration(seconds: 2),
     );
@@ -304,7 +308,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'What type of seller are you?',
+                    AppLocalizations.of(context).whatTypeOfSeller,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: Color(0xffF29620),
@@ -312,7 +316,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'This helps us tailor our services to your needs',
+                    AppLocalizations.of(context).brandTypeHelper,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurface.withOpacity(0.7),
                     ),
@@ -324,8 +328,8 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
             const SizedBox(height: 32),
 
             // Brand type options with animation
-            ...List.generate(brandTypes.length, (index) {
-              final type = brandTypes[index];
+            ...List.generate(getBrandTypes(context).length, (index) {
+              final type = getBrandTypes(context)[index];
               final isSelected = _selectedBrandType == type['id'];
 
               return TweenAnimationBuilder<double>(
@@ -367,8 +371,8 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                     // Tax ID / National ID field
                     Text(
                       _selectedBrandType == 'company' 
-                          ? 'Enter your Tax Number:' 
-                          : 'Enter your National ID Number:',
+                          ? AppLocalizations.of(context).enterTaxNumber
+                          : AppLocalizations.of(context).enterNationalId,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
@@ -377,8 +381,8 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                     TextFormField(
                       decoration: InputDecoration(
                         hintText: _selectedBrandType == 'company' 
-                            ? 'Example: 1234567890' 
-                            : 'Example: 29811234',
+                            ? AppLocalizations.of(context).taxNumberExample
+                            : AppLocalizations.of(context).nationalIdExample,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Color(0xffF29620)),
@@ -394,8 +398,8 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return _selectedBrandType == 'company'
-                              ? 'Please enter your tax number'
-                              : 'Please enter your national ID number';
+                              ? AppLocalizations.of(context).pleaseEnterTaxNumber
+                              : AppLocalizations.of(context).pleaseEnterNationalId;
                         }
                         return null;
                       },
@@ -423,8 +427,8 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                     // Document upload section
                     Text(
                       _selectedBrandType == 'company' 
-                          ? 'Upload Company Papers:' 
-                          : 'Upload National ID:',
+                          ? AppLocalizations.of(context).uploadCompanyPapers
+                          : AppLocalizations.of(context).uploadNationalId,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w500,
                       ),
@@ -444,16 +448,16 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                             padding: const EdgeInsets.all(16.0),
                             child: Text(
                               _selectedBrandType == 'company'
-                                  ? 'Upload Papers'
-                                  : 'Upload Your National ID',
+                                  ? AppLocalizations.of(context).uploadPapers
+                                  : AppLocalizations.of(context).uploadYourNationalId,
                               style: theme.textTheme.titleMedium,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             _selectedBrandType == 'company'
-                                ? 'Please Upload All Papers'
-                                : 'Upload Front Side And Back Side',
+                                ? AppLocalizations.of(context).pleaseUploadAllPapers
+                                : AppLocalizations.of(context).uploadFrontAndBack,
                             style: TextStyle(
                               color: Colors.grey.shade600,
                               fontSize: 14,
@@ -468,7 +472,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                               ElevatedButton.icon(
                                 onPressed: _isUploading ? null : _pickImage,
                                 icon: const Icon(Icons.photo_library),
-                                label: const Text('Upload Multiple Documents'),
+                                label: Text(AppLocalizations.of(context).uploadMultipleDocuments),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.orange,
                                   foregroundColor: Colors.white,
@@ -502,7 +506,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                                       ],
                                     ),
                                     const SizedBox(height: 8),
-                                    Text('Uploading ${(_uploadProgress * 100).toInt()}% complete'),
+                                    Text(AppLocalizations.of(context).uploadingProgress((_uploadProgress * 100).toInt())),
                                   ],
                                 ),
                               ),
@@ -516,7 +520,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Uploaded Documents',
+                                    AppLocalizations.of(context).uploadedDocuments,
                                     style: theme.textTheme.titleMedium?.copyWith(
                                       fontWeight: FontWeight.w500,
                                     ),
@@ -599,8 +603,8 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('Back',
-                    style: TextStyle(
+                    child: Text(AppLocalizations.of(context).back,
+                    style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
               ),),
@@ -626,10 +630,10 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                       ),
                     ),
                     child: _isSubmitting
-                        ? const Row(
+                        ? Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              SizedBox(
+                              const SizedBox(
                                 width: 16,
                                 height: 16,
                                 child: CircularProgressIndicator(
@@ -637,22 +641,22 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                                   color: Colors.white,
                                 ),
                               ),
-                              SizedBox(width: 8),
-                              Text("Submitting..."),
+                              const SizedBox(width: 8),
+                              Text(AppLocalizations.of(context).submitting),
                             ],
                           )
                         : _isUploading
-                            ? const Text(
-                                "Please wait for upload to complete",
-                                style: TextStyle(
+                            ? Text(
+                                AppLocalizations.of(context).pleaseWaitForUpload,
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
                                 textAlign: TextAlign.center,
                               )
-                            : const Text(
-                                "Submit Profile",
-                                style: TextStyle(
+                            : Text(
+                                AppLocalizations.of(context).submitProfile,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -671,7 +675,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                 child: Column(
                   children: [
                     Text(
-                      "Your progress is automatically saved when you switch tabs",
+                      AppLocalizations.of(context).progressAutoSaved,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
@@ -681,7 +685,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "This is the final step, we'll check if all required information is complete",
+                      AppLocalizations.of(context).finalStepNote,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
@@ -757,7 +761,7 @@ class _DashboardBrandTypeStepState extends ConsumerState<DashboardBrandTypeStep>
       // Show error message if no brand type is selected
       ToastService.show(
         context, 
-        'Please select your seller type',
+        AppLocalizations.of(context).pleaseSelectSellerType,
         type: ToastType.error,
         duration: const Duration(seconds: 3),
       );
