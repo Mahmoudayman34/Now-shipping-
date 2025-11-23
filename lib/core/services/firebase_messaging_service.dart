@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -17,13 +18,15 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 class FirebaseMessagingService {
-  static final FirebaseMessagingService _instance = FirebaseMessagingService._internal();
+  static final FirebaseMessagingService _instance =
+      FirebaseMessagingService._internal();
   factory FirebaseMessagingService() => _instance;
   FirebaseMessagingService._internal();
 
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
-  
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+
   bool _isInitialized = false;
   String? _fcmToken;
 
@@ -39,24 +42,26 @@ class FirebaseMessagingService {
       try {
         Firebase.app();
       } catch (e) {
-        debugPrint('❌ Firebase Core is not initialized. Cannot initialize Firebase Messaging.');
-        debugPrint('⚠️  Please ensure Firebase.initializeApp() is called in main.dart');
+        debugPrint(
+            '❌ Firebase Core is not initialized. Cannot initialize Firebase Messaging.');
+        debugPrint(
+            '⚠️  Please ensure Firebase.initializeApp() is called in main.dart');
         return;
       }
 
       // Request notification permissions
       await _requestPermission();
-      
+
       // Initialize local notifications
       await _initializeLocalNotifications();
-      
+
       // Get and save FCM token
       await getAndSaveToken();
-      
+
       // Setup message handlers
       _setupForegroundMessageHandlers();
       _setupBackgroundMessageHandlers();
-      
+
       // Listen for token refresh
       _firebaseMessaging.onTokenRefresh.listen((newToken) {
         debugPrint('🔄 FCM Token refreshed: $newToken');
@@ -64,7 +69,7 @@ class FirebaseMessagingService {
         _saveTokenToPreferences(newToken);
         _sendTokenToServer(newToken);
       });
-      
+
       _isInitialized = true;
       debugPrint('✅ Firebase Messaging initialized successfully');
     } catch (e) {
@@ -76,7 +81,8 @@ class FirebaseMessagingService {
   /// Request notification permissions
   Future<void> _requestPermission() async {
     try {
-      NotificationSettings settings = await _firebaseMessaging.requestPermission(
+      NotificationSettings settings =
+          await _firebaseMessaging.requestPermission(
         alert: true,
         badge: true,
         sound: true,
@@ -86,11 +92,13 @@ class FirebaseMessagingService {
         provisional: false,
       );
 
-      debugPrint('📱 Notification permission status: ${settings.authorizationStatus}');
-      
+      debugPrint(
+          '📱 Notification permission status: ${settings.authorizationStatus}');
+
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         debugPrint('✅ User granted notification permissions');
-      } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+      } else if (settings.authorizationStatus ==
+          AuthorizationStatus.provisional) {
         debugPrint('⚠️  User granted provisional notification permissions');
       } else {
         debugPrint('❌ User declined notification permissions');
@@ -105,7 +113,8 @@ class FirebaseMessagingService {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings(
+    const DarwinInitializationSettings iosSettings =
+        DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
       requestSoundPermission: true,
@@ -130,7 +139,8 @@ class FirebaseMessagingService {
     );
 
     await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
   }
 
@@ -177,18 +187,18 @@ class FirebaseMessagingService {
         icon: '@mipmap/ic_launcher',
         color: Color(0xfff29620),
       );
-      
+
       const iosDetails = DarwinNotificationDetails(
         presentAlert: true,
         presentBadge: true,
         presentSound: true,
       );
-      
+
       const notificationDetails = NotificationDetails(
         android: androidDetails,
         iOS: iosDetails,
       );
-      
+
       await _localNotifications.show(
         notification.hashCode,
         notification.title,
@@ -202,8 +212,49 @@ class FirebaseMessagingService {
   /// Get and save FCM token
   Future<String?> getAndSaveToken() async {
     try {
+      // On iOS, ensure APNS token is available before getting FCM token
+      if (Platform.isIOS) {
+        // Check notification permission status first
+        NotificationSettings settings =
+            await _firebaseMessaging.getNotificationSettings();
+
+        if (settings.authorizationStatus != AuthorizationStatus.authorized &&
+            settings.authorizationStatus != AuthorizationStatus.provisional) {
+          debugPrint(
+              '⚠️  Notification permissions not granted. Cannot get FCM token on iOS.');
+          debugPrint('📱 Permission status: ${settings.authorizationStatus}');
+          debugPrint(
+              '💡 User needs to grant notification permissions in Settings to receive push notifications.');
+          return null;
+        }
+
+        // Wait for APNS token to be available (with longer timeout for first time)
+        String? apnsToken = await _waitForAPNSToken(maxWaitSeconds: 15);
+
+        if (apnsToken == null) {
+          debugPrint(
+              '⚠️  APNS Token not available after waiting. This may be due to:');
+          debugPrint('   1. Notification permissions not granted');
+          debugPrint(
+              '   2. App running on simulator (APNS tokens only work on real devices)');
+          debugPrint('   3. Network connectivity issues');
+          debugPrint(
+              '   4. APNS certificate/key not configured in Firebase Console');
+          debugPrint(
+              '   5. Bundle ID mismatch between app and Firebase project');
+          debugPrint(
+              '   6. APNS environment mismatch (development vs production)');
+          return null;
+        }
+
+        debugPrint('✅ APNS Token available: ${apnsToken.substring(0, 20)}...');
+
+        // Additional wait to ensure APNS token is fully processed by Firebase
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+
       String? token = await _firebaseMessaging.getToken();
-      
+
       if (token != null) {
         debugPrint('📱 FCM Token: $token');
         _fcmToken = token;
@@ -216,8 +267,81 @@ class FirebaseMessagingService {
       }
     } catch (e) {
       debugPrint('❌ Error getting FCM token: $e');
+      debugPrint('🔍 Error type: ${e.runtimeType}');
+      debugPrint('🔍 Error details: ${e.toString()}');
+
+      // If it's the APNS token error, try waiting for it
+      if ((e.toString().contains('apns-token-not-set') ||
+              e.toString().contains('APNS') ||
+              e.toString().contains('third-party-auth-error')) &&
+          Platform.isIOS) {
+        debugPrint(
+            '🔄 APNS token issue detected, waiting for it to become available...');
+        String? apnsToken = await _waitForAPNSToken(maxWaitSeconds: 10);
+
+        if (apnsToken != null) {
+          // Additional wait to ensure APNS token is fully processed
+          await Future.delayed(const Duration(milliseconds: 500));
+
+          try {
+            String? token = await _firebaseMessaging.getToken();
+            if (token != null) {
+              debugPrint('📱 FCM Token (after APNS wait): $token');
+              _fcmToken = token;
+              await _saveTokenToPreferences(token);
+              await _sendTokenToServer(token);
+              return token;
+            }
+          } catch (retryError) {
+            debugPrint(
+                '❌ Error getting FCM token after APNS wait: $retryError');
+            debugPrint(
+                '🔍 This might indicate an APNS configuration issue in Firebase Console');
+          }
+        } else {
+          debugPrint('❌ APNS token still not available after retry');
+          debugPrint('💡 Please check:');
+          debugPrint(
+              '   1. Firebase Console has APNS Authentication Key configured');
+          debugPrint('   2. Bundle ID matches: co.nowshipping.now');
+          debugPrint(
+              '   3. APNS environment matches (production for release builds)');
+          debugPrint('   4. App is running on a real device (not simulator)');
+        }
+      }
       return null;
     }
+  }
+
+  /// Wait for APNS token to become available
+  Future<String?> _waitForAPNSToken({int maxWaitSeconds = 10}) async {
+    const checkInterval = Duration(milliseconds: 500);
+    final maxAttempts = (maxWaitSeconds * 1000) ~/ 500;
+
+    debugPrint('⏳ Waiting for APNS token (max ${maxWaitSeconds}s)...');
+
+    for (int i = 0; i < maxAttempts; i++) {
+      try {
+        String? apnsToken = await _firebaseMessaging.getAPNSToken();
+        if (apnsToken != null && apnsToken.isNotEmpty) {
+          debugPrint('✅ APNS token received after ${(i + 1) * 500}ms');
+          return apnsToken;
+        }
+      } catch (e) {
+        // Log error but continue polling
+        if (i == 0 || i % 10 == 0) {
+          debugPrint(
+              '⏳ Still waiting for APNS token... (attempt ${i + 1}/$maxAttempts)');
+        }
+      }
+
+      if (i < maxAttempts - 1) {
+        await Future.delayed(checkInterval);
+      }
+    }
+
+    debugPrint('❌ APNS token not received after ${maxWaitSeconds}s');
+    return null;
   }
 
   /// Force update FCM token on login (handles multi-device login)
@@ -225,18 +349,76 @@ class FirebaseMessagingService {
     try {
       // Delete old token
       await _firebaseMessaging.deleteToken();
-      
+
+      // On iOS, ensure APNS token is available before getting FCM token
+      if (Platform.isIOS) {
+        // Check notification permission status first
+        NotificationSettings settings =
+            await _firebaseMessaging.getNotificationSettings();
+
+        if (settings.authorizationStatus != AuthorizationStatus.authorized &&
+            settings.authorizationStatus != AuthorizationStatus.provisional) {
+          debugPrint(
+              '⚠️  Notification permissions not granted. Cannot update FCM token on iOS.');
+          return;
+        }
+
+        // Wait for APNS token (longer timeout for login scenario)
+        String? apnsToken = await _waitForAPNSToken(maxWaitSeconds: 10);
+        if (apnsToken == null) {
+          debugPrint('⚠️  APNS Token not available. Cannot update FCM token.');
+          debugPrint(
+              '💡 This may indicate an APNS configuration issue in Firebase Console');
+          return;
+        }
+
+        // Additional wait to ensure APNS token is fully processed
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+
       // Get new token
       String? newToken = await _firebaseMessaging.getToken();
-      
+
       if (newToken != null) {
         debugPrint('🔄 New FCM token on login: $newToken');
         _fcmToken = newToken;
         await _saveTokenToPreferences(newToken);
         await _sendTokenToServer(newToken, authToken: authToken);
+      } else {
+        debugPrint('⚠️  Failed to get new FCM token on login');
       }
     } catch (e) {
       debugPrint('❌ Error updating token on login: $e');
+      debugPrint('🔍 Error type: ${e.runtimeType}');
+
+      // Retry if APNS token error
+      if ((e.toString().contains('apns-token-not-set') ||
+              e.toString().contains('APNS') ||
+              e.toString().contains('third-party-auth-error')) &&
+          Platform.isIOS) {
+        debugPrint('🔄 APNS token issue detected, waiting for it...');
+        String? apnsToken = await _waitForAPNSToken(maxWaitSeconds: 10);
+
+        if (apnsToken != null) {
+          // Additional wait to ensure APNS token is fully processed
+          await Future.delayed(const Duration(milliseconds: 500));
+
+          try {
+            String? newToken = await _firebaseMessaging.getToken();
+            if (newToken != null) {
+              debugPrint(
+                  '🔄 New FCM token on login (after APNS wait): $newToken');
+              _fcmToken = newToken;
+              await _saveTokenToPreferences(newToken);
+              await _sendTokenToServer(newToken, authToken: authToken);
+            }
+          } catch (retryError) {
+            debugPrint('❌ Error updating token after APNS wait: $retryError');
+            debugPrint(
+                '🔍 This might indicate an APNS configuration issue in Firebase Console');
+          }
+        }
+      }
     }
   }
 
@@ -256,7 +438,7 @@ class FirebaseMessagingService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedAuthToken = authToken ?? prefs.getString('auth_token');
-      
+
       if (savedAuthToken == null) {
         debugPrint('⚠️  No auth token available, skipping token sync');
         return;
@@ -274,7 +456,8 @@ class FirebaseMessagingService {
       if (response.statusCode == 200) {
         debugPrint('✅ FCM token sent to server successfully');
       } else {
-        debugPrint('❌ Failed to send FCM token to server: ${response.statusCode}');
+        debugPrint(
+            '❌ Failed to send FCM token to server: ${response.statusCode}');
         debugPrint('Response: ${response.body}');
       }
     } catch (e) {
@@ -287,5 +470,27 @@ class FirebaseMessagingService {
 
   /// Check if initialized
   bool get isInitialized => _isInitialized;
-}
 
+  /// Retry getting FCM token (useful when permissions are granted later)
+  Future<String?> retryGetToken() async {
+    debugPrint('🔄 Retrying FCM token retrieval...');
+    return await getAndSaveToken();
+  }
+
+  /// Check if notification permissions are granted
+  Future<bool> hasNotificationPermissions() async {
+    if (!Platform.isIOS) {
+      return true; // Android doesn't require this check
+    }
+
+    try {
+      NotificationSettings settings =
+          await _firebaseMessaging.getNotificationSettings();
+      return settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional;
+    } catch (e) {
+      debugPrint('❌ Error checking notification permissions: $e');
+      return false;
+    }
+  }
+}

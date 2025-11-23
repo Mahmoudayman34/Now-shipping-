@@ -1,30 +1,53 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class NotificationPermissionHelper {
   /// Check notification permissions and show dialog if denied
   static Future<void> checkPermissions(BuildContext context) async {
     if (!context.mounted) return;
 
-    PermissionStatus status;
+    bool isGranted = false;
 
     if (Platform.isAndroid) {
       // Check notification permission for Android 13+
-      status = await Permission.notification.status;
+      final status = await Permission.notification.status;
+      isGranted = status.isGranted || status.isLimited;
+      debugPrint('📱 Android notification status: $status');
     } else if (Platform.isIOS) {
-      // Check notification permission for iOS
-      status = await Permission.notification.status;
+      // For iOS, use Firebase Messaging to check notification permissions
+      // This is the correct way to check iOS notification permissions
+      try {
+        final firebaseMessaging = FirebaseMessaging.instance;
+        final settings = await firebaseMessaging.getNotificationSettings();
+        debugPrint(
+            '📱 iOS notification authorization status: ${settings.authorizationStatus}');
+
+        // Check if permissions are authorized or provisional (both are valid granted states)
+        isGranted =
+            settings.authorizationStatus == AuthorizationStatus.authorized ||
+                settings.authorizationStatus == AuthorizationStatus.provisional;
+      } catch (e) {
+        debugPrint('❌ Error checking iOS notification permissions: $e');
+        // If there's an error, assume not granted to be safe
+        isGranted = false;
+      }
     } else {
       // Other platforms
       return;
     }
 
-    if (status.isDenied || status.isPermanentlyDenied) {
-      if (context.mounted) {
-        await showPermissionDialog(context);
-      }
+    // If permissions are already granted, don't show the dialog
+    if (isGranted) {
+      debugPrint('✅ Notifications are already granted or limited');
+      return;
+    }
+
+    // Only show dialog if permissions are not granted
+    debugPrint('⚠️ Notifications are not granted, showing dialog');
+    if (context.mounted) {
+      await showPermissionDialog(context);
     }
   }
 
@@ -115,7 +138,7 @@ class NotificationPermissionHelper {
             ElevatedButton(
               onPressed: () async {
                 Navigator.of(context).pop();
-                await openAppSettings();
+                await _openAppSettings();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xfff29620),
@@ -123,7 +146,8 @@ class NotificationPermissionHelper {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
               child: const Text('Open Settings'),
             ),
@@ -134,20 +158,12 @@ class NotificationPermissionHelper {
   }
 
   /// Open app settings
-  static Future<void> openAppSettings() async {
+  static Future<void> _openAppSettings() async {
     try {
-      if (Platform.isIOS) {
-        // iOS: Open app settings
-        final uri = Uri.parse('app-settings:');
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri);
-        } else {
-          // Fallback to permission_handler's method
-          await openAppSettings();
-        }
-      } else {
-        // Android: Use permission_handler's method
-        await Permission.notification.request();
+      // Use permission_handler's openAppSettings method for both platforms
+      final opened = await openAppSettings();
+      if (!opened) {
+        debugPrint('❌ Could not open app settings');
       }
     } catch (e) {
       debugPrint('❌ Error opening app settings: $e');
@@ -187,4 +203,3 @@ class _PermissionBenefit extends StatelessWidget {
     );
   }
 }
-

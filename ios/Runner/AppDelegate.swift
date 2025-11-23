@@ -6,46 +6,66 @@ import FirebaseMessaging
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
+  private var apnsTokenData: Data?
+  
   override func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // Initialize Firebase
-    FirebaseApp.configure()
+    // Initialize Firebase - This is critical for APNS token handling
+    // Note: Firebase is also initialized in Dart, but we need it here for native token handling
+    if FirebaseApp.app() == nil {
+      FirebaseApp.configure()
+      print("✅ Firebase initialized in AppDelegate")
+    }
     
     // Initialize Google Maps
     GMSServices.provideAPIKey("AIzaSyCGxSkL--7poxqkFZJg9c3v_0Y3czMIiOI")
     
-    // Request notification permissions
+    // Set up notification center delegate
+    // Note: Permission requests are handled by Flutter/Firebase Messaging
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self
-      
-      let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
-      UNUserNotificationCenter.current().requestAuthorization(
-        options: authOptions,
-        completionHandler: { granted, error in
-          if let error = error {
-            print("Error requesting notification authorization: \(error)")
-          }
-        }
-      )
-    } else {
-      let settings: UIUserNotificationSettings =
-        UIUserNotificationSettings(types: [.alert, .badge, .sound], categories: nil)
-      application.registerUserNotificationSettings(settings)
     }
     
+    // Register for remote notifications (this is needed to receive APNS token)
+    // The actual permission request is handled by Flutter/Firebase Messaging
     application.registerForRemoteNotifications()
     
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
   
-  // Handle FCM token
+  // Handle APNS token registration
   override func application(_ application: UIApplication,
                             didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    // Store the APNS token data
+    apnsTokenData = deviceToken
+    
+    // Convert device token to string for logging
+    let tokenParts = deviceToken.map { data in String(format: "%02.2hhx", data) }
+    let token = tokenParts.joined()
+    print("✅ APNS Device Token received: \(token.prefix(20))...")
+    
+    // Set APNS token for Firebase Messaging
+    // This must be set before getting FCM token
     Messaging.messaging().apnsToken = deviceToken
+    
+    // Verify Firebase is initialized
+    if FirebaseApp.app() != nil {
+      print("✅ APNS token set for Firebase Messaging (Firebase initialized)")
+    } else {
+      print("⚠️ APNS token set but Firebase not yet initialized")
+    }
+    
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+  }
+  
+  // Handle APNS token registration failure
+  override func application(_ application: UIApplication,
+                            didFailToRegisterForRemoteNotificationsWithError error: Error) {
+    print("❌ Failed to register for remote notifications: \(error.localizedDescription)")
+    super.application(application, didFailToRegisterForRemoteNotificationsWithError: error)
   }
   
   // Handle notification tap when app is in background/terminated
