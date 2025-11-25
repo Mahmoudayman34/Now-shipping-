@@ -9,6 +9,7 @@ import 'core/theme/app_theme.dart';
 import 'core/providers/locale_provider.dart';
 import 'core/l10n/app_localizations.dart';
 import 'core/services/firebase_messaging_service.dart';
+import 'core/widgets/offline_banner.dart';
 import 'features/initial/screens/initial_screen.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/signup_screen.dart';
@@ -138,7 +139,17 @@ class MyApp extends ConsumerWidget {
           ),
           child: Directionality(
             textDirection: locale.languageCode == 'ar' ? TextDirection.rtl : TextDirection.ltr,
-            child: child!,
+            child: Stack(
+              children: [
+                child!,
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: const OfflineBanner(),
+                ),
+              ],
+            ),
           ),
         );
       },
